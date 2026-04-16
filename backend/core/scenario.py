@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from core.model import compute_score
+from core.model import compute_score_from_validated
 from core.threshold import Decision, make_decision
 from schemas.request import validate_profile
 
@@ -104,7 +104,7 @@ def evaluate_variations(
             raise ValueError("variation profile must be a mapping")
 
         normalized_profile = validate_profile(candidate_profile)
-        score = compute_score(normalized_profile)
+        score = compute_score_from_validated(normalized_profile)
         decision: Decision = make_decision(score=score, threshold=threshold)
         results[name] = {
             "score": score,
