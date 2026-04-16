@@ -13,6 +13,9 @@ class ProfileSchema(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     score: float = Field(ge=0, le=100)
     experience: int = Field(ge=0, le=50)
+    gender: str | None = Field(default=None, min_length=1, max_length=32)
+    location: str | None = Field(default=None, min_length=1, max_length=120)
+    college: str | None = Field(default=None, min_length=1, max_length=160)
 
     @field_validator("name")
     @classmethod
@@ -20,6 +23,26 @@ class ProfileSchema(BaseModel):
         normalized = " ".join(value.strip().split())
         if not normalized:
             raise ValueError("name cannot be blank")
+        return normalized
+
+    @field_validator("gender")
+    @classmethod
+    def normalize_gender(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip().lower().replace("_", "-")
+        if not normalized:
+            raise ValueError("gender cannot be blank")
+        return normalized
+
+    @field_validator("location", "college")
+    @classmethod
+    def normalize_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = " ".join(value.strip().split())
+        if not normalized:
+            raise ValueError("value cannot be blank")
         return normalized
 
 
@@ -51,6 +74,18 @@ def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
         if not experience.is_integer():
             raise ValueError("experience must be a whole number")
         normalized["experience"] = int(experience)
+
+    gender = normalized.get("gender")
+    if isinstance(gender, str):
+        normalized["gender"] = gender.strip().lower().replace("_", "-")
+
+    location = normalized.get("location")
+    if isinstance(location, str):
+        normalized["location"] = " ".join(location.strip().split())
+
+    college = normalized.get("college")
+    if isinstance(college, str):
+        normalized["college"] = " ".join(college.strip().split())
 
     return normalized
 
