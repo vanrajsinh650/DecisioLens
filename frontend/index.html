@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DecisioLens - AI Decision Stability + Bias Auditor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">Decision Review Console</p>
+      <h1>AI Decision Stability + Bias Auditor</h1>
+      <p class="sub">
+        Audit outcomes for instability, threshold sensitivity, and bias signals before you deploy.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Run Audit</h2>
+      <form id="audit-form" novalidate>
+        <div class="grid">
+          <label>
+            Name
+            <input id="name" name="name" value="Alex Kumar" required />
+          </label>
+          <label>
+            Score (0-100)
+            <input id="score" name="score" type="number" min="0" max="100" value="72" required />
+          </label>
+          <label>
+            Experience (years)
+            <input id="experience" name="experience" type="number" min="0" max="50" value="4" required />
+          </label>
+          <label>
+            Gender
+            <input id="gender" name="gender" value="male" required />
+          </label>
+          <label>
+            Location
+            <input id="location" name="location" value="Bengaluru" required />
+          </label>
+          <label>
+            College
+            <input id="college" name="college" value="IIT Bombay" required />
+          </label>
+          <label>
+            Threshold (0-1)
+            <input id="threshold" name="threshold" type="number" min="0" max="1" step="0.01" value="0.5" required />
+          </label>
+          <label>
+            API Base URL
+            <input id="api-base" name="api-base" placeholder="http://127.0.0.1:8000" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="run-btn" type="submit">Run Audit</button>
+          <p id="status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+
+    <section id="result" class="panel result hidden">
+      <h2>Audit Result</h2>
+      <div class="kpis">
+        <div class="kpi">
+          <span>Decision</span>
+          <strong id="decision-value">-</strong>
+        </div>
+        <div class="kpi">
+          <span>Score</span>
+          <strong id="score-value">-</strong>
+        </div>
+        <div class="kpi">
+          <span>Confidence</span>
+          <strong id="confidence-value">-</strong>
+        </div>
+        <div class="kpi">
+          <span>Risk</span>
+          <strong id="risk-value">-</strong>
+        </div>
+      </div>
+
+      <div class="jury">
+        <h3>AI Jury View</h3>
+        <p id="jury-auditor">Auditor -> -</p>
+        <p id="jury-challenger">Challenger -> -</p>
+        <p id="jury-judge">Judge -> -</p>
+      </div>
+
+      <div class="reason-row">
+        <h3>Reason Tags</h3>
+        <div id="reason-tags" class="tags"></div>
+      </div>
+
+      <div class="text-block">
+        <h3>Structured Explanation</h3>
+        <pre id="explanation-text"></pre>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
