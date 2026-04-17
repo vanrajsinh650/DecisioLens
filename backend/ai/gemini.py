@@ -57,6 +57,7 @@ def _call_gemini_once(
 def _fallback_explanation(context: Mapping[str, Any]) -> str:
     original = context.get("original", {})
     analysis = context.get("analysis", {})
+    decision_quality = context.get("decision_quality", {})
     instability = analysis.get("instability", {})
     bias = analysis.get("bias", {})
 
@@ -64,11 +65,26 @@ def _fallback_explanation(context: Mapping[str, Any]) -> str:
     score = original.get("score", "N/A")
     sensitivity = instability.get("sensitivity", "UNKNOWN")
     bias_flags = bias.get("flag_count", 0)
+    confidence_zone = decision_quality.get("confidence_zone", "Unknown")
+    risk = decision_quality.get("risk", {})
+    risk_score = risk.get("score", "N/A")
+    risk_level = risk.get("level", "UNKNOWN")
+    reason_tags = decision_quality.get("reason_tags", [])
+
+    if confidence_zone == "Borderline":
+        confidence_note = "This decision is borderline and sensitive."
+    elif confidence_zone == "Unstable":
+        confidence_note = "This decision is unstable and sensitive to small changes."
+    else:
+        confidence_note = "This decision is in a high-confidence zone."
 
     return (
         f"Decision result: {decision} (score={score}). "
+        f"Confidence zone: {confidence_zone}. {confidence_note} "
+        f"Risk score: {risk_score} ({risk_level}). "
         f"Threshold sensitivity: {sensitivity}. "
         f"Bias flags detected: {bias_flags}. "
+        f"Reason tags: {reason_tags}. "
         "This explanation was generated using local fallback because Gemini output was unavailable."
     )
 
@@ -76,6 +92,7 @@ def _fallback_explanation(context: Mapping[str, Any]) -> str:
 def _fallback_appeal(context: Mapping[str, Any]) -> str:
     original = context.get("original", {})
     analysis = context.get("analysis", {})
+    decision_quality = context.get("decision_quality", {})
     instability = analysis.get("instability", {})
     bias = analysis.get("bias", {})
 
@@ -83,14 +100,22 @@ def _fallback_appeal(context: Mapping[str, Any]) -> str:
     score = original.get("score", "N/A")
     sensitivity = instability.get("sensitivity", "UNKNOWN")
     flags = bias.get("flag_count", 0)
+    confidence_zone = decision_quality.get("confidence_zone", "Unknown")
+    risk = decision_quality.get("risk", {})
+    risk_score = risk.get("score", "N/A")
+    risk_level = risk.get("level", "UNKNOWN")
+    reason_tags = decision_quality.get("reason_tags", [])
 
     return (
         "Subject: Request for Review of Automated Decision\n\n"
         "Dear Review Committee,\n\n"
         "I respectfully request a formal review of my automated evaluation result. "
         f"The current outcome is {decision} with score {score}. "
+        f"The confidence zone is {confidence_zone}. "
+        f"The computed risk score is {risk_score} ({risk_level}). "
         f"The analysis indicates threshold sensitivity level {sensitivity} "
         f"and {flags} potential bias-related flag(s). "
+        f"Reason tags include {reason_tags}. "
         "Given these indicators, I request a manual reassessment to confirm fairness and consistency.\n\n"
         "Thank you for your time and consideration.\n"
     )
@@ -105,7 +130,7 @@ def generate_explanation(context: Mapping[str, Any]) -> str:
 
     prompt = (
         "You are an AI audit assistant. Explain the decision result clearly to a non-technical user.\n"
-        "Focus on: score, decision, threshold behavior, instability, and bias flags.\n"
+        "Focus on: score, confidence zone, risk score, threshold behavior, instability, bias flags, and reason tags.\n"
         "Keep it factual, concise, and easy to understand.\n\n"
         f"Context:\n{_context_to_json(context)}"
     )
@@ -129,7 +154,7 @@ def generate_appeal(context: Mapping[str, Any]) -> str:
 
     prompt = (
         "Draft a formal appeal letter requesting manual review of an automated decision.\n"
-        "Include: decision outcome, score, threshold sensitivity, instability/bias indicators, "
+        "Include: decision outcome, score, confidence zone, risk score, threshold sensitivity, instability/bias indicators, reason tags, "
         "and a polite request for reassessment.\n"
         "Use professional tone and concise language.\n\n"
         f"Context:\n{_context_to_json(context)}"

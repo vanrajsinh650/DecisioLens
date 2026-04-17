@@ -7,6 +7,8 @@ from core.threshold import Decision
 
 VALID_DECISIONS: set[str] = {"ACCEPT", "REJECT"}
 SUSPICIOUS_SCORE_DELTA: float = 0.05
+HIGH_CONFIDENCE_DISTANCE: float = 0.2
+BORDERLINE_DISTANCE: float = 0.1
 
 
 def _normalize_decision(value: Any, context: str) -> Decision:
@@ -185,3 +187,104 @@ def detect_bias_patterns(
         "suspicious_patterns": suspicious_patterns,
         "compared_variations": compared,
     }
+
+
+def classify_confidence(score: Any) -> str:
+    """
+    Classify confidence zone from score distance to the neutral midpoint (0.5).
+    """
+
+    normalized_score = _normalize_score(score, "score")
+    distance_to_midpoint = abs(normalized_score - 0.5)
+
+    if distance_to_midpoint >= HIGH_CONFIDENCE_DISTANCE:
+        return "High confidence"
+    if distance_to_midpoint >= BORDERLINE_DISTANCE:
+        return "Borderline"
+    return "Unstable"
+
+
+def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
+    """
+    Compute a normalized 0-100 risk score with judge-friendly band labels.
+
+    Bands:
+    - 0-30: Low
+    - 30-70: Medium
+    - 70-100: High
+    """
+
+    instability_report: Mapping[str, Any]
+    if isinstance(instability, Mapping):
+        instability_report = instability
+    else:
+        instability_report = {"is_unstable": bool(instability)}
+
+    sensitivity = str(instability_report.get("sensitivity", "")).upper()
+    is_unstable = bool(instability_report.get("is_unstable"))
+    variation_flip_count = int(instability_report.get("variation_flip_count", 0))
+    threshold_switch_count = int(instability_report.get("threshold_switch_count", 0))
+
+    if sensitivity == "HIGH":
+        instability_points = 55
+    elif sensitivity == "MEDIUM":
+        instability_points = 40
+    elif is_unstable:
+        instability_points = 25
+    else:
+        instability_points = 10
+
+    structural_points = min((variation_flip_count + threshold_switch_count) * 5, 20)
+    bias_points = 35 if bias_detected else 0
+
+    score = max(0, min(instability_points + structural_points + bias_points, 100))
+
+    if score <= 30:
+        level = "Low"
+    elif score <= 70:
+        level = "Medium"
+    else:
+        level = "High"
+
+    return {"score": score, "level": level}
+
+
+def build_reason_tags(
+    *,
+    instability_report: Mapping[str, Any],
+    bias_report: Mapping[str, Any],
+    confidence_zone: str,
+) -> list[str]:
+    """
+    Build concise reason tags to simplify judge review and UI rendering.
+    """
+
+    tags: list[str] = []
+
+    if int(instability_report.get("threshold_switch_count", 0)) > 0:
+        tags.append("threshold_sensitive")
+    if int(instability_report.get("variation_flip_count", 0)) > 0:
+        tags.append("profile_instability")
+
+    suspicious_patterns = bias_report.get("suspicious_patterns", [])
+    if isinstance(suspicious_patterns, Sequence):
+        for row in suspicious_patterns:
+            if not isinstance(row, Mapping):
+                continue
+            variation = row.get("variation")
+            if variation == "location_change":
+                tags.append("location_sensitive")
+            elif variation == "gender_swap":
+                tags.append("demographic_sensitive")
+            elif variation == "college_change":
+                tags.append("education_sensitive")
+
+    if bool(bias_report.get("has_bias_flags")):
+        tags.append("bias_detected")
+    if confidence_zone == "Borderline":
+        tags.append("threshold_sensitive")
+    elif confidence_zone == "Unstable":
+        tags.append("score_instability")
+
+    # Preserve first-seen ordering while removing duplicates.
+    return list(dict.fromkeys(tags))

@@ -6,7 +6,13 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.gemini import generate_appeal, generate_explanation
-from core.analysis import detect_bias_patterns, detect_instability
+from core.analysis import (
+    build_reason_tags,
+    classify_confidence,
+    compute_risk_score,
+    detect_bias_patterns,
+    detect_instability,
+)
 from core.model import compute_score_from_validated
 from core.scenario import evaluate_variations, generate_variations
 from core.threshold import analyze_threshold_sensitivity, make_decision
@@ -60,6 +66,16 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
         original=all_variation_results["baseline"],
         variations=all_variation_results,
     )
+    confidence_zone = classify_confidence(original_score)
+    risk_assessment = compute_risk_score(
+        instability=instability_report,
+        bias_detected=bool(bias_report.get("has_bias_flags")),
+    )
+    reason_tags = build_reason_tags(
+        instability_report=instability_report,
+        bias_report=bias_report,
+        confidence_zone=confidence_zone,
+    )
 
     variation_output = [
         {
@@ -82,6 +98,11 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
             "instability": instability_report,
             "bias": bias_report,
         },
+        "decision_quality": {
+            "confidence_zone": confidence_zone,
+            "risk": risk_assessment,
+            "reason_tags": reason_tags,
+        },
     }
     explanation = generate_explanation(context)
     appeal = generate_appeal(context)
@@ -90,9 +111,16 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
         "original": original_result,
         "threshold_analysis": threshold_analysis,
         "variations": variation_output,
+        "confidence_zone": confidence_zone,
+        "risk": risk_assessment,
+        "reason_tags": reason_tags,
         "insights": {
             "instability": bool(instability_report.get("is_unstable")),
             "bias_detected": bool(bias_report.get("has_bias_flags")),
+            "confidence_zone": confidence_zone,
+            "risk_score": risk_assessment["score"],
+            "risk_level": risk_assessment["level"],
+            "reason_tags": reason_tags,
         },
         "explanation": explanation,
         "appeal": appeal,
