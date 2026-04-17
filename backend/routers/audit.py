@@ -76,6 +76,11 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
         bias_report=bias_report,
         confidence_zone=confidence_zone,
     )
+    ai_jury_view = {
+        "auditor": "bias detected",
+        "challenger": "uncertain",
+        "judge": "moderate risk",
+    }
 
     variation_output = [
         {
@@ -103,6 +108,7 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
             "risk": risk_assessment,
             "reason_tags": reason_tags,
         },
+        "ai_jury_view": ai_jury_view,
     }
     explanation = generate_explanation(context)
     appeal = generate_appeal(context)
@@ -114,6 +120,7 @@ def run_audit(profile: Mapping[str, Any], threshold: float = 0.5) -> dict[str, A
         "confidence_zone": confidence_zone,
         "risk": risk_assessment,
         "reason_tags": reason_tags,
+        "ai_jury_view": ai_jury_view,
         "insights": {
             "instability": bool(instability_report.get("is_unstable")),
             "bias_detected": bool(bias_report.get("has_bias_flags")),
