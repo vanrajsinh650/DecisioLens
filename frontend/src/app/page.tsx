@@ -1,13 +1,5 @@
-import CTASection from "@/components/landing/CTASection";
-import FeatureHighlights from "@/components/landing/FeatureHighlights";
-import HeroSection from "@/components/landing/HeroSection";
+import LandingExperience from "@/features/landing/LandingExperience";
 
 export default function OverviewPage() {
-    return (
-        <div className="space-y-6">
-            <HeroSection />
-            <FeatureHighlights />
-            <CTASection />
-        </div>
-    );
+    return <LandingExperience />;
 }
