@@ -1,4 +1,4 @@
-import VariationRow from "@/components/results/VariationRow";
+import VariationRow from "./VariationRow";
 import Card from "@/components/shared/Card";
 import { VariationResult } from "@/types/audit";
 

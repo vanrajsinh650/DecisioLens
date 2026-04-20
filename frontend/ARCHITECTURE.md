@@ -1,47 +1,51 @@
 # Frontend Architecture Philosophy
 
-The frontend is organized into **3 layers** so the product can scale without turning pages into monoliths.
+The frontend follows a strict **3-layer architecture** so screens stay easy to reason about while features scale.
 
 ## Layer 1 — Pages (`src/app/**/page.tsx`)
 
-Pages should only assemble a screen and route-level concerns.
+Pages only assemble the screen for a route.
 
 - `src/app/page.tsx` → renders `LandingExperience`
 - `src/app/audit/page.tsx` → renders `AuditWorkspace`
 - `src/app/results/page.tsx` → renders `ResultsExperience`
 
-✅ Goal: Keep pages simple and easy to scan.
+✅ Pages stay simple.
 
 ## Layer 2 — Feature Components (`src/features/**`)
 
-Feature components orchestrate domain workflows and compose domain-specific blocks.
+Features own domain workflows and domain-specific UI blocks.
 
 - `src/features/landing/LandingExperience.tsx`
 - `src/features/audit/AuditWorkspace.tsx`
 - `src/features/results/ResultsExperience.tsx`
 
-These are the right place for feature state, routing transitions, and business-flow composition.
+Each feature keeps its blocks close to the workflow:
 
-✅ Goal: Keep feature logic modular and reusable across routes.
+- `src/features/audit/components/*` (domain selector, profile fields, threshold control)
+- `src/features/results/components/*` (**threshold analysis**, **variation comparison**, **appeal**)
+- `src/features/landing/components/*` (hero, highlights, CTA)
+
+✅ Features stay modular.
 
 ## Layer 3 — Shared UI (`src/components/shared/**`)
 
-Shared UI holds reusable primitives and visual patterns used across features.
+Shared UI provides reusable visual primitives used across features.
 
 - `Card`, `Badge`, `StatPill`
 - `LoadingState`, `ErrorState`, `EmptyState`
 - `CopyButton`
 
-✅ Goal: Keep design and interaction patterns consistent.
+✅ Design stays consistent.
 
-## Why this helps
+## Guardrails
 
-- **Pages stay simple** → easier route maintenance.
-- **Features stay modular** → easier to add/replace domain workflows.
-- **Design stays consistent** → shared building blocks prevent visual drift.
+- **Pages** should import feature entry points, not feature internals.
+- **Feature files** may import local `./components/*` and shared UI.
+- **Shared UI** must stay domain-agnostic (no audit/results business logic).
 
-## Practical rule of thumb
+## Why this separation saves time
 
-- If it represents a route assembly → put it in **Page layer**.
-- If it represents domain behavior/workflow → put it in **Feature layer**.
-- If it is generic/reusable UI → put it in **Shared UI layer**.
+- **Pages stay simple** → route files remain clean.
+- **Features stay modular** → easier iteration on threshold/variation/appeal flows.
+- **Design stays consistent** → one shared UI system across the app.

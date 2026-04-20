@@ -1,4 +1,4 @@
-import ThresholdRow from "@/components/results/ThresholdRow";
+import ThresholdRow from "./ThresholdRow";
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
 import { formatThreshold } from "@/lib/format";

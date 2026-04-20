@@ -3,14 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import AppealCard from "@/components/results/AppealCard";
-import DecisionSummaryCard from "@/components/results/DecisionSummaryCard";
-import ExplanationCard from "@/components/results/ExplanationCard";
-import JuryPanel from "@/components/results/JuryPanel";
-import ResultHeroCard from "@/components/results/ResultHeroCard";
-import RiskInsightCard from "@/components/results/RiskInsightCard";
-import ThresholdSensitivityCard from "@/components/results/ThresholdSensitivityCard";
-import VariationsComparisonCard from "@/components/results/VariationsComparisonCard";
+import AppealCard from "./components/AppealCard";
+import DecisionSummaryCard from "./components/DecisionSummaryCard";
+import ExplanationCard from "./components/ExplanationCard";
+import JuryPanel from "./components/JuryPanel";
+import ResultHeroCard from "./components/ResultHeroCard";
+import RiskInsightCard from "./components/RiskInsightCard";
+import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
+import VariationsComparisonCard from "./components/VariationsComparisonCard";
 import EmptyState from "@/components/shared/EmptyState";
 import { clearAuditSession, readAuditSession, saveAuditDraft } from "@/lib/session";
 import { AuditSession } from "@/types/audit";

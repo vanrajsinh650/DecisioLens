@@ -1,4 +1,4 @@
-import ReasonTags from "@/components/results/ReasonTags";
+import ReasonTags from "./ReasonTags";
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
 import { normalizeRiskTone } from "@/lib/format";

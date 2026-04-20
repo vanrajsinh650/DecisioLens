@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import DomainSelector from "@/components/audit/DomainSelector";
-import ProfileFields from "@/components/audit/ProfileFields";
-import SubmitAuditButton from "@/components/audit/SubmitAuditButton";
-import ThresholdControl from "@/components/audit/ThresholdControl";
+import DomainSelector from "./DomainSelector";
+import ProfileFields from "./ProfileFields";
+import SubmitAuditButton from "./SubmitAuditButton";
+import ThresholdControl from "./ThresholdControl";
 import { AuditProfile, DomainOption, DomainType } from "@/types/audit";
 
 interface AuditFormProps {

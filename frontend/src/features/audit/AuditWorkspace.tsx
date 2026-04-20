@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import AuditForm from "@/components/audit/AuditForm";
-import AuditPresetCard from "@/components/audit/AuditPresetCard";
+import AuditForm from "./components/AuditForm";
+import AuditPresetCard from "./components/AuditPresetCard";
 import SectionHeader from "@/components/layout/SectionHeader";
 import Card from "@/components/shared/Card";
 import ErrorState from "@/components/shared/ErrorState";
