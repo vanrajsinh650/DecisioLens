@@ -30,7 +30,7 @@ function clampThreshold(value: number): number {
 
 export default function AuditWorkspace() {
     const router = useRouter();
-    const { run, isLoading, error } = useAudit();
+    const { submitAudit, loading, error } = useAudit();
 
     const [domain, setDomain] = useState<DomainType>(DEFAULT_DOMAIN);
     const [profile, setProfile] = useState<AuditProfile>({ ...DEFAULT_PROFILE });
@@ -104,7 +104,7 @@ export default function AuditWorkspace() {
             threshold,
         };
 
-        const response = await run(payload);
+        const response = await submitAudit(payload);
         if (!response) {
             return;
         }
@@ -144,7 +144,7 @@ export default function AuditWorkspace() {
                         domainDescription={activeDomainDescription}
                         profile={profile}
                         threshold={threshold}
-                        isLoading={isLoading}
+                        isLoading={loading}
                         canSubmit={canRunAudit}
                         onDomainChange={onDomainChange}
                         onProfileChange={updateProfile}
@@ -163,8 +163,21 @@ export default function AuditWorkspace() {
                         </p>
                     </Card>
 
-                    {isLoading ? <LoadingState compact /> : null}
-                    {error ? <ErrorState message={error} onRetry={runAudit} /> : null}
+                    {loading ? (
+                        <LoadingState
+                            compact
+                            label="Running audit..."
+                            description="Checking thresholds, variation shifts, and appeal signals."
+                        />
+                    ) : null}
+                    {error ? (
+                        <ErrorState
+                            title="Audit could not be completed"
+                            message={`What failed: ${error}`}
+                            nextStep="Please check the profile input and try again."
+                            onRetry={runAudit}
+                        />
+                    ) : null}
                 </div>
             </div>
         </div>
