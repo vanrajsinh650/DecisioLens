@@ -3,13 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { useTheme } from "@/hooks/useTheme";
 import { APP_NAME, NAV_LINKS } from "@/lib/constants";
 
 export default function TopBar() {
     const pathname = usePathname();
+    const { theme, toggle } = useTheme();
+    const { resetOnboarding } = useOnboarding();
 
     return (
-        <header className="sticky top-0 z-40 border-b border-ink-700/80 bg-ink-900/90 backdrop-blur">
+        <header
+            data-no-print
+            className="sticky top-0 z-40 border-b border-ink-700/80 bg-ink-900/90 backdrop-blur"
+        >
             <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                 <div className="space-y-1">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-signal-info/90">
@@ -25,27 +32,48 @@ export default function TopBar() {
                     </div>
                 </div>
 
-                <nav
-                    className="flex items-center gap-2 rounded-xl border border-ink-600/70 bg-ink-800/70 p-1"
-                    aria-label="Primary"
-                >
-                    {NAV_LINKS.map((link) => {
-                        const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                    <nav
+                        className="flex items-center gap-2 rounded-xl border border-ink-600/70 bg-ink-800/70 p-1"
+                        aria-label="Primary"
+                    >
+                        {NAV_LINKS.map((link) => {
+                            const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
 
-                        return (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isActive
-                                    ? "border-signal-info/45 bg-signal-infoSoft/80 text-signal-info"
-                                    : "border-ink-600/70 bg-ink-800/70 text-ink-100 hover:border-ink-300 hover:text-ink-50"
-                                    }`}
-                            >
-                                {link.label}
-                            </Link>
-                        );
-                    })}
-                </nav>
+                            return (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isActive
+                                        ? "border-signal-info/45 bg-signal-infoSoft/80 text-signal-info"
+                                        : "border-ink-600/70 bg-ink-800/70 text-ink-100 hover:border-ink-300 hover:text-ink-50"
+                                        }`}
+                                >
+                                    {link.label}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    <button
+                        id="btn-theme-toggle"
+                        type="button"
+                        onClick={toggle}
+                        aria-label="Toggle theme"
+                        className="rounded-lg border border-ink-500 bg-ink-700/70 px-2.5 py-1.5 text-sm"
+                    >
+                        {theme === "dark" ? "☀️" : "🌙"}
+                    </button>
+
+                    <button
+                        id="btn-replay-tour"
+                        type="button"
+                        onClick={resetOnboarding}
+                        className="rounded-lg border border-ink-600/70 bg-ink-800/70 px-2.5 py-1.5 text-xs text-ink-200 hover:text-ink-50"
+                    >
+                        ? Take a Tour
+                    </button>
+                </div>
             </div>
         </header>
     );

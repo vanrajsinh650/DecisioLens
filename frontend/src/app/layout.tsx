@@ -18,7 +18,7 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
     return (
-        <html lang="en" className="dark">
+        <html lang="en" className="dark" suppressHydrationWarning>
             <body className="antialiased">
                 <AppShell>{children}</AppShell>
             </body>

@@ -1,3 +1,4 @@
+import { DomainFieldConfig } from "@/lib/domains";
 import { AuditProfile } from "@/types/audit";
 
 const CONTROL_CLASS_NAME =
@@ -5,96 +6,48 @@ const CONTROL_CLASS_NAME =
 
 interface ProfileFieldsProps {
     profile: AuditProfile;
-    onChange: (field: keyof AuditProfile, value: string | number) => void;
+    fields: DomainFieldConfig[];
+    onChange: (field: string, value: string | number) => void;
 }
 
-const TEXT_FIELDS: Array<{ field: "name" | "location"; label: string }> = [
-    { field: "name", label: "Name" },
-    { field: "location", label: "Location" },
-];
-
-const GENDER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say"];
-const COLLEGE_TIER_OPTIONS = ["Tier 1", "Tier 2", "Tier 3"];
-
-export default function ProfileFields({ profile, onChange }: ProfileFieldsProps) {
+export default function ProfileFields({ profile, fields, onChange }: ProfileFieldsProps) {
     return (
         <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Name</label>
-                <input
-                    value={profile.name}
-                    onChange={(event) => onChange("name", event.target.value)}
-                    className={CONTROL_CLASS_NAME}
-                />
-            </div>
-
-            <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Skills Score</label>
-                <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    value={profile.score}
-                    onChange={(event) => onChange("score", Number(event.target.value))}
-                    className={CONTROL_CLASS_NAME}
-                />
-            </div>
-
-            <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Years of Experience</label>
-                <input
-                    type="number"
-                    min={0}
-                    max={50}
-                    value={profile.experience}
-                    onChange={(event) => onChange("experience", Math.round(Number(event.target.value)))}
-                    className={CONTROL_CLASS_NAME}
-                />
-            </div>
-
-            <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Gender</label>
-                <select
-                    value={profile.gender}
-                    onChange={(event) => onChange("gender", event.target.value)}
-                    className={CONTROL_CLASS_NAME}
-                >
-                    {GENDER_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">College Tier</label>
-                <select
-                    value={profile.college}
-                    onChange={(event) => onChange("college", event.target.value)}
-                    className={CONTROL_CLASS_NAME}
-                >
-                    {COLLEGE_TIER_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {TEXT_FIELDS.map((item) => {
-                if (item.field === "name") return null;
-
+            {fields.map((field) => {
+                const value = profile[field.key];
                 return (
-                    <div key={item.field}>
+                    <div key={field.key}>
                         <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                            {item.label}
+                            {field.label}
                         </label>
-                        <input
-                            value={profile[item.field]}
-                            onChange={(event) => onChange(item.field, event.target.value)}
-                            className={CONTROL_CLASS_NAME}
-                        />
+                        {field.type === "select" ? (
+                            <select
+                                value={String(value ?? "")}
+                                onChange={(event) => onChange(field.key, event.target.value)}
+                                className={CONTROL_CLASS_NAME}
+                            >
+                                {(field.options ?? []).map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type={field.type === "number" ? "number" : "text"}
+                                min={field.type === "number" ? field.min : undefined}
+                                max={field.type === "number" ? field.max : undefined}
+                                value={String(value ?? "")}
+                                placeholder={field.placeholder}
+                                onChange={(event) =>
+                                    onChange(
+                                        field.key,
+                                        field.type === "number" ? Number(event.target.value) : event.target.value,
+                                    )
+                                }
+                                className={CONTROL_CLASS_NAME}
+                            />
+                        )}
                     </div>
                 );
             })}

@@ -18,6 +18,7 @@ interface ResultHeroCardProps {
     session: AuditSession;
     onRerun: () => void;
     onClear: () => void;
+    readOnly?: boolean;
 }
 
 function getStabilityVerdict(session: AuditSession): {
@@ -77,7 +78,7 @@ function getStabilityVerdict(session: AuditSession): {
     return { emoji, headline, tone, trustLevel, confidenceLabel, insight };
 }
 
-export default function ResultHeroCard({ session, onRerun, onClear }: ResultHeroCardProps) {
+export default function ResultHeroCard({ session, onRerun, onClear, readOnly = false }: ResultHeroCardProps) {
     const { request, response } = session;
     const riskTone = normalizeRiskTone(response.insights.risk_score);
     const riskLabel = formatRiskLabel(response.insights.risk_level ?? String(response.insights.risk_score));
@@ -118,22 +119,24 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
             </div>
 
             {/* ── Action buttons ── */}
-            <div className="mb-5 flex flex-wrap items-center gap-3">
-                <button
-                    type="button"
-                    onClick={onRerun}
-                    className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-3 py-2 text-xs font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
-                >
-                    Re-test at +0.02 threshold
-                </button>
-                <button
-                    type="button"
-                    onClick={onClear}
-                    className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300"
-                >
-                    Clear Result
-                </button>
-            </div>
+            {!readOnly ? (
+                <div className="mb-5 flex flex-wrap items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={onRerun}
+                        className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-3 py-2 text-xs font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
+                    >
+                        Re-test at +0.02 threshold
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onClear}
+                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300"
+                    >
+                        Clear Result
+                    </button>
+                </div>
+            ) : null}
 
             {/* ── Stat pills grid ── */}
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

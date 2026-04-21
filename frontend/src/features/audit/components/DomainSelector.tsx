@@ -24,8 +24,8 @@ export default function DomainSelector({
             <div className="flex items-center justify-between gap-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Domain</label>
                 <Badge
-                    label={activeOption?.status === "coming-soon" ? "Coming soon" : "Active"}
-                    tone={activeOption?.status === "coming-soon" ? "caution" : "stable"}
+                    label="Active"
+                    tone="stable"
                     dot
                 />
             </div>
@@ -35,19 +35,12 @@ export default function DomainSelector({
                 className={CONTROL_CLASS_NAME}
             >
                 {options.map((option) => (
-                    <option
-                        key={option.value}
-                        value={option.value}
-                        disabled={option.status === "coming-soon"}
-                    >
+                    <option key={option.value} value={option.value}>
                         {option.label}
                     </option>
                 ))}
             </select>
             <p className="mt-2 text-xs text-ink-200">{description}</p>
-            {activeOption?.status === "coming-soon" ? (
-                <p className="mt-1 text-xs text-signal-caution">Coming soon. Use Hiring (active) for MVP demo.</p>
-            ) : null}
         </div>
     );
 }

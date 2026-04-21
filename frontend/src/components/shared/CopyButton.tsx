@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 interface CopyButtonProps {
+  id?: string;
   value: string;
   label?: string;
   copiedLabel?: string;
@@ -10,6 +11,7 @@ interface CopyButtonProps {
 }
 
 export default function CopyButton({
+  id,
   value,
   label = "Copy",
   copiedLabel = "Copied",
@@ -33,6 +35,7 @@ export default function CopyButton({
 
   return (
     <button
+      id={id}
       type="button"
       onClick={onCopy}
       disabled={!value}

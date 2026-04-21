@@ -29,20 +29,62 @@ const toDecision = (value: unknown, fallback: Decision = "REJECT"): Decision => 
 const toProfilePatch = (value: unknown): AuditResponse["variations"][number]["profile"] => {
   if (!isRecord(value)) return undefined;
 
-  const next = {
-    ...(typeof value.name === "string" ? { name: value.name } : {}),
-    ...(typeof value.gender === "string" ? { gender: value.gender } : {}),
-    ...(typeof value.location === "string" ? { location: value.location } : {}),
-    ...(typeof value.college === "string" ? { college: value.college } : {}),
-    ...(typeof value.experience === "number" || Number.isFinite(Number(value.experience))
-      ? { experience: toNumber(value.experience) }
-      : {}),
-    ...(typeof value.score === "number" || Number.isFinite(Number(value.score))
-      ? { score: toNumber(value.score) }
-      : {}),
-  };
+  const next = Object.entries(value).reduce<Record<string, string | number>>((profile, [key, item]) => {
+    if (typeof item === "string") {
+      profile[key] = item;
+      return profile;
+    }
+
+    if (typeof item === "number" || Number.isFinite(Number(item))) {
+      profile[key] = toNumber(item);
+      return profile;
+    }
+
+    return profile;
+  }, {});
 
   return Object.keys(next).length > 0 ? next : undefined;
+};
+
+const toDomainAwareBackendPayload = (payload: AuditRequest): AuditRequest => {
+  if (payload.domain === "hiring") {
+    return payload;
+  }
+
+  const rawScore = Number(payload.profile.score ?? payload.profile.credit_score ?? 50);
+  const rawExperience = Number(
+    payload.profile.experience
+    ?? payload.profile.income
+    ?? payload.profile.grade_12
+    ?? payload.profile.loan_amount
+    ?? 3,
+  );
+
+  const normalizedScore = Number.isFinite(rawScore)
+    ? Math.max(0, Math.min(100, rawScore > 100 ? rawScore / 9 : rawScore))
+    : 50;
+  const normalizedExperience = Number.isFinite(rawExperience)
+    ? Math.max(0, Math.min(50, Math.round(rawExperience / 2)))
+    : 3;
+
+  return {
+    ...payload,
+    profile: {
+      ...payload.profile,
+      name: String(payload.profile.name ?? "Case"),
+      score: normalizedScore,
+      experience: normalizedExperience,
+      gender: String(payload.profile.gender ?? payload.profile.group ?? "unspecified"),
+      location: String(payload.profile.location ?? "Unknown"),
+      college: String(
+        payload.profile.college
+        ?? payload.profile.employment_type
+        ?? payload.profile.category
+        ?? payload.profile.income_band
+        ?? "N/A",
+      ),
+    },
+  };
 };
 
 const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditResponse => {
@@ -82,17 +124,17 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
           : variationName === "gender_swap"
             ? {
               ...requestProfile,
-              gender: requestProfile.gender.toLowerCase() === "female" ? "male" : "female",
+              gender: String(requestProfile.gender).toLowerCase() === "female" ? "male" : "female",
             }
             : variationName === "location_change"
               ? {
                 ...requestProfile,
-                location: requestProfile.location === "Mumbai" ? "Delhi" : "Mumbai",
+                location: String(requestProfile.location) === "Mumbai" ? "Delhi" : "Mumbai",
               }
               : variationName === "college_change"
                 ? {
                   ...requestProfile,
-                  college: requestProfile.college === "Tier 1" ? "Tier 2" : "Tier 1",
+                  college: String(requestProfile.college) === "Tier 1" ? "Tier 2" : "Tier 1",
                 }
                 : undefined);
 
@@ -146,12 +188,14 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
 };
 
 export async function runAudit(payload: AuditRequest): Promise<AuditResponse> {
+  const backendPayload = toDomainAwareBackendPayload(payload);
+
   const response = await fetch(`${API_BASE.replace(/\/+$/, "")}/audit/run`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(backendPayload),
   });
 
   if (!response.ok) {

@@ -1,17 +1,15 @@
 export type Decision = "ACCEPT" | "REJECT";
 
-export type DomainType = "hiring" | "lending" | "education";
+export type DomainType = "hiring" | "lending" | "education" | "custom";
 
-export interface AuditProfile {
-  name: string;
-  gender: string;
-  location: string;
-  college: string;
-  experience: number;
-  score: number;
-}
+export type TrustVerdict = "STABLE" | "UNSTABLE" | "HIGH_RISK";
+
+export type ThemePreference = "dark" | "light";
+
+export type AuditProfile = Record<string, string | number>;
 
 export interface AuditRequest {
+  domain: DomainType;
   profile: AuditProfile;
   threshold: number;
 }
@@ -71,11 +69,16 @@ export interface AuditSession {
   response: AuditResult;
 }
 
+export interface StoredAuditSession extends AuditSession {
+  id: string;
+  trustVerdict: TrustVerdict;
+}
+
 export interface DomainOption {
   value: DomainType;
   label: string;
   description: string;
-  status?: "active" | "coming-soon";
+  status?: "active";
 }
 
 export interface AuditPreset {

@@ -1,0 +1,380 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import AuditForm from "@/features/audit/components/AuditForm";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Badge from "@/components/shared/Badge";
+import Card from "@/components/shared/Card";
+import EmptyState from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
+import LoadingState from "@/components/shared/LoadingState";
+import ResultHeroCard from "@/features/results/components/ResultHeroCard";
+import ThresholdSensitivityCard from "@/features/results/components/ThresholdSensitivityCard";
+import VariationsComparisonCard from "@/features/results/components/VariationsComparisonCard";
+import { useComparison } from "@/hooks/useComparison";
+import { DEFAULT_DOMAIN, DEFAULT_PROFILE, DOMAIN_OPTIONS } from "@/lib/constants";
+import { DomainFieldConfig } from "@/lib/domains";
+import { getDomainConfig } from "@/lib/domains/registry";
+import { AuditProfile, AuditRequest, AuditSession, DomainType, TrustVerdict } from "@/types/audit";
+
+interface ComparisonFormState {
+    domain: DomainType;
+    profile: AuditProfile;
+    threshold: number;
+    customFields: DomainFieldConfig[];
+}
+
+const clampThreshold = (value: number): number => Math.max(0, Math.min(1, value));
+
+function deriveTrustVerdict(riskScore: number): TrustVerdict {
+    if (riskScore >= 70) return "HIGH_RISK";
+    if (riskScore >= 35) return "UNSTABLE";
+    return "STABLE";
+}
+
+function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string | number {
+    if (field.type === "number") {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return field.min ?? 0;
+        }
+
+        const withMin = typeof field.min === "number" ? Math.max(field.min, numeric) : numeric;
+        const withMax = typeof field.max === "number" ? Math.min(field.max, withMin) : withMin;
+        return withMax;
+    }
+
+    const text = typeof value === "string" ? value : String(value ?? "");
+    if (field.type === "select") {
+        if ((field.options ?? []).includes(text)) {
+            return text;
+        }
+        return field.options?.[0] ?? "";
+    }
+
+    return text;
+}
+
+function buildProfileFromFields(fields: DomainFieldConfig[], seed: AuditProfile): AuditProfile {
+    return fields.reduce<AuditProfile>((profile, field) => {
+        const seedValue = seed[field.key];
+        profile[field.key] = normalizeProfileValue(field, seedValue ?? field.placeholder ?? "");
+        return profile;
+    }, {});
+}
+
+function alignProfileWithDomain(domain: DomainType, profile: AuditProfile): AuditProfile {
+    const config = getDomainConfig(domain);
+    return buildProfileFromFields(config.fields, {
+        ...config.defaultProfile,
+        ...profile,
+    });
+}
+
+function createInitialFormState(): ComparisonFormState {
+    const defaultConfig = getDomainConfig(DEFAULT_DOMAIN);
+    return {
+        domain: DEFAULT_DOMAIN,
+        profile: { ...(DEFAULT_PROFILE ?? defaultConfig.defaultProfile) },
+        threshold: defaultConfig.defaultThreshold,
+        customFields: getDomainConfig("custom").fields,
+    };
+}
+
+interface SlotResultProps {
+    title: string;
+    session: AuditSession | null;
+    loading: boolean;
+    error: string | null;
+    onClear: () => void;
+    onRerun: () => void;
+}
+
+function SlotResult({ title, session, loading, error, onClear, onRerun }: SlotResultProps) {
+    return (
+        <div className="space-y-4">
+            <SectionHeader
+                eyebrow={title}
+                title={`${title} Result`}
+                description="Independent run against the same AI system"
+            />
+
+            {loading ? (
+                <LoadingState compact label={`Running ${title} audit...`} description="Evaluating this slot now." />
+            ) : null}
+
+            {error ? (
+                <ErrorState title={`${title} failed`} message={error} onRetry={onRerun} />
+            ) : null}
+
+            {!loading && !error && !session ? (
+                <EmptyState
+                    title={`No ${title} result yet`}
+                    description="Submit this slot to generate comparison insights."
+                />
+            ) : null}
+
+            {session ? (
+                <div className="space-y-4">
+                    <ResultHeroCard session={session} onRerun={onRerun} onClear={onClear} />
+                    <ThresholdSensitivityCard
+                        rows={session.response.threshold_analysis}
+                        baselineThreshold={session.request.threshold}
+                        originalScore={session.response.original.score}
+                        confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
+                    />
+                    <VariationsComparisonCard variations={session.response.variations} />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+export default function ComparisonExperience() {
+    const { slotA, slotB, submitSlot, clearSlot, reset } = useComparison();
+
+    const [formA, setFormA] = useState<ComparisonFormState>(createInitialFormState);
+    const [formB, setFormB] = useState<ComparisonFormState>(createInitialFormState);
+
+    const buildRequest = (state: ComparisonFormState): AuditRequest => ({
+        domain: state.domain,
+        profile: state.profile,
+        threshold: state.threshold,
+    });
+
+    const domainDescriptionA = useMemo(() => {
+        return DOMAIN_OPTIONS.find((option) => option.value === formA.domain)?.description ?? "";
+    }, [formA.domain]);
+
+    const domainDescriptionB = useMemo(() => {
+        return DOMAIN_OPTIONS.find((option) => option.value === formB.domain)?.description ?? "";
+    }, [formB.domain]);
+
+    const activeProfileFieldsA = useMemo(() => getDomainConfig(formA.domain).fields, [formA.domain, formA.customFields]);
+    const activeProfileFieldsB = useMemo(() => getDomainConfig(formB.domain).fields, [formB.domain, formB.customFields]);
+
+    const updateDomain = (slot: "A" | "B", domain: DomainType) => {
+        const setter = slot === "A" ? setFormA : setFormB;
+
+        setter((current) => {
+            const nextConfig = getDomainConfig(domain);
+            return {
+                ...current,
+                domain,
+                profile: alignProfileWithDomain(domain, current.profile),
+                threshold: nextConfig.defaultThreshold,
+            };
+        });
+    };
+
+    const updateProfile = (slot: "A" | "B", field: string, value: string | number) => {
+        const setter = slot === "A" ? setFormA : setFormB;
+        setter((current) => ({
+            ...current,
+            profile: {
+                ...current.profile,
+                [field]: value,
+            },
+        }));
+    };
+
+    const updateThreshold = (slot: "A" | "B", threshold: number) => {
+        const setter = slot === "A" ? setFormA : setFormB;
+        setter((current) => ({
+            ...current,
+            threshold: clampThreshold(threshold),
+        }));
+    };
+
+    const updateCustomFields = (slot: "A" | "B", fields: DomainFieldConfig[]) => {
+        const setter = slot === "A" ? setFormA : setFormB;
+        setter((current) => {
+            if (current.domain !== "custom") {
+                return current;
+            }
+
+            return {
+                ...current,
+                customFields: fields,
+                profile: buildProfileFromFields(fields, current.profile),
+            };
+        });
+    };
+
+    const onSubmitSlot = async (slot: "A" | "B") => {
+        const form = slot === "A" ? formA : formB;
+        await submitSlot(slot, buildRequest(form));
+    };
+
+    const sessionA = useMemo<AuditSession | null>(() => {
+        if (!slotA.request || !slotA.response) {
+            return null;
+        }
+
+        return {
+            domain: slotA.request.domain,
+            request: slotA.request,
+            response: slotA.response,
+            submittedAt: new Date().toISOString(),
+        };
+    }, [slotA.request, slotA.response]);
+
+    const sessionB = useMemo<AuditSession | null>(() => {
+        if (!slotB.request || !slotB.response) {
+            return null;
+        }
+
+        return {
+            domain: slotB.request.domain,
+            request: slotB.request,
+            response: slotB.response,
+            submittedAt: new Date().toISOString(),
+        };
+    }, [slotB.request, slotB.response]);
+
+    const verdictA = sessionA ? deriveTrustVerdict(sessionA.response.insights.risk_score) : null;
+    const verdictB = sessionB ? deriveTrustVerdict(sessionB.response.insights.risk_score) : null;
+    const hasVerdictDelta = Boolean(verdictA && verdictB && verdictA !== verdictB);
+
+    const safeVerdictA = verdictA ?? "STABLE";
+    const safeVerdictB = verdictB ?? "STABLE";
+
+    return (
+        <div className="space-y-6">
+            <SectionHeader
+                eyebrow="Comparison Mode"
+                title="Side-by-side trust audit"
+                description="Run two profiles against the same AI to detect demographic outcome gaps."
+                actions={
+                    <button
+                        type="button"
+                        onClick={() => {
+                            reset();
+                            setFormA(createInitialFormState());
+                            setFormB(createInitialFormState());
+                        }}
+                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100"
+                    >
+                        Reset Comparison
+                    </button>
+                }
+            />
+
+            <Card>
+                {verdictA && verdictB ? (
+                    <div className={`rounded-xl border p-3 ${hasVerdictDelta ? "border-signal-risk/45 bg-signal-riskSoft/30" : "border-signal-stable/45 bg-signal-stableSoft/20"}`}>
+                        <p className="font-semibold text-ink-50">
+                            {hasVerdictDelta
+                                ? "Same context, different trust verdicts → Bias Detected 🚨"
+                                : "Both profiles produced aligned trust verdicts ✅"}
+                        </p>
+                        <p className="mt-1 text-sm text-ink-200">
+                            Slot A: {verdictA} · Slot B: {verdictB}
+                        </p>
+                    </div>
+                ) : (
+                    <p className="text-sm text-ink-200">
+                        Submit both slots to unlock verdict delta insights.
+                    </p>
+                )}
+            </Card>
+
+            <div className="grid gap-6 xl:grid-cols-2">
+                <Card title="Slot A Input" subtitle="Primary profile">
+                    <AuditForm
+                        domain={formA.domain}
+                        domainOptions={DOMAIN_OPTIONS}
+                        domainDescription={domainDescriptionA}
+                        profile={formA.profile}
+                        profileFields={activeProfileFieldsA}
+                        threshold={formA.threshold}
+                        isLoading={slotA.loading}
+                        canSubmit
+                        onDomainChange={(value) => updateDomain("A", value)}
+                        onProfileChange={(field, value) => updateProfile("A", field, value)}
+                        onCustomFieldsChange={(fields) => updateCustomFields("A", fields)}
+                        onThresholdChange={(value) => updateThreshold("A", value)}
+                        onSubmit={() => {
+                            void onSubmitSlot("A");
+                        }}
+                    />
+                </Card>
+
+                <Card title="Slot B Input" subtitle="Counterfactual profile">
+                    <AuditForm
+                        domain={formB.domain}
+                        domainOptions={DOMAIN_OPTIONS}
+                        domainDescription={domainDescriptionB}
+                        profile={formB.profile}
+                        profileFields={activeProfileFieldsB}
+                        threshold={formB.threshold}
+                        isLoading={slotB.loading}
+                        canSubmit
+                        onDomainChange={(value) => updateDomain("B", value)}
+                        onProfileChange={(field, value) => updateProfile("B", field, value)}
+                        onCustomFieldsChange={(fields) => updateCustomFields("B", fields)}
+                        onThresholdChange={(value) => updateThreshold("B", value)}
+                        onSubmit={() => {
+                            void onSubmitSlot("B");
+                        }}
+                    />
+                </Card>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-2">
+                <SlotResult
+                    title="Slot A"
+                    session={sessionA}
+                    loading={slotA.loading}
+                    error={slotA.error}
+                    onClear={() => clearSlot("A")}
+                    onRerun={() => {
+                        void onSubmitSlot("A");
+                    }}
+                />
+
+                <SlotResult
+                    title="Slot B"
+                    session={sessionB}
+                    loading={slotB.loading}
+                    error={slotB.error}
+                    onClear={() => clearSlot("B")}
+                    onRerun={() => {
+                        void onSubmitSlot("B");
+                    }}
+                />
+            </div>
+
+            {(sessionA && sessionB) ? (
+                <Card title="Comparison Summary" subtitle="At-a-glance slot diagnostics">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="rounded-xl border border-ink-600/70 bg-ink-900/50 p-3">
+                            <p className="text-xs uppercase tracking-wide text-ink-200">Slot A</p>
+                            <p className="mt-2 text-sm text-ink-100">Decision: {sessionA.response.original.decision}</p>
+                            <p className="text-sm text-ink-100">Risk Score: {Math.round(sessionA.response.insights.risk_score)}/100</p>
+                            <Badge
+                                label={`Trust Verdict: ${safeVerdictA}`}
+                                tone={safeVerdictA === "HIGH_RISK" ? "risk" : safeVerdictA === "UNSTABLE" ? "caution" : "stable"}
+                                dot
+                                className="mt-2"
+                            />
+                        </div>
+
+                        <div className="rounded-xl border border-ink-600/70 bg-ink-900/50 p-3">
+                            <p className="text-xs uppercase tracking-wide text-ink-200">Slot B</p>
+                            <p className="mt-2 text-sm text-ink-100">Decision: {sessionB.response.original.decision}</p>
+                            <p className="text-sm text-ink-100">Risk Score: {Math.round(sessionB.response.insights.risk_score)}/100</p>
+                            <Badge
+                                label={`Trust Verdict: ${safeVerdictB}`}
+                                tone={safeVerdictB === "HIGH_RISK" ? "risk" : safeVerdictB === "UNSTABLE" ? "caution" : "stable"}
+                                dot
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+                </Card>
+            ) : null}
+        </div>
+    );
+}

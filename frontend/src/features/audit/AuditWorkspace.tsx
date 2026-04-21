@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import AuditForm from "./components/AuditForm";
 import AuditPresetCard from "./components/AuditPresetCard";
@@ -8,6 +9,7 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import Card from "@/components/shared/Card";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import Walkthrough from "@/components/shared/Walkthrough";
 import AppealCard from "@/features/results/components/AppealCard";
 import DecisionSummaryCard from "@/features/results/components/DecisionSummaryCard";
 import ExplanationCard from "@/features/results/components/ExplanationCard";
@@ -18,12 +20,16 @@ import RiskInsightCard from "@/features/results/components/RiskInsightCard";
 import ThresholdSensitivityCard from "@/features/results/components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "@/features/results/components/VariationsComparisonCard";
 import { useAudit } from "@/hooks/useAudit";
+import { useAuditHistory } from "@/hooks/useAuditHistory";
+import { useOnboarding } from "@/hooks/useOnboarding";
 import {
     DEFAULT_DOMAIN,
     DEFAULT_PROFILE,
-    DEFAULT_THRESHOLD,
     DOMAIN_OPTIONS,
 } from "@/lib/constants";
+import { DomainFieldConfig } from "@/lib/domains";
+import { getDomainConfig } from "@/lib/domains/registry";
+import { AUDIT_WALKTHROUGH_STEPS } from "@/lib/walkthrough-steps";
 import {
     clearAuditDraft,
     clearAuditSession,
@@ -31,18 +37,83 @@ import {
     saveAuditDraft,
     saveAuditSession,
 } from "@/lib/session";
-import { AuditProfile, AuditRequest, AuditSession, DomainType } from "@/types/audit";
+import { TrustVerdict, AuditProfile, AuditRequest, AuditSession, DomainType } from "@/types/audit";
+
+function createSessionId(): string {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+        return crypto.randomUUID();
+    }
+
+    return `audit-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function clampThreshold(value: number): number {
     return Math.max(0, Math.min(1, value));
 }
 
+function deriveTrustVerdict(riskScore: number): TrustVerdict {
+    if (riskScore >= 70) {
+        return "HIGH_RISK";
+    }
+
+    if (riskScore >= 35) {
+        return "UNSTABLE";
+    }
+
+    return "STABLE";
+}
+
+function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string | number {
+    if (field.type === "number") {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            return field.min ?? 0;
+        }
+
+        const withMin = typeof field.min === "number" ? Math.max(field.min, numeric) : numeric;
+        const withMax = typeof field.max === "number" ? Math.min(field.max, withMin) : withMin;
+        return withMax;
+    }
+
+    const text = typeof value === "string" ? value : String(value ?? "");
+    if (field.type === "select") {
+        if ((field.options ?? []).includes(text)) {
+            return text;
+        }
+        return field.options?.[0] ?? "";
+    }
+
+    return text;
+}
+
+function buildProfileFromFields(fields: DomainFieldConfig[], seed: AuditProfile): AuditProfile {
+    return fields.reduce<AuditProfile>((profile, field) => {
+        const seedValue = seed[field.key];
+        profile[field.key] = normalizeProfileValue(field, seedValue ?? field.placeholder ?? "");
+        return profile;
+    }, {});
+}
+
+function alignProfileWithDomain(domain: DomainType, profile: AuditProfile): AuditProfile {
+    const config = getDomainConfig(domain);
+    return buildProfileFromFields(config.fields, {
+        ...config.defaultProfile,
+        ...profile,
+    });
+}
+
 export default function AuditWorkspace() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const isCompareMode = searchParams.get("mode") === "compare";
     const { submitAudit, loading, error, result, lastRequest, clearResult } = useAudit();
+    const { save: saveHistory } = useAuditHistory();
+    const { showWalkthrough, completeOnboarding } = useOnboarding();
 
     const [domain, setDomain] = useState<DomainType>(DEFAULT_DOMAIN);
     const [profile, setProfile] = useState<AuditProfile>({ ...DEFAULT_PROFILE });
-    const [threshold, setThreshold] = useState<number>(DEFAULT_THRESHOLD);
+    const [threshold, setThreshold] = useState<number>(getDomainConfig(DEFAULT_DOMAIN).defaultThreshold);
+    const [customFields, setCustomFields] = useState<DomainFieldConfig[]>(getDomainConfig("custom").fields);
     const [lastSubmission, setLastSubmission] = useState<{
         domain: DomainType;
         request: AuditRequest;
@@ -57,9 +128,15 @@ export default function AuditWorkspace() {
         }
 
         setDomain(draft.domain);
-        setProfile(draft.profile);
+        setProfile(alignProfileWithDomain(draft.domain, draft.profile));
         setThreshold(draft.threshold);
     }, []);
+
+    const activeDomainConfig = useMemo(() => {
+        return getDomainConfig(domain);
+    }, [domain, customFields]);
+
+    const activeProfileFields = activeDomainConfig.fields;
 
     const activeDomainDescription = useMemo(() => {
         const selected = DOMAIN_OPTIONS.find((option) => option.value === domain);
@@ -74,7 +151,7 @@ export default function AuditWorkspace() {
         });
     };
 
-    const updateProfile = (field: keyof AuditProfile, value: string | number) => {
+    const updateProfile = (field: string, value: string | number) => {
         setProfile((current) => {
             const next: AuditProfile = {
                 ...current,
@@ -86,8 +163,26 @@ export default function AuditWorkspace() {
     };
 
     const onDomainChange = (value: DomainType) => {
+        const nextConfig = getDomainConfig(value);
+        const nextProfile = alignProfileWithDomain(value, profile);
+        const nextThreshold = nextConfig.defaultThreshold;
+
         setDomain(value);
-        persistDraft(value, profile, threshold);
+        setProfile(nextProfile);
+        setThreshold(nextThreshold);
+        persistDraft(value, nextProfile, nextThreshold);
+    };
+
+    const onCustomFieldsChange = (fields: DomainFieldConfig[]) => {
+        setCustomFields(fields);
+
+        if (domain !== "custom") {
+            return;
+        }
+
+        const nextProfile = buildProfileFromFields(fields, profile);
+        setProfile(nextProfile);
+        persistDraft(domain, nextProfile, threshold);
     };
 
     const onThresholdChange = (value: number) => {
@@ -97,7 +192,7 @@ export default function AuditWorkspace() {
     };
 
     const activeDomain = DOMAIN_OPTIONS.find((option) => option.value === domain);
-    const canRunAudit = activeDomain?.status !== "coming-soon";
+    const canRunAudit = Boolean(activeDomain);
 
     const latestSession = useMemo<AuditSession | null>(() => {
         if (!result || !lastSubmission || !lastRequest) {
@@ -119,10 +214,10 @@ export default function AuditWorkspace() {
     };
 
     const resetDraft = () => {
-        const nextProfile = { ...DEFAULT_PROFILE };
+        const nextProfile = { ...getDomainConfig(DEFAULT_DOMAIN).defaultProfile };
         setDomain(DEFAULT_DOMAIN);
         setProfile(nextProfile);
-        setThreshold(DEFAULT_THRESHOLD);
+        setThreshold(getDomainConfig(DEFAULT_DOMAIN).defaultThreshold);
         clearAuditDraft();
         clearCurrentResult();
     };
@@ -130,11 +225,8 @@ export default function AuditWorkspace() {
     const runAudit = async (thresholdOverride?: number) => {
         const nextThreshold = thresholdOverride ?? threshold;
         const payload: AuditRequest = {
-            profile: {
-                ...profile,
-                score: Number(profile.score),
-                experience: Number(profile.experience),
-            },
+            domain,
+            profile,
             threshold: nextThreshold,
         };
 
@@ -156,6 +248,15 @@ export default function AuditWorkspace() {
             request: payload,
             response,
         });
+
+        saveHistory({
+            id: createSessionId(),
+            domain,
+            submittedAt,
+            request: payload,
+            response,
+            trustVerdict: deriveTrustVerdict(response.insights.risk_score),
+        });
     };
 
     const rerunAtHigherThreshold = async () => {
@@ -175,13 +276,24 @@ export default function AuditWorkspace() {
                 title="Run a clean input-to-audit flow"
                 description="Enter profile details, set threshold, and run a structured audit in one step."
                 actions={
-                    <button
-                        type="button"
-                        onClick={resetDraft}
-                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300 hover:text-ink-50"
-                    >
-                        Reset Draft
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            id="btn-compare-mode"
+                            data-no-print
+                            onClick={() => router.push(isCompareMode ? "/audit" : "/audit?mode=compare")}
+                            className="rounded-lg border border-signal-caution/45 bg-signal-cautionSoft/30 px-3 py-2 text-xs font-semibold text-signal-caution transition hover:opacity-90"
+                        >
+                            ⚖️ {isCompareMode ? "Exit Compare Mode" : "Switch to Compare Mode"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={resetDraft}
+                            className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300 hover:text-ink-50"
+                        >
+                            Reset Draft
+                        </button>
+                    </div>
                 }
             />
 
@@ -192,11 +304,13 @@ export default function AuditWorkspace() {
                         domainOptions={DOMAIN_OPTIONS}
                         domainDescription={activeDomainDescription}
                         profile={profile}
+                        profileFields={activeProfileFields}
                         threshold={threshold}
                         isLoading={loading}
                         canSubmit={canRunAudit}
                         onDomainChange={onDomainChange}
                         onProfileChange={updateProfile}
+                        onCustomFieldsChange={onCustomFieldsChange}
                         onThresholdChange={onThresholdChange}
                         onSubmit={runAudit}
                     />
@@ -207,8 +321,7 @@ export default function AuditWorkspace() {
 
                     <Card title="MVP Note" subtitle="Pitch-ready context for judges">
                         <p className="text-sm text-ink-100">
-                            This MVP demonstrates hiring-domain auditing. Platform architecture supports
-                            multi-domain expansion.
+                            DecisioLens now supports hiring, lending, education, and custom domain schemas.
                         </p>
                     </Card>
 
@@ -240,30 +353,50 @@ export default function AuditWorkspace() {
 
                     <RawAuditPayloadCard session={latestSession} />
 
-                    <ResultHeroCard
-                        session={latestSession}
-                        onRerun={rerunAtHigherThreshold}
-                        onClear={clearCurrentResult}
-                    />
-                    <DecisionSummaryCard session={latestSession} />
+                    <div className="print-section">
+                        <ResultHeroCard
+                            session={latestSession}
+                            onRerun={rerunAtHigherThreshold}
+                            onClear={clearCurrentResult}
+                        />
+                    </div>
+                    <div className="print-section">
+                        <DecisionSummaryCard session={latestSession} />
+                    </div>
 
-                    <ThresholdSensitivityCard
-                        rows={latestSession.response.threshold_analysis}
-                        baselineThreshold={latestSession.request.threshold}
-                        originalScore={latestSession.response.original.score}
-                        confidenceZone={latestSession.response.original.confidence_zone ?? "Unknown"}
-                    />
-                    <VariationsComparisonCard variations={latestSession.response.variations} />
-                    <RiskInsightCard
-                        insights={latestSession.response.insights}
-                        reasonTags={latestSession.response.insights.reason_tags}
-                    />
-                    <ExplanationCard explanation={latestSession.response.explanation} />
-                    <AppealCard appeal={latestSession.response.appeal} />
+                    <div className="print-section">
+                        <ThresholdSensitivityCard
+                            rows={latestSession.response.threshold_analysis}
+                            baselineThreshold={latestSession.request.threshold}
+                            originalScore={latestSession.response.original.score}
+                            confidenceZone={latestSession.response.original.confidence_zone ?? "Unknown"}
+                        />
+                    </div>
+                    <div className="print-section">
+                        <VariationsComparisonCard variations={latestSession.response.variations} />
+                    </div>
+                    <div className="print-section">
+                        <RiskInsightCard
+                            insights={latestSession.response.insights}
+                            reasonTags={latestSession.response.insights.reason_tags}
+                        />
+                    </div>
+                    <div className="print-section">
+                        <ExplanationCard explanation={latestSession.response.explanation} />
+                    </div>
+                    <div className="print-section">
+                        <AppealCard appeal={latestSession.response.appeal} />
+                    </div>
                     {latestSession.response.ai_jury_view ? (
-                        <JuryPanel jury={latestSession.response.ai_jury_view} />
+                        <div className="print-section">
+                            <JuryPanel jury={latestSession.response.ai_jury_view} />
+                        </div>
                     ) : null}
                 </div>
+            ) : null}
+
+            {showWalkthrough ? (
+                <Walkthrough steps={AUDIT_WALKTHROUGH_STEPS} onComplete={completeOnboarding} />
             ) : null}
         </div>
     );

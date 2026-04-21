@@ -11,7 +11,7 @@ interface CardProps {
 export default function Card({ title, subtitle, rightSlot, className = "", children }: CardProps) {
   return (
     <section
-      className={`rounded-2xl border border-ink-600/70 bg-ink-800/80 p-5 shadow-card backdrop-blur-sm ${className}`}
+      className={`card rounded-2xl border border-ink-600/70 bg-ink-800/80 p-5 shadow-card backdrop-blur-sm ${className}`}
     >
       {(title || subtitle || rightSlot) && (
         <header className="mb-4 flex items-start justify-between gap-4">

@@ -1,4 +1,6 @@
+import CustomFieldBuilder from "./CustomFieldBuilder";
 import Card from "@/components/shared/Card";
+import { DomainFieldConfig } from "@/lib/domains";
 import DomainSelector from "./DomainSelector";
 import ProfileFields from "./ProfileFields";
 import SubmitAuditButton from "./SubmitAuditButton";
@@ -10,11 +12,13 @@ interface AuditFormProps {
     domainOptions: DomainOption[];
     domainDescription: string;
     profile: AuditProfile;
+    profileFields: DomainFieldConfig[];
     threshold: number;
     isLoading: boolean;
     canSubmit: boolean;
     onDomainChange: (value: DomainType) => void;
-    onProfileChange: (field: keyof AuditProfile, value: string | number) => void;
+    onProfileChange: (field: string, value: string | number) => void;
+    onCustomFieldsChange: (fields: DomainFieldConfig[]) => void;
     onThresholdChange: (value: number) => void;
     onSubmit: () => void;
 }
@@ -24,11 +28,13 @@ export default function AuditForm({
     domainOptions,
     domainDescription,
     profile,
+    profileFields,
     threshold,
     isLoading,
     canSubmit,
     onDomainChange,
     onProfileChange,
+    onCustomFieldsChange,
     onThresholdChange,
     onSubmit,
 }: AuditFormProps) {
@@ -41,31 +47,33 @@ export default function AuditForm({
             }}
         >
             <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Domain">
-                <DomainSelector
-                    value={domain}
-                    options={domainOptions}
-                    description={domainDescription}
-                    onChange={onDomainChange}
-                />
+                <div id="domain-selector">
+                    <DomainSelector
+                        value={domain}
+                        options={domainOptions}
+                        description={domainDescription}
+                        onChange={onDomainChange}
+                    />
+                </div>
             </Card>
 
             <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Candidate Profile">
-                <ProfileFields profile={profile} onChange={onProfileChange} />
+                <div id="profile-fields">
+                    <ProfileFields profile={profile} fields={profileFields} onChange={onProfileChange} />
+                </div>
             </Card>
 
+            {domain === "custom" ? <CustomFieldBuilder onChange={onCustomFieldsChange} /> : null}
+
             <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Decision Threshold">
-                <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
+                <div id="threshold-control">
+                    <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
+                </div>
             </Card>
 
             <div className="flex flex-wrap items-center gap-3">
                 <SubmitAuditButton isLoading={isLoading} isDisabled={!canSubmit} />
             </div>
-
-            {!canSubmit ? (
-                <p className="text-xs text-signal-caution">
-                    Lending and Education are coming soon. Please select Hiring (active) to run this audit.
-                </p>
-            ) : null}
         </form>
     );
 }
