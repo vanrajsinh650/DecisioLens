@@ -7,7 +7,7 @@ interface JuryPanelProps {
 
 export default function JuryPanel({ jury }: JuryPanelProps) {
     return (
-        <Card title="AI Jury View" subtitle="Structured perspective split for credibility">
+        <Card title="Jury Perspective" subtitle="Auditor, challenger, and judge views">
             <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Auditor</p>

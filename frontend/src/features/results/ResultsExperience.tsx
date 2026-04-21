@@ -59,23 +59,23 @@ export default function ResultsExperience() {
             <ResultHeroCard onRerun={() => rerunWithDelta(0.02)} onClear={clearResult} />
             <DecisionSummaryCard session={session} />
 
-            <div className="grid gap-4 xl:grid-cols-3">
-                <div className="space-y-4 xl:col-span-2">
+            <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
+                <div className="space-y-4">
                     <ThresholdSensitivityCard
                         rows={session.response.threshold_analysis}
                         baselineThreshold={session.request.threshold}
                     />
                     <VariationsComparisonCard variations={session.response.variations} />
-                    <ExplanationCard explanation={session.response.explanation} />
                 </div>
 
                 <div className="space-y-4">
+                    <ExplanationCard explanation={session.response.explanation} />
+                    <AppealCard appeal={session.response.appeal} onRetest={() => rerunWithDelta(0.02)} />
                     <RiskInsightCard
                         insights={session.response.insights}
                         reasonTags={session.response.reason_tags}
                     />
                     <JuryPanel jury={session.response.ai_jury_view} />
-                    <AppealCard appeal={session.response.appeal} onRetest={() => rerunWithDelta(0.02)} />
                 </div>
             </div>
         </div>

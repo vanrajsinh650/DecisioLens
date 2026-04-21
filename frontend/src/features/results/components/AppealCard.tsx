@@ -11,8 +11,8 @@ interface AppealCardProps {
 export default function AppealCard({ appeal, onRetest }: AppealCardProps) {
     return (
         <Card
-            title="Action + Appeal"
-            subtitle="Demo finish: concrete next step for the user"
+            title="Explainable Appeal"
+            subtitle="Appeal-ready response with clear action"
             rightSlot={<CopyButton value={appeal} label="Copy Appeal" />}
         >
             <pre className="whitespace-pre-wrap rounded-xl border border-ink-600/70 bg-ink-900/60 p-4 text-sm leading-relaxed text-ink-100">

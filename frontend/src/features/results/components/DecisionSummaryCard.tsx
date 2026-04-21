@@ -17,7 +17,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
     const { request, response } = session;
 
     return (
-        <Card title="Decision Snapshot" subtitle="Immediate quality and risk posture">
+        <Card title="Top Summary" subtitle="Decision status and key metrics">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <StatPill
                     label="Decision"

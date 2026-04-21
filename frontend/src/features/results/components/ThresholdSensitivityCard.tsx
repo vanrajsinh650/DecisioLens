@@ -25,7 +25,7 @@ export default function ThresholdSensitivityCard({
     return (
         <Card
             title="Threshold Sensitivity"
-            subtitle="Unique feature: where decision flips as threshold moves"
+            subtitle="Where decisions flip as threshold changes"
             rightSlot={
                 <Badge
                     label={`${switchPoints.length} switch ${switchPoints.length === 1 ? "point" : "points"}`}

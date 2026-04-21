@@ -15,7 +15,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
     }
 
     return (
-        <Card title="Scenario Variation Testing" subtitle="Unique feature: counterfactual stability checks">
+        <Card title="Scenario Variation Testing" subtitle="Counterfactual stability checks">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {variations.map((row) => (
                     <VariationRow

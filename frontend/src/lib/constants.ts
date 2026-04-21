@@ -35,9 +35,9 @@ export const DEFAULT_PROFILE: AuditProfile = {
   name: "Alex Kumar",
   score: 72,
   experience: 4,
-  gender: "male",
+  gender: "Male",
   location: "Bengaluru",
-  college: "IIT Bombay",
+  college: "Tier 1",
 };
 
 export const DEFAULT_THRESHOLD = 0.5;
@@ -54,9 +54,9 @@ export const AUDIT_PRESETS: AuditPreset[] = [
       name: "Riya Shah",
       score: 66,
       experience: 3,
-      gender: "female",
+      gender: "Female",
       location: "Mumbai",
-      college: "BITS Pilani",
+      college: "Tier 1",
     },
   },
   {
@@ -70,9 +70,9 @@ export const AUDIT_PRESETS: AuditPreset[] = [
       name: "Imran Sheikh",
       score: 61,
       experience: 1,
-      gender: "male",
+      gender: "Male",
       location: "Delhi",
-      college: "NIT Trichy",
+      college: "Tier 2",
     },
   },
   {
@@ -86,9 +86,9 @@ export const AUDIT_PRESETS: AuditPreset[] = [
       name: "Neha Rao",
       score: 88,
       experience: 9,
-      gender: "female",
+      gender: "Female",
       location: "Hyderabad",
-      college: "IISc Bengaluru",
+      college: "Tier 1",
     },
   },
 ];

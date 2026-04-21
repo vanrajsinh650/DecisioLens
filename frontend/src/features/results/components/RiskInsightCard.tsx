@@ -14,7 +14,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
     const hasInstabilityFlag = insights.instability || reasonTags.includes("profile_instability");
 
     return (
-        <Card title="Instability & Bias Signals" subtitle="Binary flags plus reason-level evidence">
+        <Card title="Signal Summary" subtitle="Risk and reason tags">
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <Badge
                     label={hasInstabilityFlag ? "Instability Detected" : "Stable Pattern"}
