@@ -3,6 +3,7 @@ import Card from "@/components/shared/Card";
 import StatPill from "@/components/shared/StatPill";
 import {
     formatRiskLabel,
+    formatRiskScore,
     formatThreshold,
     normalizeDecisionTone,
     normalizeRiskTone,
@@ -18,12 +19,12 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
     const reasonTags = response.insights.reason_tags;
     const biasDetected = response.insights.bias_detected || reasonTags.includes("bias_detected");
     const instabilityDetected = response.insights.instability || reasonTags.includes("profile_instability");
-    const riskTone = normalizeRiskTone(String(response.insights.risk_score));
+    const riskTone = normalizeRiskTone(response.insights.risk_score);
     const riskLabel = formatRiskLabel(String(response.insights.risk_score));
 
     return (
         <Card
-            title="Section 2 — Decision Summary Card"
+            title="Pass 2 — Decision Summary"
             subtitle="Core factual checks separate from the visual hero"
         >
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -35,6 +36,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         <Badge
                             label={response.original.decision}
                             tone={normalizeDecisionTone(response.original.decision)}
+                            dot
                         />
                     </div>
                 </div>
@@ -45,6 +47,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         <Badge
                             label={instabilityDetected ? "Flipped" : "Stable"}
                             tone={instabilityDetected ? "caution" : "stable"}
+                            dot
                         />
                     </div>
                 </div>
@@ -55,6 +58,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         <Badge
                             label={biasDetected ? "Bias Detected" : "Stable"}
                             tone={biasDetected ? "risk" : "stable"}
+                            dot
                         />
                     </div>
                 </div>
@@ -68,8 +72,9 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 />
                 <StatPill
                     label="Risk"
-                    value={riskLabel}
+                    value={`${riskLabel} · ${formatRiskScore(response.insights.risk_score)}`}
                     tone={riskTone}
+                    emphasize={riskTone === "risk"}
                 />
             </div>
 

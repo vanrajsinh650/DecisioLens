@@ -4,6 +4,7 @@ import Badge from "@/components/shared/Badge";
 import StatPill from "@/components/shared/StatPill";
 import {
     formatRiskLabel,
+    formatRiskScore,
     formatThreshold,
     normalizeConfidenceTone,
     normalizeDecisionTone,
@@ -20,12 +21,13 @@ interface ResultHeroCardProps {
 export default function ResultHeroCard({ session, onRerun, onClear }: ResultHeroCardProps) {
     const { request, response } = session;
     const decisionLabel = response.original.decision === "ACCEPT" ? "Accepted" : "Rejected";
-    const riskTone = normalizeRiskTone(String(response.insights.risk_score));
+    const riskTone = normalizeRiskTone(response.insights.risk_score);
+    const riskLabel = formatRiskLabel(String(response.insights.risk_score));
 
     return (
         <Card>
             <SectionHeader
-                eyebrow="Section 1 — Result Hero Card"
+                eyebrow="Pass 2 — Summary"
                 title={`Decision: ${decisionLabel}`}
                 description="Instant outcome snapshot with score, threshold, confidence, and risk context."
                 actions={
@@ -55,11 +57,17 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                         <Badge
                             label={response.original.decision}
                             tone={normalizeDecisionTone(response.original.decision)}
+                            dot
                         />
                     </div>
                 </div>
 
-                <StatPill label="Score" value={formatThreshold(response.original.score)} tone="info" />
+                <StatPill
+                    label="Score"
+                    value={formatThreshold(response.original.score)}
+                    tone="info"
+                    emphasize
+                />
 
                 <StatPill label="Threshold" value={formatThreshold(request.threshold)} tone="caution" />
 
@@ -69,6 +77,7 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                         <Badge
                             label={response.original.confidence_zone ?? "Unknown"}
                             tone={normalizeConfidenceTone(response.original.confidence_zone ?? "Unknown")}
+                            dot
                         />
                     </div>
                 </div>
@@ -76,7 +85,7 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Profile</p>
                     <div className="mt-2">
-                        <Badge label={formatRiskLabel(String(response.insights.risk_score))} tone={riskTone} />
+                        <Badge label={`${riskLabel} · ${formatRiskScore(response.insights.risk_score)}`} tone={riskTone} dot />
                     </div>
                 </div>
             </div>

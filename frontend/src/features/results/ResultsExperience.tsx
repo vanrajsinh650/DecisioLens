@@ -7,6 +7,7 @@ import AppealCard from "./components/AppealCard";
 import DecisionSummaryCard from "./components/DecisionSummaryCard";
 import ExplanationCard from "./components/ExplanationCard";
 import JuryPanel from "./components/JuryPanel";
+import RawAuditPayloadCard from "./components/RawAuditPayloadCard";
 import ResultHeroCard from "./components/ResultHeroCard";
 import RiskInsightCard from "./components/RiskInsightCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
@@ -68,6 +69,8 @@ export default function ResultsExperience() {
 
     return (
         <div className="space-y-6">
+            <RawAuditPayloadCard session={session} />
+
             <ResultHeroCard
                 session={session}
                 onRerun={() => rerunWithDelta(0.02)}

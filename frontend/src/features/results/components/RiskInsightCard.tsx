@@ -2,7 +2,7 @@ import ReasonTags from "./ReasonTags";
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
 import StatPill from "@/components/shared/StatPill";
-import { formatRiskLabel, normalizeRiskTone } from "@/lib/format";
+import { formatRiskLabel, formatRiskScore, normalizeRiskTone } from "@/lib/format";
 import { AuditInsights } from "@/types/audit";
 
 interface RiskInsightCardProps {
@@ -13,13 +13,18 @@ interface RiskInsightCardProps {
 export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCardProps) {
     const hasBiasFlag = reasonTags.includes("bias_detected") || insights.bias_detected;
     const hasInstabilityFlag = insights.instability || reasonTags.includes("profile_instability");
-    const riskTone = normalizeRiskTone(String(insights.risk_score));
+    const riskTone = normalizeRiskTone(insights.risk_score);
     const riskLabel = formatRiskLabel(String(insights.risk_score));
 
     return (
-        <Card title="Section 5 — Risk Insight Card" subtitle="Productized interpretation of risk and fairness signals">
+        <Card title="Pass 3 — Risk Insights" subtitle="Productized interpretation of risk and fairness signals">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <StatPill label="Risk" value={String(insights.risk_score)} tone={riskTone} />
+                <StatPill
+                    label="Risk"
+                    value={formatRiskScore(insights.risk_score)}
+                    tone={riskTone}
+                    emphasize={riskTone === "risk"}
+                />
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Bias Signal</p>
@@ -27,6 +32,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                         <Badge
                             label={hasBiasFlag ? "Bias Detected" : "Stable"}
                             tone={hasBiasFlag ? "risk" : "stable"}
+                            dot
                         />
                     </div>
                 </div>
@@ -37,6 +43,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                         <Badge
                             label={hasInstabilityFlag ? "Flipped" : "Stable"}
                             tone={hasInstabilityFlag ? "caution" : "stable"}
+                            dot
                         />
                     </div>
                 </div>
@@ -45,8 +52,9 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
                     <div className="mt-2">
                         <Badge
-                            label={riskLabel}
+                            label={`${riskLabel} · ${formatRiskScore(insights.risk_score)}`}
                             tone={riskTone}
+                            dot
                         />
                     </div>
                 </div>

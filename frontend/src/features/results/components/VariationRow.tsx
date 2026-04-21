@@ -34,7 +34,7 @@ export default function VariationRow({
             <td className="px-3 py-2 text-sm font-semibold text-ink-50">{formatVariationName(row.label)}</td>
             <td className="px-3 py-2 text-ink-100">{formatThreshold(row.score)}</td>
             <td className="px-3 py-2">
-                <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} />
+                <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
             </td>
             <td className="px-3 py-2">
                 <Badge
@@ -47,6 +47,7 @@ export default function VariationRow({
                                 ? "border-signal-caution/40 bg-signal-cautionSoft/60 text-signal-caution"
                                 : ""
                     }
+                    dot
                 />
             </td>
         </tr>

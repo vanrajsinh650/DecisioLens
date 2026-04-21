@@ -21,12 +21,13 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
 
     return (
         <Card
-            title="Section 4 — Variations Comparison Card"
+            title="Pass 2 — Variations Comparison"
             subtitle="Original vs counterfactual scenarios with decision change indicators"
             rightSlot={
                 <Badge
                     label={flippedCount > 0 ? `Flipped ${flippedCount}` : "Stable"}
                     tone={flippedCount > 0 ? "risk" : "stable"}
+                    dot
                 />
             }
         >

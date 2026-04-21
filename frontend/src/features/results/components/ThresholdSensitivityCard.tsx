@@ -51,12 +51,13 @@ export default function ThresholdSensitivityCard({
 
     return (
         <Card
-            title="Section 3 — Threshold Sensitivity Card"
+            title="Pass 2 — Threshold Sensitivity"
             subtitle="Threshold list, flip point, and local interactive decision simulation"
             rightSlot={
                 <Badge
                     label={hasBorderlineSignal ? "Borderline / Unstable Flag" : "Stable Threshold Pattern"}
                     tone={hasBorderlineSignal ? "caution" : "stable"}
+                    dot
                 />
             }
         >
@@ -78,7 +79,7 @@ export default function ThresholdSensitivityCard({
                     <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">
                         Interactive Threshold Simulator ({formatThreshold(selectedThreshold)})
                     </p>
-                    <Badge label={simulatedDecision} tone={normalizeDecisionTone(simulatedDecision)} />
+                    <Badge label={simulatedDecision} tone={normalizeDecisionTone(simulatedDecision)} dot />
                 </div>
 
                 <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px] sm:items-center">
@@ -107,17 +108,17 @@ export default function ThresholdSensitivityCard({
                     <span>·</span>
                     <span>Baseline decision: {baselineDecision}</span>
                     <span>·</span>
-                    <Badge label={confidenceZone} tone={normalizeConfidenceTone(confidenceZone)} />
+                    <Badge label={confidenceZone} tone={normalizeConfidenceTone(confidenceZone)} dot />
                 </div>
             </div>
 
             <div className="mb-3 flex flex-wrap gap-2">
                 {switchPoints.length > 0 ? (
                     switchPoints.map((point) => (
-                        <Badge key={point} label={`Flip @ ${formatThreshold(point)}`} tone="caution" />
+                        <Badge key={point} label={`Flip @ ${formatThreshold(point)}`} tone="caution" dot />
                     ))
                 ) : (
-                    <Badge label="No flips across scanned thresholds" tone="stable" />
+                    <Badge label="No flips across scanned thresholds" tone="stable" dot />
                 )}
             </div>
 

@@ -8,9 +8,9 @@ interface AppealCardProps {
 export default function AppealCard({ appeal }: AppealCardProps) {
     return (
         <Card
-            title="Section 7 — Appeal Card"
+            title="Pass 2 — Appeal"
             subtitle="Action layer with ready-to-copy review request text"
-            rightSlot={<CopyButton value={appeal} label="Copy Appeal" />}
+            rightSlot={<CopyButton value={appeal} label="Copy Appeal" copiedLabel="Appeal Copied" />}
         >
             <div className="rounded-xl border border-ink-600/70 bg-ink-900/60 p-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-200">Appeal Draft</p>

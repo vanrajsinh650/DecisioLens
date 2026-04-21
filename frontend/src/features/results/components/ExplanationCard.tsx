@@ -52,9 +52,9 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
 
     return (
         <Card
-            title="Section 6 — Explanation Card"
+            title="Pass 2 — Explanation"
             subtitle="Human-readable blocks for summary, key drivers, and recommendation"
-            rightSlot={<CopyButton value={explanation} label="Copy Explanation" />}
+            rightSlot={<CopyButton value={explanation} label="Copy Explanation" copiedLabel="Explanation Copied" />}
         >
             <div className="space-y-4">
                 <div className="rounded-xl border border-ink-600/70 bg-ink-900/60 p-4">

@@ -11,14 +11,26 @@ export const formatThreshold = (value: number): string => {
 };
 
 export const formatRiskLabel = (level: string): string => {
-  const normalized = level.trim();
+  const normalized = String(level).trim();
   if (!normalized) return "Risk";
+
+  const numericLevel = Number(normalized);
+  if (Number.isFinite(numericLevel)) {
+    if (numericLevel <= 30) return "Low Risk";
+    if (numericLevel <= 70) return "Medium Risk";
+    return "High Risk";
+  }
 
   const titleCase = normalized
     .toLowerCase()
     .replace(/\b\w/g, (character) => character.toUpperCase());
 
   return titleCase.includes("Risk") ? titleCase : `${titleCase} Risk`;
+};
+
+export const formatRiskScore = (score: number): string => {
+  if (!Number.isFinite(score)) return "N/A";
+  return `${Math.round(score)}/100`;
 };
 
 export const formatVariationName = (name: string): string => {
@@ -38,8 +50,22 @@ export const normalizeDecisionTone = (
   return "caution";
 };
 
-export const normalizeRiskTone = (level: string): "stable" | "caution" | "risk" => {
-  const normalized = level.toLowerCase();
+export const normalizeRiskTone = (level: string | number): "stable" | "caution" | "risk" => {
+  if (typeof level === "number" && Number.isFinite(level)) {
+    if (level <= 30) return "stable";
+    if (level <= 70) return "caution";
+    return "risk";
+  }
+
+  const normalized = String(level).toLowerCase().trim();
+  const numericLevel = Number(normalized);
+
+  if (Number.isFinite(numericLevel)) {
+    if (numericLevel <= 30) return "stable";
+    if (numericLevel <= 70) return "caution";
+    return "risk";
+  }
+
   if (normalized === "low") return "stable";
   if (normalized === "high") return "risk";
   return "caution";

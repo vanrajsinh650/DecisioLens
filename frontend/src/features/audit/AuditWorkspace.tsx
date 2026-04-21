@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import AuditForm from "./components/AuditForm";
@@ -9,6 +8,15 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import Card from "@/components/shared/Card";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
+import AppealCard from "@/features/results/components/AppealCard";
+import DecisionSummaryCard from "@/features/results/components/DecisionSummaryCard";
+import ExplanationCard from "@/features/results/components/ExplanationCard";
+import JuryPanel from "@/features/results/components/JuryPanel";
+import RawAuditPayloadCard from "@/features/results/components/RawAuditPayloadCard";
+import ResultHeroCard from "@/features/results/components/ResultHeroCard";
+import RiskInsightCard from "@/features/results/components/RiskInsightCard";
+import ThresholdSensitivityCard from "@/features/results/components/ThresholdSensitivityCard";
+import VariationsComparisonCard from "@/features/results/components/VariationsComparisonCard";
 import { useAudit } from "@/hooks/useAudit";
 import {
     DEFAULT_DOMAIN,
@@ -18,23 +26,28 @@ import {
 } from "@/lib/constants";
 import {
     clearAuditDraft,
+    clearAuditSession,
     readAuditDraft,
     saveAuditDraft,
     saveAuditSession,
 } from "@/lib/session";
-import { AuditProfile, DomainType } from "@/types/audit";
+import { AuditProfile, AuditRequest, AuditSession, DomainType } from "@/types/audit";
 
 function clampThreshold(value: number): number {
     return Math.max(0, Math.min(1, value));
 }
 
 export default function AuditWorkspace() {
-    const router = useRouter();
-    const { submitAudit, loading, error } = useAudit();
+    const { submitAudit, loading, error, result, lastRequest, clearResult } = useAudit();
 
     const [domain, setDomain] = useState<DomainType>(DEFAULT_DOMAIN);
     const [profile, setProfile] = useState<AuditProfile>({ ...DEFAULT_PROFILE });
     const [threshold, setThreshold] = useState<number>(DEFAULT_THRESHOLD);
+    const [lastSubmission, setLastSubmission] = useState<{
+        domain: DomainType;
+        request: AuditRequest;
+        submittedAt: string;
+    } | null>(null);
 
     useEffect(() => {
         const draft = readAuditDraft();
@@ -86,22 +99,43 @@ export default function AuditWorkspace() {
     const activeDomain = DOMAIN_OPTIONS.find((option) => option.value === domain);
     const canRunAudit = activeDomain?.status !== "coming-soon";
 
+    const latestSession = useMemo<AuditSession | null>(() => {
+        if (!result || !lastSubmission || !lastRequest) {
+            return null;
+        }
+
+        return {
+            domain: lastSubmission.domain,
+            request: lastRequest,
+            submittedAt: lastSubmission.submittedAt,
+            response: result,
+        };
+    }, [lastRequest, lastSubmission, result]);
+
+    const clearCurrentResult = () => {
+        clearResult();
+        setLastSubmission(null);
+        clearAuditSession();
+    };
+
     const resetDraft = () => {
         const nextProfile = { ...DEFAULT_PROFILE };
         setDomain(DEFAULT_DOMAIN);
         setProfile(nextProfile);
         setThreshold(DEFAULT_THRESHOLD);
         clearAuditDraft();
+        clearCurrentResult();
     };
 
-    const runAudit = async () => {
-        const payload = {
+    const runAudit = async (thresholdOverride?: number) => {
+        const nextThreshold = thresholdOverride ?? threshold;
+        const payload: AuditRequest = {
             profile: {
                 ...profile,
                 score: Number(profile.score),
                 experience: Number(profile.experience),
             },
-            threshold,
+            threshold: nextThreshold,
         };
 
         const response = await submitAudit(payload);
@@ -109,14 +143,29 @@ export default function AuditWorkspace() {
             return;
         }
 
+        const submittedAt = new Date().toISOString();
+        setLastSubmission({
+            domain,
+            request: payload,
+            submittedAt,
+        });
+
         saveAuditSession({
             domain,
-            submittedAt: new Date().toISOString(),
+            submittedAt,
             request: payload,
             response,
         });
+    };
 
-        router.push("/results");
+    const rerunAtHigherThreshold = async () => {
+        const baselineThreshold = latestSession?.request.threshold ?? threshold;
+        const nextThreshold = clampThreshold(baselineThreshold + 0.02);
+
+        setThreshold(nextThreshold);
+        persistDraft(domain, profile, nextThreshold);
+
+        await runAudit(nextThreshold);
     };
 
     return (
@@ -180,6 +229,42 @@ export default function AuditWorkspace() {
                     ) : null}
                 </div>
             </div>
+
+            {latestSession ? (
+                <div className="space-y-6">
+                    <SectionHeader
+                        eyebrow="Audit Results"
+                        title="Live result from your latest submission"
+                        description="Form submit triggers backend audit, stores the result in hook state, and renders all result cards below."
+                    />
+
+                    <RawAuditPayloadCard session={latestSession} />
+
+                    <ResultHeroCard
+                        session={latestSession}
+                        onRerun={rerunAtHigherThreshold}
+                        onClear={clearCurrentResult}
+                    />
+                    <DecisionSummaryCard session={latestSession} />
+
+                    <ThresholdSensitivityCard
+                        rows={latestSession.response.threshold_analysis}
+                        baselineThreshold={latestSession.request.threshold}
+                        originalScore={latestSession.response.original.score}
+                        confidenceZone={latestSession.response.original.confidence_zone ?? "Unknown"}
+                    />
+                    <VariationsComparisonCard variations={latestSession.response.variations} />
+                    <RiskInsightCard
+                        insights={latestSession.response.insights}
+                        reasonTags={latestSession.response.insights.reason_tags}
+                    />
+                    <ExplanationCard explanation={latestSession.response.explanation} />
+                    <AppealCard appeal={latestSession.response.appeal} />
+                    {latestSession.response.ai_jury_view ? (
+                        <JuryPanel jury={latestSession.response.ai_jury_view} />
+                    ) : null}
+                </div>
+            ) : null}
         </div>
     );
 }

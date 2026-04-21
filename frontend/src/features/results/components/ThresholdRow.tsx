@@ -23,13 +23,14 @@ export default function ThresholdRow({
         <tr className="bg-ink-800/50">
             <td className="px-3 py-2 text-ink-100">{formatThreshold(row.threshold)}</td>
             <td className="px-3 py-2">
-                <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} />
+                <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
             </td>
             <td className="px-3 py-2 text-ink-200">
                 <Badge
                     label={decisionChanged ? "Flipped" : "Stable"}
                     tone={decisionChanged ? "caution" : "stable"}
                     className="px-2 py-0.5 text-[10px]"
+                    dot
                 />
             </td>
             <td className="px-3 py-2 text-ink-200">
