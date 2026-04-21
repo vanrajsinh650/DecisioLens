@@ -16,20 +16,23 @@ export interface AuditRequest {
   threshold: number;
 }
 
-export interface ThresholdAnalysisRow {
+export interface OriginalDecision {
+  score: number;
+  decision: Decision;
+  threshold: number;
+  confidence_zone?: string;
+}
+
+export interface ThresholdAnalysisItem {
   threshold: number;
   decision: Decision;
 }
 
 export interface VariationResult {
-  variation: string;
+  label: string;
   score: number;
   decision: Decision;
-}
-
-export interface RiskAssessment {
-  score: number;
-  level: "Low" | "Medium" | "High" | string;
+  changed: boolean;
 }
 
 export interface AIJuryView {
@@ -38,36 +41,32 @@ export interface AIJuryView {
   judge: string;
 }
 
-export interface AuditInsights {
+export interface Insights {
   instability: boolean;
   bias_detected: boolean;
-  confidence_zone: string;
   risk_score: number;
-  risk_level: string;
   reason_tags: string[];
 }
 
-export interface AuditResponse {
-  original: {
-    score: number;
-    decision: Decision;
-  };
-  threshold_analysis: ThresholdAnalysisRow[];
+export interface AuditResult {
+  original: OriginalDecision;
+  threshold_analysis: ThresholdAnalysisItem[];
   variations: VariationResult[];
-  confidence_zone: string;
-  risk: RiskAssessment;
-  reason_tags: string[];
-  ai_jury_view: AIJuryView;
-  insights: AuditInsights;
+  insights: Insights;
   explanation: string;
   appeal: string;
+  ai_jury_view?: AIJuryView;
 }
+
+export type ThresholdAnalysisRow = ThresholdAnalysisItem;
+export type AuditInsights = Insights;
+export type AuditResponse = AuditResult;
 
 export interface AuditSession {
   domain: DomainType;
   submittedAt: string;
   request: AuditRequest;
-  response: AuditResponse;
+  response: AuditResult;
 }
 
 export interface DomainOption {

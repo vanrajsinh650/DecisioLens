@@ -79,13 +79,13 @@ export default function ResultsExperience() {
                 rows={session.response.threshold_analysis}
                 baselineThreshold={session.request.threshold}
                 originalScore={session.response.original.score}
-                confidenceZone={session.response.confidence_zone}
+                confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
             />
             <VariationsComparisonCard variations={session.response.variations} />
-            <RiskInsightCard insights={session.response.insights} reasonTags={session.response.reason_tags} />
+            <RiskInsightCard insights={session.response.insights} reasonTags={session.response.insights.reason_tags} />
             <ExplanationCard explanation={session.response.explanation} />
             <AppealCard appeal={session.response.appeal} />
-            <JuryPanel jury={session.response.ai_jury_view} />
+            {session.response.ai_jury_view ? <JuryPanel jury={session.response.ai_jury_view} /> : null}
         </div>
     );
 }

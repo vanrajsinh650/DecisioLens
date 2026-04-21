@@ -9,7 +9,7 @@ interface VariationsComparisonCardProps {
 
 export default function VariationsComparisonCard({ variations }: VariationsComparisonCardProps) {
     const baselineRow =
-        variations.find((row) => row.variation === "baseline") ?? variations[0] ?? null;
+        variations.find((row) => row.label === "baseline") ?? variations[0] ?? null;
     const flippedCount =
         baselineRow
             ? variations.filter((row) => row.decision !== baselineRow.decision).length
@@ -43,7 +43,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                     <tbody className="divide-y divide-ink-700/70">
                         {variations.map((row) => (
                             <VariationRow
-                                key={row.variation}
+                                key={row.label}
                                 row={row}
                                 baselineScore={baselineRow.score}
                                 baselineDecision={baselineRow.decision}

@@ -20,7 +20,7 @@ interface ResultHeroCardProps {
 export default function ResultHeroCard({ session, onRerun, onClear }: ResultHeroCardProps) {
     const { request, response } = session;
     const decisionLabel = response.original.decision === "ACCEPT" ? "Accepted" : "Rejected";
-    const riskTone = normalizeRiskTone(response.risk.level);
+    const riskTone = normalizeRiskTone(String(response.insights.risk_score));
 
     return (
         <Card>
@@ -67,8 +67,8 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                     <p className="text-xs uppercase tracking-wide text-ink-200">Confidence</p>
                     <div className="mt-2">
                         <Badge
-                            label={response.confidence_zone}
-                            tone={normalizeConfidenceTone(response.confidence_zone)}
+                            label={response.original.confidence_zone ?? "Unknown"}
+                            tone={normalizeConfidenceTone(response.original.confidence_zone ?? "Unknown")}
                         />
                     </div>
                 </div>
@@ -76,7 +76,7 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Profile</p>
                     <div className="mt-2">
-                        <Badge label={formatRiskLabel(response.risk.level)} tone={riskTone} />
+                        <Badge label={formatRiskLabel(String(response.insights.risk_score))} tone={riskTone} />
                     </div>
                 </div>
             </div>

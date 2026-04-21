@@ -15,8 +15,11 @@ interface DecisionSummaryCardProps {
 
 export default function DecisionSummaryCard({ session }: DecisionSummaryCardProps) {
     const { request, response } = session;
-    const biasDetected = response.insights.bias_detected || response.reason_tags.includes("bias_detected");
-    const instabilityDetected = response.insights.instability || response.reason_tags.includes("profile_instability");
+    const reasonTags = response.insights.reason_tags;
+    const biasDetected = response.insights.bias_detected || reasonTags.includes("bias_detected");
+    const instabilityDetected = response.insights.instability || reasonTags.includes("profile_instability");
+    const riskTone = normalizeRiskTone(String(response.insights.risk_score));
+    const riskLabel = formatRiskLabel(String(response.insights.risk_score));
 
     return (
         <Card
@@ -65,8 +68,8 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 />
                 <StatPill
                     label="Risk"
-                    value={formatRiskLabel(response.risk.level)}
-                    tone={normalizeRiskTone(response.risk.level)}
+                    value={riskLabel}
+                    tone={riskTone}
                 />
             </div>
 
