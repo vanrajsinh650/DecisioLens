@@ -1,8 +1,11 @@
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
+import StatPill from "@/components/shared/StatPill";
 import {
+    formatRiskLabel,
     formatThreshold,
     normalizeDecisionTone,
+    normalizeRiskTone,
 } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
@@ -21,12 +24,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
             subtitle="Core factual checks separate from the visual hero"
         >
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Original Score</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">
-                        {formatThreshold(response.original.score)}
-                    </p>
-                </div>
+                <StatPill label="Score" value={formatThreshold(response.original.score)} tone="info" />
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Current Decision</p>
@@ -39,14 +37,37 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 </div>
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">{instabilityDetected ? "Yes" : "No"}</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability Signal</p>
+                    <div className="mt-2">
+                        <Badge
+                            label={instabilityDetected ? "Flipped" : "Stable"}
+                            tone={instabilityDetected ? "caution" : "stable"}
+                        />
+                    </div>
                 </div>
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Detected</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">{biasDetected ? "Yes" : "No"}</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Status</p>
+                    <div className="mt-2">
+                        <Badge
+                            label={biasDetected ? "Bias Detected" : "Stable"}
+                            tone={biasDetected ? "risk" : "stable"}
+                        />
+                    </div>
                 </div>
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <StatPill
+                    label="Threshold"
+                    value={formatThreshold(request.threshold)}
+                    tone="caution"
+                />
+                <StatPill
+                    label="Risk"
+                    value={formatRiskLabel(response.risk.level)}
+                    tone={normalizeRiskTone(response.risk.level)}
+                />
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-200">

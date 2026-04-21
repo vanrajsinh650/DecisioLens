@@ -1,6 +1,14 @@
+import Card from "@/components/shared/Card";
 import SectionHeader from "@/components/layout/SectionHeader";
 import Badge from "@/components/shared/Badge";
-import { formatThreshold, normalizeConfidenceTone, normalizeDecisionTone, normalizeRiskTone } from "@/lib/format";
+import StatPill from "@/components/shared/StatPill";
+import {
+    formatRiskLabel,
+    formatThreshold,
+    normalizeConfidenceTone,
+    normalizeDecisionTone,
+    normalizeRiskTone,
+} from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
 interface ResultHeroCardProps {
@@ -12,9 +20,10 @@ interface ResultHeroCardProps {
 export default function ResultHeroCard({ session, onRerun, onClear }: ResultHeroCardProps) {
     const { request, response } = session;
     const decisionLabel = response.original.decision === "ACCEPT" ? "Accepted" : "Rejected";
+    const riskTone = normalizeRiskTone(response.risk.level);
 
     return (
-        <div className="rounded-2xl border border-ink-600/70 bg-ink-800/80 p-5 shadow-card backdrop-blur-sm">
+        <Card>
             <SectionHeader
                 eyebrow="Section 1 — Result Hero Card"
                 title={`Decision: ${decisionLabel}`}
@@ -41,7 +50,7 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Decision</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Decision Status</p>
                     <div className="mt-2">
                         <Badge
                             label={response.original.decision}
@@ -50,15 +59,9 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Score</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">{formatThreshold(response.original.score)}</p>
-                </div>
+                <StatPill label="Score" value={formatThreshold(response.original.score)} tone="info" />
 
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Threshold</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">{formatThreshold(request.threshold)}</p>
-                </div>
+                <StatPill label="Threshold" value={formatThreshold(request.threshold)} tone="caution" />
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Confidence</p>
@@ -71,12 +74,12 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                 </div>
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Profile</p>
                     <div className="mt-2">
-                        <Badge label={response.risk.level} tone={normalizeRiskTone(response.risk.level)} />
+                        <Badge label={formatRiskLabel(response.risk.level)} tone={riskTone} />
                     </div>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 }

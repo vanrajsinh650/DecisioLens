@@ -26,7 +26,11 @@ export default function ThresholdRow({
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} />
             </td>
             <td className="px-3 py-2 text-ink-200">
-                {decisionChanged ? "Changed" : "Unchanged"}
+                <Badge
+                    label={decisionChanged ? "Flipped" : "Stable"}
+                    tone={decisionChanged ? "caution" : "stable"}
+                    className="px-2 py-0.5 text-[10px]"
+                />
             </td>
             <td className="px-3 py-2 text-ink-200">
                 {isSelectedThreshold

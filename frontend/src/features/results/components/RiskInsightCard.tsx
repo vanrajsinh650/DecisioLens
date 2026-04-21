@@ -1,7 +1,8 @@
 import ReasonTags from "./ReasonTags";
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
-import { normalizeRiskTone } from "@/lib/format";
+import StatPill from "@/components/shared/StatPill";
+import { formatRiskLabel, normalizeRiskTone } from "@/lib/format";
 import { AuditInsights } from "@/types/audit";
 
 interface RiskInsightCardProps {
@@ -16,23 +17,23 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
     return (
         <Card title="Section 5 — Risk Insight Card" subtitle="Productized interpretation of risk and fairness signals">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Score</p>
-                    <p className="mt-2 text-lg font-semibold text-ink-50">{insights.risk_score}</p>
-                </div>
+                <StatPill label="Risk" value={String(insights.risk_score)} tone={normalizeRiskTone(insights.risk_level)} />
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Detected</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Signal</p>
                     <div className="mt-2">
-                        <Badge label={hasBiasFlag ? "Yes" : "No"} tone={hasBiasFlag ? "risk" : "stable"} />
+                        <Badge
+                            label={hasBiasFlag ? "Bias Detected" : "Stable"}
+                            tone={hasBiasFlag ? "risk" : "stable"}
+                        />
                     </div>
                 </div>
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability Detected</p>
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Variation Stability</p>
                     <div className="mt-2">
                         <Badge
-                            label={hasInstabilityFlag ? "Yes" : "No"}
+                            label={hasInstabilityFlag ? "Flipped" : "Stable"}
                             tone={hasInstabilityFlag ? "caution" : "stable"}
                         />
                     </div>
@@ -41,7 +42,10 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
                     <div className="mt-2">
-                        <Badge label={insights.risk_level} tone={normalizeRiskTone(insights.risk_level)} />
+                        <Badge
+                            label={formatRiskLabel(insights.risk_level)}
+                            tone={normalizeRiskTone(insights.risk_level)}
+                        />
                     </div>
                 </div>
             </div>

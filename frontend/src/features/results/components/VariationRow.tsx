@@ -26,8 +26,8 @@ export default function VariationRow({
     const tone = getVariationTone(row, baselineScore, baselineDecision);
     const isDecisionFlipped = row.decision !== baselineDecision;
 
-    const changeLabel = isDecisionFlipped ? "Flipped" : "Unchanged";
-    const changeTone = isDecisionFlipped ? "risk" : "info";
+    const changeLabel = isDecisionFlipped ? "Flipped" : "Stable";
+    const changeTone = isDecisionFlipped ? "risk" : "stable";
 
     return (
         <tr className="bg-ink-800/50">
@@ -43,7 +43,9 @@ export default function VariationRow({
                     className={
                         tone === "risk"
                             ? "font-bold"
-                            : "border-ink-500/80 bg-ink-600/70 text-ink-200"
+                            : tone === "caution"
+                                ? "border-signal-caution/40 bg-signal-cautionSoft/60 text-signal-caution"
+                                : ""
                     }
                 />
             </td>

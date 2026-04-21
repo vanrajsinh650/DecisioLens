@@ -10,6 +10,17 @@ export const formatThreshold = (value: number): string => {
   return value.toFixed(2);
 };
 
+export const formatRiskLabel = (level: string): string => {
+  const normalized = level.trim();
+  if (!normalized) return "Risk";
+
+  const titleCase = normalized
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
+  return titleCase.includes("Risk") ? titleCase : `${titleCase} Risk`;
+};
+
 export const formatVariationName = (name: string): string => {
   return VARIATION_LABELS[name] ?? name.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };

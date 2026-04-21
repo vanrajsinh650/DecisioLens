@@ -12,6 +12,7 @@ import RiskInsightCard from "./components/RiskInsightCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "./components/VariationsComparisonCard";
 import EmptyState from "@/components/shared/EmptyState";
+import LoadingState from "@/components/shared/LoadingState";
 import { clearAuditSession, readAuditSession, saveAuditDraft } from "@/lib/session";
 import { AuditSession } from "@/types/audit";
 
@@ -22,10 +23,21 @@ const clampThreshold = (value: number): number => {
 export default function ResultsExperience() {
     const router = useRouter();
     const [session, setSession] = useState<AuditSession | null>(null);
+    const [isSessionReady, setIsSessionReady] = useState(false);
 
     useEffect(() => {
         setSession(readAuditSession());
+        setIsSessionReady(true);
     }, []);
+
+    if (!isSessionReady) {
+        return (
+            <LoadingState
+                label="Fetching results..."
+                description="Loading the latest audit snapshot, variation checks, and appeal text."
+            />
+        );
+    }
 
     if (!session) {
         return (

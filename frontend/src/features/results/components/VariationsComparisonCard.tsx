@@ -1,4 +1,5 @@
 import VariationRow from "./VariationRow";
+import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
 import { VariationResult } from "@/types/audit";
 
@@ -9,6 +10,10 @@ interface VariationsComparisonCardProps {
 export default function VariationsComparisonCard({ variations }: VariationsComparisonCardProps) {
     const baselineRow =
         variations.find((row) => row.variation === "baseline") ?? variations[0] ?? null;
+    const flippedCount =
+        baselineRow
+            ? variations.filter((row) => row.decision !== baselineRow.decision).length
+            : 0;
 
     if (!baselineRow) {
         return null;
@@ -18,6 +23,12 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
         <Card
             title="Section 4 — Variations Comparison Card"
             subtitle="Original vs counterfactual scenarios with decision change indicators"
+            rightSlot={
+                <Badge
+                    label={flippedCount > 0 ? `Flipped ${flippedCount}` : "Stable"}
+                    tone={flippedCount > 0 ? "risk" : "stable"}
+                />
+            }
         >
             <div className="overflow-x-auto rounded-xl border border-ink-600/70">
                 <table className="min-w-full divide-y divide-ink-600/70 text-sm">
