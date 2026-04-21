@@ -26,7 +26,7 @@ interface SessionEnvelope {
     response: unknown;
 }
 
-const DOMAIN_SET: Set<DomainType> = new Set(["hiring", "lending", "insurance", "education"]);
+const DOMAIN_SET: Set<DomainType> = new Set(["hiring", "lending", "education"]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === "object" && value !== null;

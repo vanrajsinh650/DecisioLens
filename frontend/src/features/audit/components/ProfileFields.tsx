@@ -8,21 +8,19 @@ interface ProfileFieldsProps {
     onChange: (field: keyof AuditProfile, value: string | number) => void;
 }
 
-const TEXT_FIELDS: Array<{
-    field: "name" | "gender" | "location" | "college";
-    label: string;
-}> = [
-        { field: "name", label: "Candidate name" },
-        { field: "gender", label: "Gender" },
-        { field: "location", label: "Location" },
-        { field: "college", label: "College" },
-    ];
+const TEXT_FIELDS: Array<{ field: "name" | "location"; label: string }> = [
+    { field: "name", label: "Name" },
+    { field: "location", label: "Location" },
+];
+
+const GENDER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say"];
+const COLLEGE_TIER_OPTIONS = ["Tier 1", "Tier 2", "Tier 3"];
 
 export default function ProfileFields({ profile, onChange }: ProfileFieldsProps) {
     return (
         <div className="grid gap-3 sm:grid-cols-2">
             <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Score (0-100)</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Skills Score</label>
                 <input
                     type="number"
                     min={0}
@@ -34,9 +32,7 @@ export default function ProfileFields({ profile, onChange }: ProfileFieldsProps)
             </div>
 
             <div>
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                    Experience (years)
-                </label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Years of Experience</label>
                 <input
                     type="number"
                     min={0}
@@ -45,6 +41,36 @@ export default function ProfileFields({ profile, onChange }: ProfileFieldsProps)
                     onChange={(event) => onChange("experience", Math.round(Number(event.target.value)))}
                     className={CONTROL_CLASS_NAME}
                 />
+            </div>
+
+            <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Gender</label>
+                <select
+                    value={profile.gender}
+                    onChange={(event) => onChange("gender", event.target.value)}
+                    className={CONTROL_CLASS_NAME}
+                >
+                    {GENDER_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">College Tier</label>
+                <select
+                    value={profile.college}
+                    onChange={(event) => onChange("college", event.target.value)}
+                    className={CONTROL_CLASS_NAME}
+                >
+                    {COLLEGE_TIER_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                            {option}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             {TEXT_FIELDS.map((item) => (

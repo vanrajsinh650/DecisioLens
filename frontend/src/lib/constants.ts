@@ -11,23 +11,21 @@ export const NAV_LINKS: Array<{ href: string; label: string }> = [
 export const DOMAIN_OPTIONS: DomainOption[] = [
   {
     value: "hiring",
-    label: "Hiring",
-    description: "Assess AI-driven hiring decisions for fairness and instability.",
+    label: "Hiring (active)",
+    description: "MVP domain for live auditing demos.",
+    status: "active",
   },
   {
     value: "lending",
-    label: "Lending",
-    description: "Audit automated credit decisions under threshold stress.",
-  },
-  {
-    value: "insurance",
-    label: "Insurance",
-    description: "Detect sensitivity in underwriting and claim decision scoring.",
+    label: "Finance (coming soon)",
+    description: "Planned for threshold and scenario-based finance audits.",
+    status: "coming-soon",
   },
   {
     value: "education",
-    label: "Education",
-    description: "Review admissions and scholarship decision consistency.",
+    label: "Education (coming soon)",
+    description: "Planned for admissions and scholarship decision reviews.",
+    status: "coming-soon",
   },
 ];
 

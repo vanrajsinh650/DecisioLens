@@ -1,26 +1,14 @@
-import Badge from "@/components/shared/Badge";
-import { AuditPreset } from "@/types/audit";
+import Card from "@/components/shared/Card";
 
-interface AuditPresetCardProps {
-    preset: AuditPreset;
-    onApply: (presetId: string) => void;
-}
-
-export default function AuditPresetCard({ preset, onApply }: AuditPresetCardProps) {
+export default function AuditPresetCard() {
     return (
-        <button
-            type="button"
-            onClick={() => onApply(preset.id)}
-            className="w-full rounded-xl border border-ink-600/70 bg-ink-700/50 p-3 text-left transition hover:border-ink-300"
-        >
-            <div className="flex items-center justify-between gap-2">
-                <p className="font-display text-base font-semibold text-ink-50">{preset.title}</p>
-                <Badge label={preset.domain.toUpperCase()} tone="info" />
-            </div>
-            <p className="mt-1 text-xs text-ink-200">{preset.description}</p>
-            <p className="mt-2 text-[11px] uppercase tracking-wide text-ink-300">
-                Threshold {preset.threshold.toFixed(2)}
-            </p>
-        </button>
+        <Card title="Audit Preview" subtitle="What the system will do">
+            <ul className="space-y-2 text-sm text-ink-100">
+                <li>• Score candidate profile</li>
+                <li>• Test threshold sensitivity</li>
+                <li>• Evaluate scenario variations</li>
+                <li>• Generate explanation and appeal</li>
+            </ul>
+        </Card>
     );
 }

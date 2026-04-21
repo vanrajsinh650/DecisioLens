@@ -1,6 +1,6 @@
 export type Decision = "ACCEPT" | "REJECT";
 
-export type DomainType = "hiring" | "lending" | "insurance" | "education";
+export type DomainType = "hiring" | "lending" | "education";
 
 export interface AuditProfile {
   name: string;
@@ -74,6 +74,7 @@ export interface DomainOption {
   value: DomainType;
   label: string;
   description: string;
+  status?: "active" | "coming-soon";
 }
 
 export interface AuditPreset {

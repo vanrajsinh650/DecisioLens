@@ -29,15 +29,31 @@ export default function ThresholdControl({ threshold, onChange }: ThresholdContr
                 </div>
             </div>
 
-            <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={threshold}
-                onChange={(event) => onChange(Number(event.target.value))}
-                className="mt-3 w-full accent-signal-info"
-            />
+            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px] sm:items-center">
+                <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={threshold}
+                    onChange={(event) => onChange(Number(event.target.value))}
+                    className="w-full accent-signal-info"
+                />
+
+                <input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={threshold.toFixed(2)}
+                    onChange={(event) => onChange(Number(event.target.value))}
+                    className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20"
+                />
+            </div>
+
+            <p className="mt-2 text-xs text-ink-200">
+                The threshold determines the minimum score required for acceptance.
+            </p>
         </div>
     );
 }

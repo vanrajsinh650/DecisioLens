@@ -11,7 +11,6 @@ import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
 import { useAudit } from "@/hooks/useAudit";
 import {
-    AUDIT_PRESETS,
     DEFAULT_DOMAIN,
     DEFAULT_PROFILE,
     DEFAULT_THRESHOLD,
@@ -84,16 +83,8 @@ export default function AuditWorkspace() {
         persistDraft(domain, profile, nextThreshold);
     };
 
-    const applyPreset = (presetId: string) => {
-        const preset = AUDIT_PRESETS.find((item) => item.id === presetId);
-        if (!preset) return;
-
-        const nextProfile = { ...preset.profile };
-        setDomain(preset.domain);
-        setProfile(nextProfile);
-        setThreshold(preset.threshold);
-        persistDraft(preset.domain, nextProfile, preset.threshold);
-    };
+    const activeDomain = DOMAIN_OPTIONS.find((option) => option.value === domain);
+    const canRunAudit = activeDomain?.status !== "coming-soon";
 
     const resetDraft = () => {
         const nextProfile = { ...DEFAULT_PROFILE };
@@ -131,9 +122,9 @@ export default function AuditWorkspace() {
     return (
         <div className="space-y-6">
             <SectionHeader
-                eyebrow="Live Audit Workspace"
-                title="Run a decision stress test"
-                description="Collect the profile, set the threshold, and launch one audit run that demonstrates instability, bias, and appeal readiness."
+                eyebrow="Audit Workspace"
+                title="Run a clean input-to-audit flow"
+                description="Enter profile details, set threshold, and run a structured audit in one step."
                 actions={
                     <button
                         type="button"
@@ -146,7 +137,7 @@ export default function AuditWorkspace() {
             />
 
             <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-                <Card title="Input Profile + Threshold" subtitle="Collect inputs, then start the audit flow">
+                <Card title="Input Form" subtitle="Domain + profile + threshold">
                     <AuditForm
                         domain={domain}
                         domainOptions={DOMAIN_OPTIONS}
@@ -154,6 +145,7 @@ export default function AuditWorkspace() {
                         profile={profile}
                         threshold={threshold}
                         isLoading={isLoading}
+                        canSubmit={canRunAudit}
                         onDomainChange={onDomainChange}
                         onProfileChange={updateProfile}
                         onThresholdChange={onThresholdChange}
@@ -162,21 +154,13 @@ export default function AuditWorkspace() {
                 </Card>
 
                 <div className="space-y-4">
-                    <Card title="Quick Presets" subtitle="Fast paths for live demos">
-                        <div className="space-y-3">
-                            {AUDIT_PRESETS.map((preset) => (
-                                <AuditPresetCard key={preset.id} preset={preset} onApply={applyPreset} />
-                            ))}
-                        </div>
-                    </Card>
+                    <AuditPresetCard />
 
-                    <Card title="What judges should notice" subtitle="Keep the narrative focused">
-                        <ul className="space-y-2 text-sm text-ink-100">
-                            <li>1. Baseline decision quality and risk score.</li>
-                            <li>2. Threshold flip points for sensitivity evidence.</li>
-                            <li>3. Counterfactual variation outcomes for bias checks.</li>
-                            <li>4. Structured action and appeal output.</li>
-                        </ul>
+                    <Card title="MVP Note" subtitle="Pitch-ready context for judges">
+                        <p className="text-sm text-ink-100">
+                            This MVP demonstrates hiring-domain auditing. Platform architecture supports
+                            multi-domain expansion.
+                        </p>
                     </Card>
 
                     {isLoading ? <LoadingState compact /> : null}

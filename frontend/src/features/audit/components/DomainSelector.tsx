@@ -16,6 +16,8 @@ export default function DomainSelector({
     description,
     onChange,
 }: DomainSelectorProps) {
+    const activeOption = options.find((option) => option.value === value);
+
     return (
         <div>
             <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Domain</label>
@@ -25,12 +27,19 @@ export default function DomainSelector({
                 className={CONTROL_CLASS_NAME}
             >
                 {options.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option
+                        key={option.value}
+                        value={option.value}
+                        disabled={option.status === "coming-soon"}
+                    >
                         {option.label}
                     </option>
                 ))}
             </select>
             <p className="mt-2 text-xs text-ink-200">{description}</p>
+            {activeOption?.status === "coming-soon" ? (
+                <p className="mt-1 text-xs text-signal-caution">Coming soon. Use Hiring (active) for MVP demo.</p>
+            ) : null}
         </div>
     );
 }

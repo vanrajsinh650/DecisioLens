@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import DomainSelector from "./DomainSelector";
 import ProfileFields from "./ProfileFields";
 import SubmitAuditButton from "./SubmitAuditButton";
@@ -13,6 +11,7 @@ interface AuditFormProps {
     profile: AuditProfile;
     threshold: number;
     isLoading: boolean;
+    canSubmit: boolean;
     onDomainChange: (value: DomainType) => void;
     onProfileChange: (field: keyof AuditProfile, value: string | number) => void;
     onThresholdChange: (value: number) => void;
@@ -26,6 +25,7 @@ export default function AuditForm({
     profile,
     threshold,
     isLoading,
+    canSubmit,
     onDomainChange,
     onProfileChange,
     onThresholdChange,
@@ -33,24 +33,35 @@ export default function AuditForm({
 }: AuditFormProps) {
     return (
         <div className="space-y-4">
-            <DomainSelector
-                value={domain}
-                options={domainOptions}
-                description={domainDescription}
-                onChange={onDomainChange}
-            />
-            <ProfileFields profile={profile} onChange={onProfileChange} />
-            <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
+            <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">A. Domain Selector</p>
+                <DomainSelector
+                    value={domain}
+                    options={domainOptions}
+                    description={domainDescription}
+                    onChange={onDomainChange}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">B. Profile Input</p>
+                <ProfileFields profile={profile} onChange={onProfileChange} />
+            </div>
+
+            <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">C. Threshold Input</p>
+                <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
+            </div>
 
             <div className="flex flex-wrap items-center gap-3">
-                <SubmitAuditButton isLoading={isLoading} onSubmit={onSubmit} />
-                <Link
-                    href="/"
-                    className="rounded-lg border border-ink-500 bg-ink-700/60 px-4 py-2 text-sm font-semibold text-ink-100 transition hover:border-ink-300"
-                >
-                    Back to Landing
-                </Link>
+                <SubmitAuditButton isLoading={isLoading} isDisabled={!canSubmit} onSubmit={onSubmit} />
             </div>
+
+            {!canSubmit ? (
+                <p className="text-xs text-signal-caution">
+                    Finance and Education are coming soon. Please select Hiring (active) to run this MVP audit.
+                </p>
+            ) : null}
         </div>
     );
 }
