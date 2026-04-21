@@ -14,20 +14,39 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
     const hasInstabilityFlag = insights.instability || reasonTags.includes("profile_instability");
 
     return (
-        <Card title="Signal Summary" subtitle="Risk and reason tags">
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-                <Badge
-                    label={hasInstabilityFlag ? "Instability Detected" : "Stable Pattern"}
-                    tone={hasInstabilityFlag ? "caution" : "stable"}
-                />
-                <Badge
-                    label={hasBiasFlag ? "Bias Flags Present" : "No Bias Flag"}
-                    tone={hasBiasFlag ? "risk" : "stable"}
-                />
-                <Badge label={`Risk: ${insights.risk_level}`} tone={normalizeRiskTone(insights.risk_level)} />
+        <Card title="Section 5 — Risk Insight Card" subtitle="Productized interpretation of risk and fairness signals">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Score</p>
+                    <p className="mt-2 text-lg font-semibold text-ink-50">{insights.risk_score}</p>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Detected</p>
+                    <div className="mt-2">
+                        <Badge label={hasBiasFlag ? "Yes" : "No"} tone={hasBiasFlag ? "risk" : "stable"} />
+                    </div>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability Detected</p>
+                    <div className="mt-2">
+                        <Badge
+                            label={hasInstabilityFlag ? "Yes" : "No"}
+                            tone={hasInstabilityFlag ? "caution" : "stable"}
+                        />
+                    </div>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
+                    <div className="mt-2">
+                        <Badge label={insights.risk_level} tone={normalizeRiskTone(insights.risk_level)} />
+                    </div>
+                </div>
             </div>
 
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-200">Reason Tags</p>
+            <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-ink-200">Reason Tags</p>
             <ReasonTags reasonTags={reasonTags} />
         </Card>
     );

@@ -56,28 +56,24 @@ export default function ResultsExperience() {
 
     return (
         <div className="space-y-6">
-            <ResultHeroCard onRerun={() => rerunWithDelta(0.02)} onClear={clearResult} />
+            <ResultHeroCard
+                session={session}
+                onRerun={() => rerunWithDelta(0.02)}
+                onClear={clearResult}
+            />
             <DecisionSummaryCard session={session} />
 
-            <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-                <div className="space-y-4">
-                    <ThresholdSensitivityCard
-                        rows={session.response.threshold_analysis}
-                        baselineThreshold={session.request.threshold}
-                    />
-                    <VariationsComparisonCard variations={session.response.variations} />
-                </div>
-
-                <div className="space-y-4">
-                    <ExplanationCard explanation={session.response.explanation} />
-                    <AppealCard appeal={session.response.appeal} onRetest={() => rerunWithDelta(0.02)} />
-                    <RiskInsightCard
-                        insights={session.response.insights}
-                        reasonTags={session.response.reason_tags}
-                    />
-                    <JuryPanel jury={session.response.ai_jury_view} />
-                </div>
-            </div>
+            <ThresholdSensitivityCard
+                rows={session.response.threshold_analysis}
+                baselineThreshold={session.request.threshold}
+                originalScore={session.response.original.score}
+                confidenceZone={session.response.confidence_zone}
+            />
+            <VariationsComparisonCard variations={session.response.variations} />
+            <RiskInsightCard insights={session.response.insights} reasonTags={session.response.reason_tags} />
+            <ExplanationCard explanation={session.response.explanation} />
+            <AppealCard appeal={session.response.appeal} />
+            <JuryPanel jury={session.response.ai_jury_view} />
         </div>
     );
 }

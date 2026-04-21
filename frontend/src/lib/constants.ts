@@ -98,10 +98,10 @@ export const AUDIT_SESSION_KEY = "decisiolens:last-audit-session";
 export const AUDIT_DRAFT_KEY = "decisiolens:audit-draft";
 
 export const VARIATION_LABELS: Record<string, string> = {
-  baseline: "Baseline",
-  gender_swap: "Gender Swap",
-  location_change: "Location Change",
-  college_change: "College Change",
+  baseline: "Original",
+  gender_swap: "Gender Swapped",
+  location_change: "Location Changed",
+  college_change: "College Tier Changed",
 };
 
 export const REASON_TAG_LABELS: Record<string, string> = {

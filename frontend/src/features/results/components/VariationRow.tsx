@@ -1,5 +1,5 @@
 import Badge from "@/components/shared/Badge";
-import { formatPercent, formatVariationName, normalizeDecisionTone } from "@/lib/format";
+import { formatThreshold, formatVariationName, normalizeDecisionTone } from "@/lib/format";
 import { Decision, VariationResult } from "@/types/audit";
 
 interface VariationRowProps {
@@ -23,25 +23,30 @@ export default function VariationRow({
     baselineScore,
     baselineDecision,
 }: VariationRowProps) {
-    const delta = row.score - baselineScore;
     const tone = getVariationTone(row, baselineScore, baselineDecision);
-    const isBaseline = row.variation === "baseline";
+    const isDecisionFlipped = row.decision !== baselineDecision;
+
+    const changeLabel = isDecisionFlipped ? "Flipped" : "Unchanged";
+    const changeTone = isDecisionFlipped ? "risk" : "info";
 
     return (
-        <div className="rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
-            <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-ink-50">{formatVariationName(row.variation)}</p>
+        <tr className="bg-ink-800/50">
+            <td className="px-3 py-2 text-sm font-semibold text-ink-50">{formatVariationName(row.variation)}</td>
+            <td className="px-3 py-2 text-ink-100">{formatThreshold(row.score)}</td>
+            <td className="px-3 py-2">
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} />
-            </div>
-
-            <p className="mt-2 text-xs text-ink-200">Score: {formatPercent(row.score)}</p>
-            <p className="mt-1 text-xs text-ink-200">
-                Delta vs baseline: {delta >= 0 ? "+" : ""}
-                {formatPercent(delta)}
-            </p>
-            <div className="mt-2">
-                <Badge label={isBaseline ? "Reference" : "Variation"} tone={tone} />
-            </div>
-        </div>
+            </td>
+            <td className="px-3 py-2">
+                <Badge
+                    label={changeLabel}
+                    tone={changeTone}
+                    className={
+                        tone === "risk"
+                            ? "font-bold"
+                            : "border-ink-500/80 bg-ink-600/70 text-ink-200"
+                    }
+                />
+            </td>
+        </tr>
     );
 }

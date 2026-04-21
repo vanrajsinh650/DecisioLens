@@ -1,11 +1,8 @@
+import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
-import StatPill from "@/components/shared/StatPill";
 import {
-    formatPercent,
     formatThreshold,
-    normalizeConfidenceTone,
     normalizeDecisionTone,
-    normalizeRiskTone,
 } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
@@ -15,30 +12,41 @@ interface DecisionSummaryCardProps {
 
 export default function DecisionSummaryCard({ session }: DecisionSummaryCardProps) {
     const { request, response } = session;
+    const biasDetected = response.insights.bias_detected || response.reason_tags.includes("bias_detected");
+    const instabilityDetected = response.insights.instability || response.reason_tags.includes("profile_instability");
 
     return (
-        <Card title="Top Summary" subtitle="Decision status and key metrics">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <StatPill
-                    label="Decision"
-                    value={response.original.decision}
-                    tone={normalizeDecisionTone(response.original.decision)}
-                />
-                <StatPill
-                    label="Model Score"
-                    value={formatPercent(response.original.score)}
-                    tone={normalizeConfidenceTone(response.confidence_zone)}
-                />
-                <StatPill
-                    label="Confidence Zone"
-                    value={response.confidence_zone}
-                    tone={normalizeConfidenceTone(response.confidence_zone)}
-                />
-                <StatPill
-                    label="Risk"
-                    value={`${response.risk.level} (${response.risk.score}/100)`}
-                    tone={normalizeRiskTone(response.risk.level)}
-                />
+        <Card
+            title="Section 2 — Decision Summary Card"
+            subtitle="Core factual checks separate from the visual hero"
+        >
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Original Score</p>
+                    <p className="mt-2 text-lg font-semibold text-ink-50">
+                        {formatThreshold(response.original.score)}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Current Decision</p>
+                    <div className="mt-2">
+                        <Badge
+                            label={response.original.decision}
+                            tone={normalizeDecisionTone(response.original.decision)}
+                        />
+                    </div>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability</p>
+                    <p className="mt-2 text-lg font-semibold text-ink-50">{instabilityDetected ? "Yes" : "No"}</p>
+                </div>
+
+                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
+                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Detected</p>
+                    <p className="mt-2 text-lg font-semibold text-ink-50">{biasDetected ? "Yes" : "No"}</p>
+                </div>
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-200">

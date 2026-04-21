@@ -1,13 +1,24 @@
 import Badge from "@/components/shared/Badge";
 import { formatThreshold, normalizeDecisionTone } from "@/lib/format";
-import { ThresholdAnalysisRow } from "@/types/audit";
+import { Decision, ThresholdAnalysisRow } from "@/types/audit";
 
 interface ThresholdRowProps {
     row: ThresholdAnalysisRow;
     baselineThreshold: number;
+    selectedThreshold: number;
+    baselineDecision: Decision;
 }
 
-export default function ThresholdRow({ row, baselineThreshold }: ThresholdRowProps) {
+export default function ThresholdRow({
+    row,
+    baselineThreshold,
+    selectedThreshold,
+    baselineDecision,
+}: ThresholdRowProps) {
+    const isBaselineThreshold = Math.abs(row.threshold - baselineThreshold) < 0.0001;
+    const isSelectedThreshold = Math.abs(row.threshold - selectedThreshold) < 0.0001;
+    const decisionChanged = row.decision !== baselineDecision;
+
     return (
         <tr className="bg-ink-800/50">
             <td className="px-3 py-2 text-ink-100">{formatThreshold(row.threshold)}</td>
@@ -15,7 +26,14 @@ export default function ThresholdRow({ row, baselineThreshold }: ThresholdRowPro
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} />
             </td>
             <td className="px-3 py-2 text-ink-200">
-                {Math.abs(row.threshold - baselineThreshold) < 0.0001 ? "Current threshold" : "-"}
+                {decisionChanged ? "Changed" : "Unchanged"}
+            </td>
+            <td className="px-3 py-2 text-ink-200">
+                {isSelectedThreshold
+                    ? "Slider"
+                    : isBaselineThreshold
+                        ? "Baseline"
+                        : "-"}
             </td>
         </tr>
     );
