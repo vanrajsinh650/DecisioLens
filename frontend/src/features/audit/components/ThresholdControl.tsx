@@ -36,7 +36,7 @@ export default function ThresholdControl({ threshold, onChange }: ThresholdContr
                 step={0.01}
                 value={threshold}
                 onChange={(event) => onChange(Number(event.target.value))}
-                className="mt-3 w-full accent-accent"
+                className="mt-3 w-full accent-signal-info"
             />
         </div>
     );

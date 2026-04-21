@@ -17,7 +17,7 @@ export default function LoadingState({
     >
       <div className="flex items-center gap-3">
         <span
-          className="h-4 w-4 animate-spin rounded-full border-2 border-ink-300 border-t-accent"
+          className="h-4 w-4 animate-spin rounded-full border-2 border-ink-300 border-t-signal-info"
           aria-hidden
         />
         <p className="font-semibold text-ink-50">{label}</p>

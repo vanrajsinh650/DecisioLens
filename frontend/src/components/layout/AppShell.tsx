@@ -11,11 +11,15 @@ export default function AppShell({ children }: AppShellProps) {
     <div className="relative min-h-screen bg-ink-900 text-ink-50">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-grid-faint bg-[size:32px_32px] opacity-20"
+        className="pointer-events-none absolute inset-0 bg-grid-faint bg-[size:32px_32px] opacity-15"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-[-220px] h-[420px] bg-[radial-gradient(circle,_rgba(124,156,255,0.18),_transparent_60%)]"
+        className="pointer-events-none absolute inset-x-0 top-[-240px] h-[420px] bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.14),_transparent_62%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(11,14,20,0.05)_0%,rgba(11,14,20,0.55)_68%,rgba(11,14,20,0.85)_100%)]"
       />
 
       <TopBar />

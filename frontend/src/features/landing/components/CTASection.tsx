@@ -11,7 +11,7 @@ export default function CTASection() {
             <div className="flex flex-wrap items-center gap-3">
                 <Link
                     href="/audit"
-                    className="inline-flex items-center rounded-lg border border-accent/40 bg-accent/15 px-4 py-2 text-sm font-semibold text-accent transition hover:bg-accent/25"
+                    className="inline-flex items-center rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-4 py-2 text-sm font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
                 >
                     Run Live Audit
                 </Link>

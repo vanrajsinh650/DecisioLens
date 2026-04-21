@@ -9,7 +9,7 @@ export default function SubmitAuditButton({ isLoading, onSubmit }: SubmitAuditBu
             type="button"
             onClick={onSubmit}
             disabled={isLoading}
-            className="rounded-lg border border-accent/40 bg-accent/20 px-4 py-2 text-sm font-semibold text-accent transition hover:bg-accent/30 disabled:cursor-wait disabled:opacity-70"
+            className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-4 py-2 text-sm font-semibold text-signal-info transition hover:bg-signal-infoSoft/90 disabled:cursor-wait disabled:opacity-70"
         >
             {isLoading ? "Running audit..." : "Run Audit"}
         </button>

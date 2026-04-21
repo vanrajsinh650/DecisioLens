@@ -1,7 +1,7 @@
 import { AuditProfile } from "@/types/audit";
 
 const CONTROL_CLASS_NAME =
-    "mt-2 w-full rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-accent/60 focus:ring-2 focus:ring-accent/20";
+    "mt-2 w-full rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20";
 
 interface ProfileFieldsProps {
     profile: AuditProfile;

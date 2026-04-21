@@ -23,7 +23,7 @@ export default function AppealCard({ appeal, onRetest }: AppealCardProps) {
                 <button
                     type="button"
                     onClick={onRetest}
-                    className="rounded-lg border border-accent/40 bg-accent/15 px-3 py-2 text-xs font-semibold text-accent transition hover:bg-accent/25"
+                    className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-3 py-2 text-xs font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
                 >
                     Re-test with +0.02 threshold
                 </button>
