@@ -5,17 +5,17 @@ import Badge from "@/components/shared/Badge";
 
 export default function HeroSection() {
     return (
-        <section className="space-y-4">
+        <section className="space-y-4 rounded-2xl border border-signal-info/30 bg-[linear-gradient(135deg,rgba(21,27,39,0.95),rgba(16,21,31,0.92))] p-5 sm:p-7">
             <div className="flex flex-wrap gap-2">
                 <Badge label="DecisioLens" tone="info" />
                 <Badge label="Threshold Sensitivity" tone="caution" />
-                <Badge label="Scenario Variation Testing" tone="risk" />
+                <Badge label="Scenario Testing" tone="risk" />
             </div>
 
             <SectionHeader
-                eyebrow="Audit automated decisions with threshold sensitivity, scenario testing, and explainable appeals."
+                eyebrow="AI decision auditing platform"
                 title="DecisioLens"
-                description="See how AI really decides."
+                description="Audit automated decisions using threshold sensitivity and scenario testing to uncover instability, bias signals, and appeal-ready evidence."
                 actions={
                     <Link
                         href="/audit"

@@ -4,11 +4,11 @@ export type DomainType = "hiring" | "lending" | "education";
 
 export interface AuditProfile {
   name: string;
-  score: number;
-  experience: number;
   gender: string;
   location: string;
   college: string;
+  experience: number;
+  score: number;
 }
 
 export interface AuditRequest {
@@ -33,6 +33,7 @@ export interface VariationResult {
   score: number;
   decision: Decision;
   changed: boolean;
+  profile?: Partial<AuditProfile>;
 }
 
 export interface AIJuryView {
@@ -45,6 +46,7 @@ export interface Insights {
   instability: boolean;
   bias_detected: boolean;
   risk_score: number;
+  risk_level?: string;
   reason_tags: string[];
 }
 

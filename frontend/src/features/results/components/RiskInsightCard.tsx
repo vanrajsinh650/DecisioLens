@@ -14,7 +14,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
     const hasBiasFlag = reasonTags.includes("bias_detected") || insights.bias_detected;
     const hasInstabilityFlag = insights.instability || reasonTags.includes("profile_instability");
     const riskTone = normalizeRiskTone(insights.risk_score);
-    const riskLabel = formatRiskLabel(String(insights.risk_score));
+    const riskLabel = formatRiskLabel(insights.risk_level ?? String(insights.risk_score));
     const humanReviewRecommended = shouldRecommendHumanReview({
         riskScore: insights.risk_score,
         reasonTags,
@@ -23,7 +23,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
     });
 
     return (
-        <Card title="Pass 3 — Risk Insights" subtitle="Productized interpretation of risk and fairness signals">
+        <Card title="Risk Insights" subtitle="Instability, bias signals, risk score, and reason tags">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <StatPill
                     label="Risk"
@@ -47,7 +47,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     <p className="text-xs uppercase tracking-wide text-ink-200">Variation Stability</p>
                     <div className="mt-2">
                         <Badge
-                            label={hasInstabilityFlag ? "Decision Flipped" : "No Decision Change"}
+                            label={hasInstabilityFlag ? "Unstable" : "Stable"}
                             tone={hasInstabilityFlag ? "caution" : "stable"}
                             dot
                         />
@@ -58,11 +58,12 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
                     <div className="mt-2">
                         <Badge
-                            label={`Risk: ${riskLabel} · Score: ${formatRiskScore(insights.risk_score)}`}
+                            label={riskLabel}
                             tone={riskTone}
                             dot
                         />
                     </div>
+                    <p className="mt-2 text-xs text-ink-200">{`Score: ${formatRiskScore(insights.risk_score)}`}</p>
                 </div>
             </div>
 

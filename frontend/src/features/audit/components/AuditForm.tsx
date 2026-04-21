@@ -1,3 +1,4 @@
+import Card from "@/components/shared/Card";
 import DomainSelector from "./DomainSelector";
 import ProfileFields from "./ProfileFields";
 import SubmitAuditButton from "./SubmitAuditButton";
@@ -32,36 +33,39 @@ export default function AuditForm({
     onSubmit,
 }: AuditFormProps) {
     return (
-        <div className="space-y-4">
-            <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">A. Domain Selector</p>
+        <form
+            className="space-y-4"
+            onSubmit={(event) => {
+                event.preventDefault();
+                onSubmit();
+            }}
+        >
+            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Domain">
                 <DomainSelector
                     value={domain}
                     options={domainOptions}
                     description={domainDescription}
                     onChange={onDomainChange}
                 />
-            </div>
+            </Card>
 
-            <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">B. Profile Input</p>
+            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Candidate Profile">
                 <ProfileFields profile={profile} onChange={onProfileChange} />
-            </div>
+            </Card>
 
-            <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">C. Threshold Input</p>
+            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Decision Threshold">
                 <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
-            </div>
+            </Card>
 
             <div className="flex flex-wrap items-center gap-3">
-                <SubmitAuditButton isLoading={isLoading} isDisabled={!canSubmit} onSubmit={onSubmit} />
+                <SubmitAuditButton isLoading={isLoading} isDisabled={!canSubmit} />
             </div>
 
             {!canSubmit ? (
                 <p className="text-xs text-signal-caution">
-                    Finance and Education are coming soon. Please select Hiring (active) to run this MVP audit.
+                    Lending and Education are coming soon. Please select Hiring (active) to run this audit.
                 </p>
             ) : null}
-        </div>
+        </form>
     );
 }

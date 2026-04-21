@@ -56,8 +56,8 @@ export default function AppealCard({ appeal }: AppealCardProps) {
 
     return (
         <Card
-            title="Pass 2 — Appeal"
-            subtitle="Action layer with ready-to-copy review request text"
+            title="Appeal Draft"
+            subtitle="Formatted appeal text ready to copy and use"
             rightSlot={<CopyButton value={appeal} label="Copy Appeal" copiedLabel="Appeal Copied" />}
         >
             <div className="space-y-4">
@@ -93,15 +93,6 @@ export default function AppealCard({ appeal }: AppealCardProps) {
                         ))}
                     </div>
                 </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                    type="button"
-                    className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-3 py-2 text-xs font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
-                >
-                    Use in Review Request
-                </button>
             </div>
         </Card>
     );

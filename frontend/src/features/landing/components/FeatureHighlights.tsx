@@ -3,15 +3,15 @@ import Card from "@/components/shared/Card";
 const FEATURES = [
     {
         title: "Threshold Sensitivity",
-        description: "See exactly where a decision flips as threshold changes.",
+        description: "See exactly where ACCEPT/REJECT outcomes flip as decision thresholds move.",
     },
     {
-        title: "Scenario Variation Testing",
-        description: "Run controlled profile changes to test decision stability.",
+        title: "Scenario Testing",
+        description: "Run controlled profile changes (gender, location, education) to test stability.",
     },
     {
-        title: "Explainable Appeals",
-        description: "Generate clear evidence and appeal-ready reasoning.",
+        title: "Explainable Outcomes",
+        description: "Get structured explanations, risk tags, and formatted appeal text in one place.",
     },
 ];
 

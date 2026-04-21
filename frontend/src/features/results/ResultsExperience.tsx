@@ -4,14 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import AppealCard from "./components/AppealCard";
-import DecisionSummaryCard from "./components/DecisionSummaryCard";
 import ExplanationCard from "./components/ExplanationCard";
 import JuryPanel from "./components/JuryPanel";
-import RawAuditPayloadCard from "./components/RawAuditPayloadCard";
 import ResultHeroCard from "./components/ResultHeroCard";
 import RiskInsightCard from "./components/RiskInsightCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "./components/VariationsComparisonCard";
+import SectionHeader from "@/components/layout/SectionHeader";
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
 import { clearAuditSession, readAuditSession, saveAuditDraft } from "@/lib/session";
@@ -69,25 +68,44 @@ export default function ResultsExperience() {
 
     return (
         <div className="space-y-6">
+            <SectionHeader
+                eyebrow="Results"
+                title="Audit Results Dashboard"
+                description="Top summary plus detailed threshold, variation, risk, explanation, and appeal insights."
+            />
+
             <ResultHeroCard
                 session={session}
                 onRerun={() => rerunWithDelta(0.02)}
                 onClear={clearResult}
             />
 
-            <ThresholdSensitivityCard
-                rows={session.response.threshold_analysis}
-                baselineThreshold={session.request.threshold}
-                originalScore={session.response.original.score}
-                confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
-            />
-            <DecisionSummaryCard session={session} />
-            <VariationsComparisonCard variations={session.response.variations} />
-            <RiskInsightCard insights={session.response.insights} reasonTags={session.response.insights.reason_tags} />
-            <ExplanationCard explanation={session.response.explanation} />
-            <AppealCard appeal={session.response.appeal} />
-            {session.response.ai_jury_view ? <JuryPanel jury={session.response.ai_jury_view} /> : null}
-            <RawAuditPayloadCard session={session} />
+            <div className="grid gap-6 xl:grid-cols-2">
+                <div className="xl:col-span-2">
+                    <ThresholdSensitivityCard
+                        rows={session.response.threshold_analysis}
+                        baselineThreshold={session.request.threshold}
+                        originalScore={session.response.original.score}
+                        confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
+                    />
+                </div>
+
+                <VariationsComparisonCard variations={session.response.variations} />
+
+                <RiskInsightCard
+                    insights={session.response.insights}
+                    reasonTags={session.response.insights.reason_tags}
+                />
+
+                <ExplanationCard explanation={session.response.explanation} />
+                <AppealCard appeal={session.response.appeal} />
+
+                {session.response.ai_jury_view ? (
+                    <div className="xl:col-span-2">
+                        <JuryPanel jury={session.response.ai_jury_view} />
+                    </div>
+                ) : null}
+            </div>
         </div>
     );
 }

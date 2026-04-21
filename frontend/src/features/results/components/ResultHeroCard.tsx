@@ -21,9 +21,11 @@ interface ResultHeroCardProps {
 
 export default function ResultHeroCard({ session, onRerun, onClear }: ResultHeroCardProps) {
     const { request, response } = session;
-    const decisionLabel = response.original.decision === "ACCEPT" ? "Accepted" : "Rejected";
     const riskTone = normalizeRiskTone(response.insights.risk_score);
     const riskLabel = formatRiskLabel(String(response.insights.risk_score));
+    const riskLevelLabel = response.insights.risk_level
+        ? formatRiskLabel(response.insights.risk_level)
+        : riskLabel;
     const humanReviewRecommended = shouldRecommendHumanReview({
         riskScore: response.insights.risk_score,
         reasonTags: response.insights.reason_tags,
@@ -35,9 +37,9 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
     return (
         <Card>
             <SectionHeader
-                eyebrow="Pass 2 — Summary"
-                title={`Decision: ${decisionLabel}`}
-                description="Instant outcome snapshot with score, threshold, confidence, and risk context."
+                eyebrow="Results Overview"
+                title={`Decision: ${response.original.decision}`}
+                description="Outcome summary with score, threshold, confidence, and risk level."
                 actions={
                     <>
                         <button
@@ -98,11 +100,12 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Profile</p>
                     <div className="mt-2">
                         <Badge
-                            label={`Risk: ${riskLabel} · Score: ${formatRiskScore(response.insights.risk_score)}`}
+                            label={`Risk Level: ${riskLevelLabel}`}
                             tone={riskTone}
                             dot
                         />
                     </div>
+                    <p className="mt-2 text-xs text-ink-200">{`Score: ${formatRiskScore(response.insights.risk_score)}`}</p>
                 </div>
             </div>
 

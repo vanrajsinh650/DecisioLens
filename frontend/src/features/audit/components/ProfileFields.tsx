@@ -20,6 +20,15 @@ export default function ProfileFields({ profile, onChange }: ProfileFieldsProps)
     return (
         <div className="grid gap-3 sm:grid-cols-2">
             <div>
+                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Name</label>
+                <input
+                    value={profile.name}
+                    onChange={(event) => onChange("name", event.target.value)}
+                    className={CONTROL_CLASS_NAME}
+                />
+            </div>
+
+            <div>
                 <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Skills Score</label>
                 <input
                     type="number"
@@ -73,18 +82,22 @@ export default function ProfileFields({ profile, onChange }: ProfileFieldsProps)
                 </select>
             </div>
 
-            {TEXT_FIELDS.map((item) => (
-                <div key={item.field}>
-                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                        {item.label}
-                    </label>
-                    <input
-                        value={profile[item.field]}
-                        onChange={(event) => onChange(item.field, event.target.value)}
-                        className={CONTROL_CLASS_NAME}
-                    />
-                </div>
-            ))}
+            {TEXT_FIELDS.map((item) => {
+                if (item.field === "name") return null;
+
+                return (
+                    <div key={item.field}>
+                        <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
+                            {item.label}
+                        </label>
+                        <input
+                            value={profile[item.field]}
+                            onChange={(event) => onChange(item.field, event.target.value)}
+                            className={CONTROL_CLASS_NAME}
+                        />
+                    </div>
+                );
+            })}
         </div>
     );
 }

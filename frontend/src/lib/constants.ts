@@ -3,8 +3,8 @@ import { AuditPreset, AuditProfile, DomainOption, DomainType } from "@/types/aud
 export const APP_NAME = "DecisioLens";
 
 export const NAV_LINKS: Array<{ href: string; label: string }> = [
-  { href: "/", label: "Overview" },
-  { href: "/audit", label: "Audit Workspace" },
+  { href: "/", label: "Home" },
+  { href: "/audit", label: "Audit" },
   { href: "/results", label: "Results" },
 ];
 
@@ -17,7 +17,7 @@ export const DOMAIN_OPTIONS: DomainOption[] = [
   },
   {
     value: "lending",
-    label: "Finance (coming soon)",
+    label: "Lending (coming soon)",
     description: "Planned for threshold and scenario-based finance audits.",
     status: "coming-soon",
   },

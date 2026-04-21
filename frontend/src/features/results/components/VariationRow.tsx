@@ -34,9 +34,20 @@ export default function VariationRow({
             ? "bg-signal-cautionSoft/20"
             : "bg-ink-800/50";
 
+    const profileMeta = row.profile
+        ? [
+            row.profile.gender ? `Gender: ${row.profile.gender}` : null,
+            row.profile.location ? `Location: ${row.profile.location}` : null,
+            row.profile.college ? `College: ${row.profile.college}` : null,
+        ].filter(Boolean).join(" · ")
+        : "";
+
     return (
         <tr className={rowClassName}>
-            <td className="px-3 py-2 text-sm font-semibold text-ink-50">{formatVariationName(row.label)}</td>
+            <td className="px-3 py-2 text-sm font-semibold text-ink-50">
+                <p>{formatVariationName(row.label)}</p>
+                {profileMeta ? <p className="mt-1 text-xs font-normal text-ink-200">{profileMeta}</p> : null}
+            </td>
             <td className="px-3 py-2 text-ink-100">{`Score: ${formatThreshold(row.score)}`}</td>
             <td className="px-3 py-2">
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />

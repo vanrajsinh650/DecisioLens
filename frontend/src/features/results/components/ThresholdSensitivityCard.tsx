@@ -60,10 +60,12 @@ export default function ThresholdSensitivityCard({
         confidenceZone,
     });
 
+    const baselineConfidenceLabel = confidenceZone || "Unknown";
+
     return (
         <Card
-            title="Pass 2 — Threshold Sensitivity"
-            subtitle="Threshold list, flip point, and local interactive decision simulation"
+            title="Threshold Sensitivity"
+            subtitle="Threshold-wise outcomes and points where the decision flips"
             rightSlot={
                 <Badge
                     label={hasBorderlineSignal ? "Borderline / Unstable Flag" : "Stable Threshold Pattern"}
@@ -75,7 +77,7 @@ export default function ThresholdSensitivityCard({
             <div className="mb-4 rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
                 <p className="text-sm font-semibold text-ink-50">
                     {firstSwitchPoint !== undefined
-                        ? `Decision flips below Threshold: ${formatThreshold(firstSwitchPoint)}`
+                        ? `Decision flips at threshold ${formatThreshold(firstSwitchPoint)}`
                         : "No decision flip in scanned thresholds"}
                 </p>
                 <p className="mt-1 text-sm text-ink-200">
@@ -119,7 +121,7 @@ export default function ThresholdSensitivityCard({
                     <span>·</span>
                     <span>Baseline decision: {baselineDecision}</span>
                     <span>·</span>
-                    <Badge label={confidenceZone} tone={normalizeConfidenceTone(confidenceZone)} dot />
+                    <Badge label={baselineConfidenceLabel} tone={normalizeConfidenceTone(baselineConfidenceLabel)} dot />
                 </div>
             </div>
 
@@ -148,7 +150,7 @@ export default function ThresholdSensitivityCard({
                         <tr>
                             <th className="px-3 py-2">Threshold</th>
                             <th className="px-3 py-2">Decision</th>
-                            <th className="px-3 py-2">Outcome Change</th>
+                            <th className="px-3 py-2">Change vs Baseline</th>
                             <th className="px-3 py-2">Marker</th>
                         </tr>
                     </thead>

@@ -93,8 +93,8 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
 
     return (
         <Card
-            title="Pass 2 — Explanation"
-            subtitle="Structured explanation with summary, reasons, and recommendation"
+            title="Explanation"
+            subtitle="Structured summary, key reasons, and recommendation"
             rightSlot={<CopyButton value={explanation} label="Copy Explanation" copiedLabel="Explanation Copied" />}
         >
             <div className="space-y-4">

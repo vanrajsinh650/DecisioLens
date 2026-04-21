@@ -28,7 +28,7 @@ export default function JuryPanel({ jury }: JuryPanelProps) {
     ];
 
     return (
-        <Card title="Pass 3 — Jury Panel" subtitle="Short verdicts from Auditor, Challenger, and Judge">
+        <Card title="Jury Panel" subtitle="Three short AI agent opinions: auditor, challenger, and judge">
             <div className="grid gap-3 sm:grid-cols-3">
                 {cards.map((card) => (
                     <div key={card.role} className={`rounded-xl border p-3 ${card.accentClass}`}>
