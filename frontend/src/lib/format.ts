@@ -80,6 +80,45 @@ export const normalizeConfidenceTone = (
   return "risk";
 };
 
+const HUMAN_REVIEW_REASON_TAGS = new Set([
+  "bias_detected",
+  "threshold_sensitive",
+  "profile_instability",
+  "score_instability",
+  "demographic_sensitive",
+  "education_sensitive",
+  "location_sensitive",
+]);
+
+interface HumanReviewSignalInput {
+  riskScore: number;
+  reasonTags?: string[];
+  biasDetected?: boolean;
+  instabilityDetected?: boolean;
+  confidenceZone?: string;
+}
+
+export const shouldRecommendHumanReview = ({
+  riskScore,
+  reasonTags = [],
+  biasDetected = false,
+  instabilityDetected = false,
+  confidenceZone = "",
+}: HumanReviewSignalInput): boolean => {
+  const hasSensitiveReasonTag = reasonTags.some((tag) => HUMAN_REVIEW_REASON_TAGS.has(tag));
+  const normalizedConfidenceZone = confidenceZone.toLowerCase();
+  const confidenceIsBorderline =
+    normalizedConfidenceZone.includes("borderline") || normalizedConfidenceZone.includes("unstable");
+
+  return (
+    normalizeRiskTone(riskScore) === "risk"
+    || biasDetected
+    || instabilityDetected
+    || hasSensitiveReasonTag
+    || confidenceIsBorderline
+  );
+};
+
 export const toneClasses: Record<
   "stable" | "caution" | "risk" | "info",
   { soft: string; text: string; border: string }

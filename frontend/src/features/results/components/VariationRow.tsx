@@ -24,15 +24,20 @@ export default function VariationRow({
     baselineDecision,
 }: VariationRowProps) {
     const tone = getVariationTone(row, baselineScore, baselineDecision);
-    const isDecisionFlipped = row.changed;
+    const isDecisionFlipped = row.changed || row.decision !== baselineDecision;
 
-    const changeLabel = isDecisionFlipped ? "Flipped" : "Stable";
+    const changeLabel = isDecisionFlipped ? "Decision Flipped" : "No Decision Change";
     const changeTone = isDecisionFlipped ? "risk" : "stable";
+    const rowClassName = isDecisionFlipped
+        ? "bg-signal-riskSoft/30"
+        : tone === "caution"
+            ? "bg-signal-cautionSoft/20"
+            : "bg-ink-800/50";
 
     return (
-        <tr className="bg-ink-800/50">
+        <tr className={rowClassName}>
             <td className="px-3 py-2 text-sm font-semibold text-ink-50">{formatVariationName(row.label)}</td>
-            <td className="px-3 py-2 text-ink-100">{formatThreshold(row.score)}</td>
+            <td className="px-3 py-2 text-ink-100">{`Score: ${formatThreshold(row.score)}`}</td>
             <td className="px-3 py-2">
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
             </td>

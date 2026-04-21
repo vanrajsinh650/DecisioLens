@@ -25,7 +25,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
             subtitle="Original vs counterfactual scenarios with decision change indicators"
             rightSlot={
                 <Badge
-                    label={flippedCount > 0 ? `Flipped ${flippedCount}` : "Stable"}
+                    label={flippedCount > 0 ? `Decision Flipped: ${flippedCount}` : "No Decision Flip"}
                     tone={flippedCount > 0 ? "risk" : "stable"}
                     dot
                 />
@@ -36,9 +36,9 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                     <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
                         <tr>
                             <th className="px-3 py-2">Scenario</th>
-                            <th className="px-3 py-2">Score</th>
+                            <th className="px-3 py-2">Score (labeled)</th>
                             <th className="px-3 py-2">Decision</th>
-                            <th className="px-3 py-2">Changed?</th>
+                            <th className="px-3 py-2">Outcome Change</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-ink-700/70">

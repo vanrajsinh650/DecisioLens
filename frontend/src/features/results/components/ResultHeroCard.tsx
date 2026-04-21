@@ -9,6 +9,7 @@ import {
     normalizeConfidenceTone,
     normalizeDecisionTone,
     normalizeRiskTone,
+    shouldRecommendHumanReview,
 } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
@@ -23,6 +24,13 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
     const decisionLabel = response.original.decision === "ACCEPT" ? "Accepted" : "Rejected";
     const riskTone = normalizeRiskTone(response.insights.risk_score);
     const riskLabel = formatRiskLabel(String(response.insights.risk_score));
+    const humanReviewRecommended = shouldRecommendHumanReview({
+        riskScore: response.insights.risk_score,
+        reasonTags: response.insights.reason_tags,
+        biasDetected: response.insights.bias_detected,
+        instabilityDetected: response.insights.instability,
+        confidenceZone: response.original.confidence_zone,
+    });
 
     return (
         <Card>
@@ -64,12 +72,16 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
 
                 <StatPill
                     label="Score"
-                    value={formatThreshold(response.original.score)}
+                    value={`Score: ${formatThreshold(response.original.score)}`}
                     tone="info"
                     emphasize
                 />
 
-                <StatPill label="Threshold" value={formatThreshold(request.threshold)} tone="caution" />
+                <StatPill
+                    label="Threshold"
+                    value={`Threshold: ${formatThreshold(request.threshold)}`}
+                    tone="caution"
+                />
 
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Confidence</p>
@@ -85,10 +97,23 @@ export default function ResultHeroCard({ session, onRerun, onClear }: ResultHero
                 <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
                     <p className="text-xs uppercase tracking-wide text-ink-200">Risk Profile</p>
                     <div className="mt-2">
-                        <Badge label={`${riskLabel} · ${formatRiskScore(response.insights.risk_score)}`} tone={riskTone} dot />
+                        <Badge
+                            label={`Risk: ${riskLabel} · Score: ${formatRiskScore(response.insights.risk_score)}`}
+                            tone={riskTone}
+                            dot
+                        />
                     </div>
                 </div>
             </div>
+
+            {humanReviewRecommended ? (
+                <div className="mt-4 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
+                    <Badge label="Human Review Recommended" tone="caution" dot />
+                    <p className="mt-2 text-sm text-ink-100">
+                        Fairness or instability indicators were detected. Route this case for manual review before a final action.
+                    </p>
+                </div>
+            ) : null}
         </Card>
     );
 }

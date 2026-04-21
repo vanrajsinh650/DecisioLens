@@ -5,7 +5,12 @@ import { useEffect, useState } from "react";
 import ThresholdRow from "./ThresholdRow";
 import Badge from "@/components/shared/Badge";
 import Card from "@/components/shared/Card";
-import { formatThreshold, normalizeConfidenceTone, normalizeDecisionTone } from "@/lib/format";
+import {
+    formatThreshold,
+    normalizeConfidenceTone,
+    normalizeDecisionTone,
+    shouldRecommendHumanReview,
+} from "@/lib/format";
 import { Decision, ThresholdAnalysisRow } from "@/types/audit";
 
 interface ThresholdSensitivityCardProps {
@@ -48,6 +53,12 @@ export default function ThresholdSensitivityCard({
     const simulatedDecision = getDecisionAtThreshold(originalScore, selectedThreshold);
     const hasBorderlineSignal =
         confidenceZone.toLowerCase().includes("borderline") || switchPoints.length > 0;
+    const humanReviewRecommended = shouldRecommendHumanReview({
+        riskScore: hasBorderlineSignal ? 71 : 30,
+        reasonTags: switchPoints.length > 0 ? ["threshold_sensitive"] : [],
+        instabilityDetected: switchPoints.length > 0,
+        confidenceZone,
+    });
 
     return (
         <Card
@@ -64,7 +75,7 @@ export default function ThresholdSensitivityCard({
             <div className="mb-4 rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
                 <p className="text-sm font-semibold text-ink-50">
                     {firstSwitchPoint !== undefined
-                        ? `Decision flips below threshold ${formatThreshold(firstSwitchPoint)}`
+                        ? `Decision flips below Threshold: ${formatThreshold(firstSwitchPoint)}`
                         : "No decision flip in scanned thresholds"}
                 </p>
                 <p className="mt-1 text-sm text-ink-200">
@@ -77,7 +88,7 @@ export default function ThresholdSensitivityCard({
             <div className="mb-4 rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                        Interactive Threshold Simulator ({formatThreshold(selectedThreshold)})
+                        Interactive Threshold Simulator (Threshold: {formatThreshold(selectedThreshold)})
                     </p>
                     <Badge label={simulatedDecision} tone={normalizeDecisionTone(simulatedDecision)} dot />
                 </div>
@@ -112,10 +123,19 @@ export default function ThresholdSensitivityCard({
                 </div>
             </div>
 
+            {humanReviewRecommended ? (
+                <div className="mb-4 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
+                    <Badge label="Human Review Recommended" tone="caution" dot />
+                    <p className="mt-1 text-sm text-ink-100">
+                        Threshold-sensitive behavior was detected. Consider manual review to ensure a fair final decision.
+                    </p>
+                </div>
+            ) : null}
+
             <div className="mb-3 flex flex-wrap gap-2">
                 {switchPoints.length > 0 ? (
                     switchPoints.map((point) => (
-                        <Badge key={point} label={`Flip @ ${formatThreshold(point)}`} tone="caution" dot />
+                        <Badge key={point} label={`Decision Flipped @ Threshold: ${formatThreshold(point)}`} tone="caution" dot />
                     ))
                 ) : (
                     <Badge label="No flips across scanned thresholds" tone="stable" dot />
@@ -128,7 +148,7 @@ export default function ThresholdSensitivityCard({
                         <tr>
                             <th className="px-3 py-2">Threshold</th>
                             <th className="px-3 py-2">Decision</th>
-                            <th className="px-3 py-2">Changed?</th>
+                            <th className="px-3 py-2">Outcome Change</th>
                             <th className="px-3 py-2">Marker</th>
                         </tr>
                     </thead>

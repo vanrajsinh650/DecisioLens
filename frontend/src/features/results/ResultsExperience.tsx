@@ -69,14 +69,11 @@ export default function ResultsExperience() {
 
     return (
         <div className="space-y-6">
-            <RawAuditPayloadCard session={session} />
-
             <ResultHeroCard
                 session={session}
                 onRerun={() => rerunWithDelta(0.02)}
                 onClear={clearResult}
             />
-            <DecisionSummaryCard session={session} />
 
             <ThresholdSensitivityCard
                 rows={session.response.threshold_analysis}
@@ -84,11 +81,13 @@ export default function ResultsExperience() {
                 originalScore={session.response.original.score}
                 confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
             />
+            <DecisionSummaryCard session={session} />
             <VariationsComparisonCard variations={session.response.variations} />
             <RiskInsightCard insights={session.response.insights} reasonTags={session.response.insights.reason_tags} />
             <ExplanationCard explanation={session.response.explanation} />
             <AppealCard appeal={session.response.appeal} />
             {session.response.ai_jury_view ? <JuryPanel jury={session.response.ai_jury_view} /> : null}
+            <RawAuditPayloadCard session={session} />
         </div>
     );
 }
