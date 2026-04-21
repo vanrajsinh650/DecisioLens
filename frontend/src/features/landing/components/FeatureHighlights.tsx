@@ -2,16 +2,16 @@ import Card from "@/components/shared/Card";
 
 const FEATURES = [
     {
-        title: "Threshold Sensitivity",
-        description: "See exactly where ACCEPT/REJECT outcomes flip as decision thresholds move.",
+        title: "Is it stable?",
+        description: "Move the decision threshold and see exactly where the outcome flips from ACCEPT to REJECT.",
     },
     {
-        title: "Scenario Testing",
-        description: "Run controlled profile changes (gender, location, education) to test stability.",
+        title: "Is it fair?",
+        description: "Swap gender, location, or education and check if the decision changes — it shouldn't.",
     },
     {
-        title: "Explainable Outcomes",
-        description: "Get structured explanations, risk tags, and formatted appeal text in one place.",
+        title: "Can you explain it?",
+        description: "Get a structured breakdown of why the AI decided this way, plus appeal-ready text you can copy.",
     },
 ];
 

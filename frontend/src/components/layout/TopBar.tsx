@@ -13,7 +13,7 @@ export default function TopBar() {
             <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                 <div className="space-y-1">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-signal-info/90">
-                        AI Decision Auditing Platform
+                        AI Decision Trust Checker
                     </p>
                     <div className="flex items-center gap-2">
                         <Link href="/" className="font-display text-xl font-semibold text-ink-50">

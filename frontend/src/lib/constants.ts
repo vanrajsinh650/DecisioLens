@@ -4,8 +4,8 @@ export const APP_NAME = "DecisioLens";
 
 export const NAV_LINKS: Array<{ href: string; label: string }> = [
   { href: "/", label: "Home" },
-  { href: "/audit", label: "Audit" },
-  { href: "/results", label: "Results" },
+  { href: "/audit", label: "Test" },
+  { href: "/results", label: "Report" },
 ];
 
 export const DOMAIN_OPTIONS: DomainOption[] = [

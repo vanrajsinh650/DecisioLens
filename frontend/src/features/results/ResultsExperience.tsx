@@ -43,9 +43,9 @@ export default function ResultsExperience() {
         return (
             <div className="space-y-6">
                 <EmptyState
-                    title="No audit results yet"
-                    description="Run an audit first to see threshold sensitivity, variation outcomes, and appeal-ready actions."
-                    ctaLabel="Go to Audit Workspace"
+                    title="No results yet"
+                    description="Test an AI decision first to see if it's stable, fair, and explainable."
+                    ctaLabel="Test a Decision"
                     ctaHref="/audit"
                 />
             </div>
@@ -69,9 +69,9 @@ export default function ResultsExperience() {
     return (
         <div className="space-y-6">
             <SectionHeader
-                eyebrow="Results"
-                title="Audit Results Dashboard"
-                description="Top summary plus detailed threshold, variation, risk, explanation, and appeal insights."
+                eyebrow="DecisioLens"
+                title="Decision Trust Report"
+                description="See if this AI decision is stable, fair, and explainable."
             />
 
             <ResultHeroCard

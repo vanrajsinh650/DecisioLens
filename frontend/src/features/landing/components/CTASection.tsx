@@ -5,15 +5,15 @@ import Card from "@/components/shared/Card";
 export default function CTASection() {
     return (
         <Card
-            title="Ready to audit an automated decision?"
-            subtitle="Start with the hiring domain and review threshold behavior, profile variations, and risk signals."
+            title="Test if an AI decision is fair and stable before trusting it."
+            subtitle="Enter a candidate profile, set a threshold, and get a full trust report in seconds."
         >
             <div className="flex flex-wrap items-center gap-3">
                 <Link
                     href="/audit"
                     className="inline-flex items-center rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-4 py-2 text-sm font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
                 >
-                    Go to Audit Workspace
+                    Analyze a Decision →
                 </Link>
             </div>
         </Card>

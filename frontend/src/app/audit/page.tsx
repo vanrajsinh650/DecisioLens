@@ -76,12 +76,12 @@ export default function AuditPage() {
     return (
         <div className="space-y-6">
             <SectionHeader
-                eyebrow="Audit"
-                title="Run Decision Audit"
-                description="Fill in profile details, tune the threshold, and run a structured audit against /audit/run."
+                eyebrow="DecisioLens"
+                title="Test AI Decision"
+                description="Enter a candidate profile, set a decision threshold, and see if the outcome is stable, fair, and explainable."
             />
 
-            <Card title="Audit Form" subtitle="Hiring is active; other domains are listed as coming soon.">
+            <Card title="Decision Input" subtitle="Hiring domain is active. Lending and education are coming soon.">
                 <AuditForm
                     domain={domain}
                     domainOptions={DOMAIN_OPTIONS}
@@ -100,16 +100,16 @@ export default function AuditPage() {
             {loading ? (
                 <LoadingState
                     compact
-                    label="Running audit..."
-                    description="Calling backend and preparing threshold + variation outputs."
+                    label="Analyzing decision..."
+                    description="Testing thresholds, running profile variations, and checking for bias signals."
                 />
             ) : null}
 
             {error ? (
                 <ErrorState
-                    title="Audit could not be completed"
-                    message={`What failed: ${error}`}
-                    nextStep="Please verify profile values and try again."
+                    title="Analysis could not be completed"
+                    message={error}
+                    nextStep="Check the profile values and try again."
                     onRetry={runAudit}
                 />
             ) : null}
