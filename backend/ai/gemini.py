@@ -1,57 +1,154 @@
+"""
+Gemini AI integration — async service layer.
+
+Provides ``GeminiService``, a singleton class that:
+- Builds the Gemini client **once** at construction (not per call)
+- Exposes ``async`` methods for explanation and appeal generation
+- Wraps the synchronous SDK via ``asyncio.to_thread`` to avoid blocking
+- Falls back to deterministic templates when the API is unreachable
+"""
+
 from __future__ import annotations
 
+import asyncio
 import json
-import os
+from functools import lru_cache
 from typing import Any, Mapping
 
 from google import genai
 from google.genai import types
 
+from core.config import Settings, get_settings
+from core.logging import get_logger
 
-DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+logger = get_logger("gemini")
 
+
+# ── Constants ────────────────────────────────────────────────────────
+
+_EXPLANATION_REQUIRED_SECTIONS = ("Summary:", "Key Reason:", "Risk:", "Recommendation:")
+
+
+# ── GeminiService ────────────────────────────────────────────────────
+
+class GeminiService:
+    """Singleton wrapper around the Google Generative AI SDK."""
+
+    _instance: GeminiService | None = None
+
+    def __init__(self, settings: Settings) -> None:
+        self._model = settings.GEMINI_MODEL
+        api_key = settings.gemini_api_key_resolved
+        self._client: genai.Client | None = None
+        if api_key:
+            try:
+                self._client = genai.Client(api_key=api_key)
+                logger.info("Gemini client initialized (model=%s)", self._model)
+            except Exception:
+                logger.warning("Failed to initialize Gemini client — fallback mode active")
+        else:
+            logger.warning("No Gemini API key configured — fallback mode active")
+
+    @classmethod
+    def instance(cls) -> GeminiService:
+        """Return a lazily-created singleton."""
+        if cls._instance is None:
+            cls._instance = cls(get_settings())
+        return cls._instance
+
+    # ── Public async API ─────────────────────────────────────────────
+
+    async def generate_explanation(self, context: Mapping[str, Any]) -> str:
+        """Generate a structured explanation (one Gemini call + fallback)."""
+        prompt = (
+            "You are an AI audit assistant. Return a structured explanation for judges.\n"
+            "Use plain text and follow this exact format:\n"
+            "Summary: <one-line summary>\n\n"
+            "Key Reason:\n"
+            "- <reason 1>\n"
+            "- <reason 2>\n\n"
+            "Risk: <Low|Medium|High>\n\n"
+            "Recommendation:\n"
+            "<one concise recommendation>\n\n"
+            "Rules:\n"
+            "- Keep Summary to exactly one line.\n"
+            "- Provide 2 to 4 bullet points under Key Reason.\n"
+            "- Mention threshold/location/profile sensitivity when present in context.\n"
+            "- Do not output JSON or additional headings.\n\n"
+            f"Context:\n{_context_to_json(context)}"
+        )
+        output = await self._call_once(
+            system_instruction="Produce concise, structured, judge-friendly explanations. Avoid legal claims and speculation.",
+            prompt=prompt,
+            max_output_tokens=400,
+            temperature=0.2,
+        )
+        if output and _looks_structured_explanation(output):
+            return output
+        return _fallback_explanation(context)
+
+    async def generate_appeal(self, context: Mapping[str, Any]) -> str:
+        """Generate a formal appeal draft (one Gemini call + fallback)."""
+        prompt = (
+            "Draft a formal appeal letter requesting manual review of an automated decision.\n"
+            "Include: decision outcome, score, confidence zone, risk score, threshold sensitivity, instability/bias indicators, reason tags, "
+            "and a polite request for reassessment.\n"
+            "Use professional tone and concise language.\n\n"
+            f"Context:\n{_context_to_json(context)}"
+        )
+        output = await self._call_once(
+            system_instruction="You write concise professional appeals for AI-assisted decision reviews.",
+            prompt=prompt,
+            max_output_tokens=500,
+            temperature=0.2,
+        )
+        return output if output is not None else _fallback_appeal(context)
+
+    # ── Private helpers ──────────────────────────────────────────────
+
+    async def _call_once(
+        self,
+        *,
+        system_instruction: str,
+        prompt: str,
+        max_output_tokens: int,
+        temperature: float,
+    ) -> str | None:
+        """Make a single Gemini generation call on a background thread."""
+        if self._client is None:
+            return None
+
+        try:
+            response = await asyncio.to_thread(
+                self._client.models.generate_content,
+                model=self._model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    systemInstruction=system_instruction,
+                    temperature=temperature,
+                    maxOutputTokens=max_output_tokens,
+                ),
+            )
+        except Exception:
+            logger.warning("Gemini API call failed — using fallback", exc_info=True)
+            return None
+
+        text = getattr(response, "text", None)
+        if not isinstance(text, str):
+            return None
+
+        cleaned = text.strip()
+        return cleaned or None
+
+
+# ── Module-level helpers (preserved from original) ───────────────────
 
 def _context_to_json(context: Mapping[str, Any]) -> str:
     return json.dumps(context, ensure_ascii=True, sort_keys=True, default=str, indent=2)
 
 
-def _build_client() -> genai.Client | None:
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        return None
-    return genai.Client(api_key=api_key)
-
-
-def _call_gemini_once(
-    *,
-    system_instruction: str,
-    prompt: str,
-    max_output_tokens: int,
-    temperature: float = 0.2,
-) -> str | None:
-    client = _build_client()
-    if client is None:
-        return None
-
-    try:
-        response = client.models.generate_content(
-            model=DEFAULT_GEMINI_MODEL,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                systemInstruction=system_instruction,
-                temperature=temperature,
-                maxOutputTokens=max_output_tokens,
-            ),
-        )
-    except Exception:
-        return None
-
-    text = getattr(response, "text", None)
-    if not isinstance(text, str):
-        return None
-
-    cleaned = text.strip()
-    return cleaned or None
+def _looks_structured_explanation(text: str) -> bool:
+    return all(section in text for section in _EXPLANATION_REQUIRED_SECTIONS)
 
 
 def _structured_recommendation(risk_level: str) -> str:
@@ -61,11 +158,6 @@ def _structured_recommendation(risk_level: str) -> str:
     if normalized == "MEDIUM":
         return "Consider human review before final action."
     return "Decision can proceed with routine monitoring and audit logging."
-
-
-def _looks_structured_explanation(text: str) -> bool:
-    required_sections = ("Summary:", "Key Reason:", "Risk:", "Recommendation:")
-    return all(section in text for section in required_sections)
 
 
 def _collect_structured_reasons(context: Mapping[str, Any]) -> list[str]:
@@ -184,67 +276,3 @@ def _fallback_appeal(context: Mapping[str, Any]) -> str:
         "Given these indicators, I request a manual reassessment to confirm fairness and consistency.\n\n"
         "Thank you for your time and consideration.\n"
     )
-
-
-def generate_explanation(context: Mapping[str, Any]) -> str:
-    """
-    Convert structured pipeline context into a human-readable explanation.
-
-    Performs exactly one Gemini generation call.
-    """
-
-    prompt = (
-        "You are an AI audit assistant. Return a structured explanation for judges.\n"
-        "Use plain text and follow this exact format:\n"
-        "Summary: <one-line summary>\n\n"
-        "Key Reason:\n"
-        "- <reason 1>\n"
-        "- <reason 2>\n\n"
-        "Risk: <Low|Medium|High>\n\n"
-        "Recommendation:\n"
-        "<one concise recommendation>\n\n"
-        "Rules:\n"
-        "- Keep Summary to exactly one line.\n"
-        "- Provide 2 to 4 bullet points under Key Reason.\n"
-        "- Mention threshold/location/profile sensitivity when present in context.\n"
-        "- Do not output JSON or additional headings.\n\n"
-        f"Context:\n{_context_to_json(context)}"
-    )
-    output = _call_gemini_once(
-        system_instruction=(
-            "Produce concise, structured, judge-friendly explanations. Avoid legal claims and speculation."
-        ),
-        prompt=prompt,
-        max_output_tokens=400,
-        temperature=0.2,
-    )
-    if output is None:
-        return _fallback_explanation(context)
-    if not _looks_structured_explanation(output):
-        return _fallback_explanation(context)
-    return output
-
-
-def generate_appeal(context: Mapping[str, Any]) -> str:
-    """
-    Generate a formal appeal draft from structured pipeline context.
-
-    Performs exactly one Gemini generation call.
-    """
-
-    prompt = (
-        "Draft a formal appeal letter requesting manual review of an automated decision.\n"
-        "Include: decision outcome, score, confidence zone, risk score, threshold sensitivity, instability/bias indicators, reason tags, "
-        "and a polite request for reassessment.\n"
-        "Use professional tone and concise language.\n\n"
-        f"Context:\n{_context_to_json(context)}"
-    )
-    output = _call_gemini_once(
-        system_instruction=(
-            "You write concise professional appeals for AI-assisted decision reviews."
-        ),
-        prompt=prompt,
-        max_output_tokens=500,
-        temperature=0.2,
-    )
-    return output if output is not None else _fallback_appeal(context)
