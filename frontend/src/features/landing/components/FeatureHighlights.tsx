@@ -28,12 +28,13 @@ export default function FeatureHighlights() {
         <section>
             {/* Section overline */}
             <p
-                className="font-pixel uppercase"
+                className="font-mono uppercase"
                 style={{
-                    fontSize: "0.8rem",
-                    letterSpacing: "0.12em",
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.1em",
                     color: "var(--aurora-teal)",
                     marginBottom: "24px",
+                    fontWeight: 600,
                 }}
             >
                 {">> CORE CAPABILITIES"}
@@ -45,10 +46,10 @@ export default function FeatureHighlights() {
                         <h2 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--t1)" }}>{feature.title}</h2>
                         <p className="font-body" style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--t2)" }}>{feature.description}</p>
                         <p
-                            className="font-data"
+                            className="font-mono"
                             style={{
                                 marginTop: "12px",
-                                fontSize: "0.9rem",
+                                fontSize: "0.75rem",
                                 color: "var(--t3)",
                                 letterSpacing: "0.04em",
                             }}

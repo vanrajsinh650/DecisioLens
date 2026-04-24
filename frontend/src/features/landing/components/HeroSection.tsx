@@ -119,15 +119,15 @@ export default function HeroSection() {
                         padding: "0 16px",
                     }}
                 >
-                    {/* Pixel font overline badge */}
+                    {/* Overline badge */}
                     <p
-                        className="hero-stagger-1 font-pixel uppercase"
+                        className="hero-stagger-1 font-mono uppercase"
                         style={{
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "10px",
-                            fontSize: "0.85rem",
-                            letterSpacing: "0.15em",
+                            fontSize: "0.7rem",
+                            letterSpacing: "0.1em",
                             color: "var(--aurora-violet)",
                             padding: "8px 16px",
                             border: "1px solid hsl(265 40% 25%)",
@@ -148,16 +148,17 @@ export default function HeroSection() {
                         COUNTERFACTUAL SIMULATOR · 5 DOMAINS
                     </p>
 
-                    {/* Main headline — Syne display */}
+                    {/* Main headline */}
                     <h1
                         className="hero-stagger-2 font-display"
                         style={{
                             marginTop: "28px",
                             marginBottom: 0,
                             fontSize: "var(--fs-hero)",
-                            fontWeight: 800,
-                            lineHeight: 1.08,
+                            fontWeight: 700,
+                            lineHeight: 1.12,
                             color: "var(--t1)",
+                            whiteSpace: "nowrap",
                         }}
                     >
                         Was this AI decision <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>fair to you?</em>
@@ -205,7 +206,7 @@ export default function HeroSection() {
                 }}
             >
                 <div
-                    className="hero-stagger-5 font-data"
+                    className="hero-stagger-5 font-mono"
                     style={{
                         width: "80%",
                         maxWidth: "700px",
@@ -253,15 +254,16 @@ export default function HeroSection() {
                     >
                         <div style={{ color: feature.color, marginBottom: "16px" }}>{feature.icon}</div>
 
-                        {/* Pixel font title */}
+                        {/* Card title */}
                         <p
-                            className="font-pixel uppercase"
+                            className="font-mono uppercase"
                             style={{
                                 margin: 0,
-                                fontSize: "0.8rem",
-                                letterSpacing: "0.1em",
+                                fontSize: "0.75rem",
+                                letterSpacing: "0.08em",
                                 lineHeight: 1.6,
                                 color: feature.color,
+                                fontWeight: 600,
                             }}
                         >
                             {feature.title}
@@ -281,14 +283,13 @@ export default function HeroSection() {
                             {feature.description}
                         </p>
 
-                        {/* Data font stat footer */}
                         <div
-                            className="font-data"
+                            className="font-mono"
                             style={{
                                 marginTop: "16px",
                                 paddingTop: "12px",
                                 borderTop: "1px solid var(--rim)",
-                                fontSize: "0.9rem",
+                                fontSize: "0.75rem",
                                 color: "var(--t3)",
                                 letterSpacing: "0.03em",
                             }}

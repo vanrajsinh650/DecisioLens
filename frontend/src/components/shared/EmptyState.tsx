@@ -51,7 +51,7 @@ export default function EmptyState({ title, description, ctaLabel, ctaHref }: Em
                         padding: "13px 30px",
                         borderRadius: "6px",
                         border: "none",
-                        fontFamily: '"Plus Jakarta Sans", sans-serif',
+                        fontFamily: '"Inter", sans-serif',
                         fontSize: "var(--fs-body)",
                         fontWeight: 600,
                         transition: "all 0.15s ease",

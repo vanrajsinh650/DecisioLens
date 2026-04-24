@@ -65,9 +65,9 @@ export interface AuditResult {
   insights: Insights;
   explanation: string;
   appeal: string;
-  explanation_request: string;
-  recourse: RecourseItem[];
-  human_review: HumanReview;
+  explanation_request?: string;
+  recourse?: RecourseItem[];
+  human_review?: HumanReview;
   ai_jury_view?: AIJuryView;
 }
 

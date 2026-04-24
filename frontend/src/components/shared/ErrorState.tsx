@@ -70,7 +70,7 @@ export default function ErrorState({ title, message, nextStep, onRetry }: ErrorS
                         padding: "13px 30px",
                         borderRadius: "6px",
                         border: "none",
-                        fontFamily: '"Plus Jakarta Sans", sans-serif',
+                        fontFamily: '"Inter", sans-serif',
                         fontSize: "var(--fs-body)",
                         fontWeight: 600,
                         cursor: "pointer",

@@ -10,14 +10,15 @@ export default function CTASection() {
                 textAlign: "center",
             }}
         >
-            {/* Pixel font overline */}
+            {/* Overline */}
             <p
-                className="font-pixel uppercase"
+                className="font-mono uppercase"
                 style={{
-                    fontSize: "0.8rem",
-                    letterSpacing: "0.12em",
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.1em",
                     color: "var(--aurora-green)",
                     marginBottom: "16px",
+                    fontWeight: 600,
                 }}
             >
                 {">> SIMULATE NOW"}
@@ -56,12 +57,12 @@ export default function CTASection() {
                 Simulate a Decision →
             </Link>
 
-            {/* ASCII footer line */}
+            {/* Footer line */}
             <div
-                className="font-data"
+                className="font-mono"
                 style={{
                     marginTop: "32px",
-                    fontSize: "1rem",
+                    fontSize: "0.75rem",
                     color: "var(--t3)",
                     opacity: 0.5,
                 }}

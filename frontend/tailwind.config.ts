@@ -6,11 +6,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Pixelify Sans"', "sans-serif"],
+        display: ['"Sora"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
-        body: ['"Plus Jakarta Sans"', "sans-serif"],
-        pixel: ['"Silkscreen"', "monospace"],
-        data: ['"VT323"', "monospace"],
+        body: ['"Inter"', "sans-serif"],
+        pixel: ['"JetBrains Mono"', "monospace"],
+        data: ['"JetBrains Mono"', "monospace"],
       },
       colors: {
         s0: "#03030A",
