@@ -25,7 +25,7 @@ export default function FeatureHighlights() {
             <p
                 className="font-pixel uppercase"
                 style={{
-                    fontSize: "0.65rem",
+                    fontSize: "0.8rem",
                     letterSpacing: "0.12em",
                     color: "var(--aurora-teal)",
                     marginBottom: "24px",

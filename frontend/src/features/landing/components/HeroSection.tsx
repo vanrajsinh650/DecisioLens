@@ -126,7 +126,7 @@ export default function HeroSection() {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "10px",
-                            fontSize: "0.7rem",
+                            fontSize: "0.85rem",
                             letterSpacing: "0.15em",
                             color: "var(--aurora-violet)",
                             padding: "8px 16px",
@@ -258,7 +258,7 @@ export default function HeroSection() {
                             className="font-pixel uppercase"
                             style={{
                                 margin: 0,
-                                fontSize: "0.65rem",
+                                fontSize: "0.8rem",
                                 letterSpacing: "0.1em",
                                 lineHeight: 1.6,
                                 color: feature.color,
