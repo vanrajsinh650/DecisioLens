@@ -46,44 +46,18 @@ const toProfilePatch = (value: unknown): AuditResponse["variations"][number]["pr
   return Object.keys(next).length > 0 ? next : undefined;
 };
 
-const toDomainAwareBackendPayload = (payload: AuditRequest): AuditRequest => {
-  if (payload.domain === "hiring") {
-    return payload;
-  }
-
-  const rawScore = Number(payload.profile.score ?? payload.profile.credit_score ?? 50);
-  const rawExperience = Number(
-    payload.profile.experience
-    ?? payload.profile.income
-    ?? payload.profile.grade_12
-    ?? payload.profile.loan_amount
-    ?? 3,
-  );
-
-  const normalizedScore = Number.isFinite(rawScore)
-    ? Math.max(0, Math.min(100, rawScore > 100 ? rawScore / 9 : rawScore))
-    : 50;
-  const normalizedExperience = Number.isFinite(rawExperience)
-    ? Math.max(0, Math.min(50, Math.round(rawExperience / 2)))
-    : 3;
-
+/**
+ * Build the backend payload from the frontend AuditRequest.
+ *
+ * The backend now accepts domain-specific profiles directly —
+ * no field remapping needed. We just inject the domain into the
+ * profile so the backend scoring engine can dispatch correctly.
+ */
+const buildBackendPayload = (payload: AuditRequest): { domain: string; profile: Record<string, unknown>; threshold: number } => {
   return {
-    ...payload,
-    profile: {
-      ...payload.profile,
-      name: String(payload.profile.name ?? "Case"),
-      score: normalizedScore,
-      experience: normalizedExperience,
-      gender: String(payload.profile.gender ?? payload.profile.group ?? "unspecified"),
-      location: String(payload.profile.location ?? "Unknown"),
-      college: String(
-        payload.profile.college
-        ?? payload.profile.employment_type
-        ?? payload.profile.category
-        ?? payload.profile.income_band
-        ?? "N/A",
-      ),
-    },
+    domain: payload.domain,
+    profile: payload.profile as Record<string, unknown>,
+    threshold: payload.threshold,
   };
 };
 
@@ -188,7 +162,7 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
 };
 
 export async function runAudit(payload: AuditRequest): Promise<AuditResponse> {
-  const backendPayload = toDomainAwareBackendPayload(payload);
+  const backendPayload = buildBackendPayload(payload);
 
   const response = await fetch(`${API_BASE.replace(/\/+$/, "")}/audit/run`, {
     method: "POST",
