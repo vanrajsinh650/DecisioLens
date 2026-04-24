@@ -1,105 +1,103 @@
+"""
+Multi-domain profile schema.
+
+Each domain sends different fields, so we use a flexible open schema
+that accepts any extra fields (``extra="allow"``) while still
+enforcing the common required fields (``name``, ``domain``).
+
+Domain-specific fields are validated downstream in the scoring layer.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
+
+
+SUPPORTED_DOMAINS = {"hiring", "lending", "education", "insurance", "welfare"}
 
 
 class ProfileSchema(BaseModel):
-    """Strict, normalized profile payload used by the service."""
+    """Flexible, normalized profile payload used by the service."""
 
-    model_config = ConfigDict(strict=True, extra="forbid")
+    model_config = ConfigDict(extra="allow")
 
     name: str = Field(min_length=1, max_length=120)
-    score: float = Field(ge=0, le=100)
-    experience: int = Field(ge=0, le=50)
-    gender: str | None = Field(default=None, min_length=1, max_length=32)
-    location: str | None = Field(default=None, min_length=1, max_length=120)
-    college: str | None = Field(default=None, min_length=1, max_length=160)
+    domain: str = Field(default="hiring")
+    gender: str | None = Field(default=None)
 
-    @field_validator("name")
-    @classmethod
-    def normalize_name(cls, value: str) -> str:
-        normalized = " ".join(value.strip().split())
-        if not normalized:
-            raise ValueError("name cannot be blank")
-        return normalized
 
-    @field_validator("gender")
-    @classmethod
-    def normalize_gender(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        normalized = value.strip().lower().replace("_", "-")
-        if not normalized:
-            raise ValueError("gender cannot be blank")
-        return normalized
+def _normalize_name(value: Any) -> str:
+    if not isinstance(value, str):
+        raise ValueError("name must be a string")
+    normalized = " ".join(value.strip().split())
+    if not normalized:
+        raise ValueError("name cannot be blank")
+    return normalized
 
-    @field_validator("location", "college")
-    @classmethod
-    def normalize_optional_text(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        normalized = " ".join(value.strip().split())
-        if not normalized:
-            raise ValueError("value cannot be blank")
-        return normalized
+
+def _normalize_gender(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        return None
+    cleaned = value.strip().lower().replace("_", "-")
+    return cleaned or None
+
+
+def _coerce_number(value: Any, field: str) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError(f"{field} cannot be empty")
+        return float(stripped)
+    raise ValueError(f"{field} must be numeric, got {type(value).__name__}")
 
 
 def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
-    normalized = dict(data)
+    normalized: dict[str, Any] = dict(data)
 
-    if isinstance(normalized.get("name"), str):
-        normalized["name"] = " ".join(normalized["name"].strip().split())
+    # Name
+    normalized["name"] = _normalize_name(normalized.get("name", ""))
 
-    score = normalized.get("score")
-    if isinstance(score, str):
-        score = score.strip()
-        if not score:
-            raise ValueError("score cannot be empty")
-        normalized["score"] = float(score)
-    elif isinstance(score, int):
-        normalized["score"] = float(score)
+    # Domain
+    domain = str(normalized.get("domain", "hiring")).strip().lower()
+    if domain not in SUPPORTED_DOMAINS:
+        domain = "hiring"
+    normalized["domain"] = domain
 
-    experience = normalized.get("experience")
-    if isinstance(experience, str):
-        experience = experience.strip()
-        if not experience:
-            raise ValueError("experience cannot be empty")
-        experience_number = float(experience)
-        if not experience_number.is_integer():
-            raise ValueError("experience must be a whole number")
-        normalized["experience"] = int(experience_number)
-    elif isinstance(experience, float):
-        if not experience.is_integer():
-            raise ValueError("experience must be a whole number")
-        normalized["experience"] = int(experience)
+    # Gender (common across all domains)
+    normalized["gender"] = _normalize_gender(normalized.get("gender"))
 
-    gender = normalized.get("gender")
-    if isinstance(gender, str):
-        normalized["gender"] = gender.strip().lower().replace("_", "-")
-
-    location = normalized.get("location")
-    if isinstance(location, str):
-        normalized["location"] = " ".join(location.strip().split())
-
-    college = normalized.get("college")
-    if isinstance(college, str):
-        normalized["college"] = " ".join(college.strip().split())
+    # Coerce numeric fields that are present (domain-specific)
+    _NUMERIC_FIELDS = [
+        "score", "experience", "income", "credit_score", "loan_amount",
+        "grade_12", "age", "claim_amount", "policy_tenure",
+        "annual_income", "land_holding",
+    ]
+    for field in _NUMERIC_FIELDS:
+        if field in normalized and normalized[field] is not None:
+            try:
+                normalized[field] = _coerce_number(normalized[field], field)
+            except (ValueError, TypeError):
+                pass  # leave as-is; scoring layer will handle missing fields
 
     return normalized
 
 
 def validate_profile(data: Mapping[str, Any]) -> dict[str, Any]:
     """
-    Validate and normalize incoming profile payload.
+    Validate and normalize incoming multi-domain profile payload.
 
-    Returns canonical profile data that can be reused across the app.
+    Returns canonical profile data safe to pass to the scoring layer.
     """
-
     if not isinstance(data, Mapping):
         raise TypeError("profile data must be a mapping")
 
     normalized = _normalize_profile(data)
     profile = ProfileSchema.model_validate(normalized)
-    return profile.model_dump()
+    # model_dump with mode="python" preserves extra fields
+    return profile.model_dump(mode="python")

@@ -25,6 +25,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 class AuditRequest(BaseModel):
     """Incoming audit request payload."""
 
+    domain: str = Field(default="hiring")
     profile: dict[str, Any]
     threshold: float = Field(default=0.5, ge=0.0, le=1.0)
 
@@ -45,12 +46,15 @@ async def run_audit_endpoint(
     """
     Run the complete AI decision audit pipeline.
 
-    Accepts a profile dict and threshold, returns a structured audit
-    result including the original decision, threshold analysis,
+    Accepts a domain, profile dict, and threshold; returns a structured
+    audit result including the original decision, threshold analysis,
     counterfactual variations, risk insights, explanation, and appeal.
     """
+    # Inject domain into the profile dict so the scoring layer can dispatch
+    profile_with_domain = {**request.profile, "domain": request.domain}
 
     return await service.run_audit(
-        profile=request.profile,
+        profile=profile_with_domain,
         threshold=request.threshold,
     )
+
