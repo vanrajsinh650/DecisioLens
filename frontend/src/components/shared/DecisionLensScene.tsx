@@ -47,10 +47,12 @@ export default function DecisionLensScene() {
 
         // Scene
         const scene = new THREE.Scene();
+        // Orbit is perfectly centered vertically
+        scene.position.y = 0;
 
         // Camera — perspective for depth
         const camera = new THREE.PerspectiveCamera(50, width / height, 1, 2000);
-        camera.position.set(0, 40, 500);
+        camera.position.set(0, 100, 480);
         camera.lookAt(0, 0, 0);
 
         // Renderer

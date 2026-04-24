@@ -86,7 +86,7 @@ export default function HeroSection() {
                 display: "flex",
                 flexDirection: "column",
                 gap: "80px",
-                paddingTop: "32px",
+                paddingTop: "0", // Removed outer padding
                 paddingBottom: "80px",
             }}
         >
@@ -95,10 +95,14 @@ export default function HeroSection() {
                 style={{
                     position: "relative",
                     width: "100%",
-                    minHeight: "520px",
+                    minHeight: "750px",
+                    height: "85vh",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "center",
+                    justifyContent: "space-between",
+                    paddingTop: "0", // Removed inner padding to push text flush to the top
+                    paddingBottom: "8vh",
                 }}
             >
                 {/* 3D Decision Lens scene */}
@@ -110,7 +114,7 @@ export default function HeroSection() {
                         position: "relative",
                         zIndex: 2,
                         width: "100%",
-                        maxWidth: "900px",
+                        maxWidth: "1100px",
                         textAlign: "center",
                         padding: "0 16px",
                     }}
@@ -156,11 +160,7 @@ export default function HeroSection() {
                             color: "var(--t1)",
                         }}
                     >
-                        Can you trust
-                        <br />
-                        <em style={{ color: "var(--aurora-violet)", fontStyle: "normal", whiteSpace: "nowrap" }}>
-                            this AI decision?
-                        </em>
+                        Can you trust <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>this AI decision?</em>
                     </h1>
 
                     {/* Body copy */}
@@ -172,7 +172,7 @@ export default function HeroSection() {
                             fontSize: "var(--fs-body)",
                             color: "var(--t2)",
                             lineHeight: 1.75,
-                            maxWidth: "560px",
+                            maxWidth: "750px",
                             marginLeft: "auto",
                             marginRight: "auto",
                         }}
@@ -181,9 +181,21 @@ export default function HeroSection() {
                         threshold fragility, hidden bias, and the invisible forces that determine who gets
                         accepted and who gets left behind.
                     </p>
+                </div>
 
+                {/* Bottom CTA Block — sits below 3D orbit */}
+                <div
+                    style={{
+                        position: "relative",
+                        zIndex: 2,
+                        width: "100%",
+                        maxWidth: "900px",
+                        textAlign: "center",
+                        padding: "0 16px",
+                    }}
+                >
                     {/* CTA */}
-                    <div className="hero-stagger-4" style={{ marginTop: "36px" }}>
+                    <div className="hero-stagger-4">
                         <Link href="/audit" className="dl-btn-primary dl-btn-hero">
                             Analyze a Decision →
                         </Link>
@@ -193,7 +205,7 @@ export default function HeroSection() {
                     <div
                         className="hero-stagger-5 font-data"
                         style={{
-                            marginTop: "32px",
+                            marginTop: "200px",
                             marginBottom: 0,
                             fontSize: "1rem",
                             letterSpacing: "0.04em",
@@ -216,8 +228,8 @@ export default function HeroSection() {
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                    gap: "20px",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                    gap: "24px",
                 }}
             >
                 {FEATURES.map((feature, index) => (
