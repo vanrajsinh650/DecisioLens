@@ -252,12 +252,26 @@ def _fallback_explanation(context: Mapping[str, Any]) -> str:
     risk_score = risk.get("score", "N/A")
     is_unstable = bool(instability.get("is_unstable"))
 
+    # Human-readable verdict
+    decision_word = "accepted" if str(decision).upper() == "ACCEPT" else "rejected"
+    score_pct = f"{float(score) * 100:.0f}%" if isinstance(score, (int, float)) else score
+
     if confidence_zone == "Unstable" or is_unstable:
-        summary = f"Decision is unstable ({decision}, score={score})."
+        summary = (
+            f"Your application was {decision_word} with a score of {score_pct}, "
+            f"but the decision is unstable — small changes to the evaluation criteria "
+            f"could flip the outcome."
+        )
     elif confidence_zone == "Borderline":
-        summary = f"Decision is borderline and sensitive ({decision}, score={score})."
+        summary = (
+            f"Your application was {decision_word} with a score of {score_pct}. "
+            f"This puts you in a borderline zone — the decision could easily go the other way."
+        )
     else:
-        summary = f"Decision is in a high-confidence zone ({decision}, score={score})."
+        summary = (
+            f"Your application was {decision_word} with a score of {score_pct}. "
+            f"The decision appears stable and consistent across different conditions."
+        )
 
     reasons = _collect_structured_reasons(context)
     reason_lines = "\n".join(f"- {reason}" for reason in reasons[:4])
@@ -265,7 +279,7 @@ def _fallback_explanation(context: Mapping[str, Any]) -> str:
 
     return (
         f"Summary: {summary}\n\n"
-        "Key Reason:\n"
+        "Key Drivers:\n"
         f"{reason_lines}\n\n"
         f"Risk: {risk_level.title()} ({risk_score}/100)\n\n"
         "Recommendation:\n"
@@ -288,19 +302,45 @@ def _fallback_appeal(context: Mapping[str, Any]) -> str:
     risk = decision_quality.get("risk", {})
     risk_score = risk.get("score", "N/A")
     risk_level = risk.get("level", "UNKNOWN")
-    reason_tags = decision_quality.get("reason_tags", [])
+
+    decision_word = "accepted" if str(decision).upper() == "ACCEPT" else "rejected"
+    score_pct = f"{float(score) * 100:.0f}%" if isinstance(score, (int, float)) else score
+
+    # Build concern list
+    concerns: list[str] = []
+    if str(sensitivity).upper() in ("HIGH", "MEDIUM"):
+        concerns.append(
+            "the decision is sensitive to threshold changes — "
+            "a small shift in evaluation strictness would produce a different outcome"
+        )
+    if int(flags) > 0:
+        concerns.append(
+            f"the analysis detected {flags} potential fairness concern(s) "
+            "when the same profile was tested with swapped demographic attributes"
+        )
+    if str(confidence_zone) in ("Unstable", "Borderline"):
+        concerns.append(
+            f"the confidence zone is classified as \"{confidence_zone}\", "
+            "indicating the result may not be reliable"
+        )
+
+    concern_text = ""
+    if concerns:
+        formatted = "; ".join(concerns)
+        concern_text = (
+            f"\n\nAn independent analysis of this decision has raised the following concerns: "
+            f"{formatted}. The overall risk score is {risk_score} out of 100 ({risk_level})."
+        )
 
     return (
         "Subject: Request for Review of Automated Decision\n\n"
         "Dear Review Committee,\n\n"
-        "I respectfully request a formal review of my automated evaluation result. "
-        f"The current outcome is {decision} with score {score}. "
-        f"The confidence zone is {confidence_zone}. "
-        f"The computed risk score is {risk_score} ({risk_level}). "
-        f"The analysis indicates threshold sensitivity level {sensitivity} "
-        f"and {flags} potential bias-related flag(s). "
-        f"Reason tags include {reason_tags}. "
-        "Given these indicators, I request a manual reassessment to confirm fairness and consistency.\n\n"
+        "I am writing to respectfully request a formal review of an automated decision "
+        f"that affected my application. My application was {decision_word} with a score "
+        f"of {score_pct}."
+        f"{concern_text}\n\n"
+        "Based on these findings, I believe the decision warrants human review to ensure "
+        "it was made fairly and consistently. I kindly request a reassessment.\n\n"
         "Thank you for your time and consideration.\n"
     )
 

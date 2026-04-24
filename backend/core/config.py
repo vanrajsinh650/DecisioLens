@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     # ── Gemini AI ────────────────────────────────────────────────────
     GEMINI_API_KEY: str = Field(default="", alias="GEMINI_API_KEY")
     GOOGLE_API_KEY: str = Field(default="", alias="GOOGLE_API_KEY")
-    GEMINI_MODEL: str = Field(default="gemini-1.5-flash")
+    GEMINI_MODEL: str = Field(default="gemini-2.0-flash")
 
     # ── Server / CORS ───────────────────────────────────────────────
     CORS_ORIGINS: List[str] = Field(default=["*"])
