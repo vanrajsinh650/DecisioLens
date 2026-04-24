@@ -45,7 +45,7 @@ export default function CTASection() {
                     lineHeight: 1.75,
                 }}
             >
-                Enter a realistic profile, pick a domain — hiring, lending, insurance, education, or welfare — and get a full counterfactual trust report in seconds.
+                Enter a realistic profile, pick a domain (hiring, lending, insurance, education, or welfare) and get a full counterfactual test report in seconds.
             </p>
 
             <Link

@@ -52,21 +52,21 @@ const FEATURES = [
     {
         title: "Threshold Simulation",
         description:
-            "Slide the decision boundary across 10 threshold points and see exactly where the outcome flips — no guesswork.",
+            "We shift the decision boundary across 10 points and show you exactly where the outcome flips. No guesswork.",
         color: "var(--aurora-amber)",
         icon: <CrosshairIcon />,
     },
     {
         title: "Counterfactual Drift",
         description:
-            "Swap gender, city, category, or college and observe if the simulated outcome changes — detecting demographic sensitivity.",
+            "We swap gender, city, category, or college and check if the simulated result changes when it has no good reason to.",
         color: "var(--aurora-crimson)",
         icon: <ConcentricRingsIcon />,
     },
     {
         title: "Appeal-Ready Report",
         description:
-            "Gemini AI translates every finding into plain language with a formal appeal letter you can copy and send.",
+            "Gemini AI reads the findings and writes a plain-language explanation plus a formal appeal letter you can copy and send.",
         color: "var(--aurora-green)",
         icon: <DocumentCheckIcon />,
     },
@@ -177,8 +177,7 @@ export default function HeroSection() {
                             marginRight: "auto",
                         }}
                     >
-                        DecisioLens simulates AI decision behavior using realistic profiles — revealing threshold fragility,
-                        demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
+                        DecisioLens simulates AI decision behavior using realistic profiles. It reveals threshold fragility, demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
                     </p>
                 </div>
 

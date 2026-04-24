@@ -361,10 +361,10 @@ export default function AuditWorkspace() {
 
     // Analysis steps for the sticky right panel
     const ANALYSIS_STEPS = [
-        "Simulate decision using your profile across the scoring model",
-        "Test threshold boundary at 10 sensitivity points (±20% range)",
-        "Run counterfactual variations — gender, city, category, college",
-        "Compile verdict with instability score, bias flags, and risk band",
+        "Scoring your profile using the domain-specific formula",
+        "Testing the threshold at 9 different strictness levels",
+        "Swapping gender, city, category, and other variables",
+        "Building the verdict: risk level, bias flags, reason tags",
     ];
 
     return (
@@ -575,7 +575,7 @@ export default function AuditWorkspace() {
             {loading ? (
                 <LoadingState
                     label="ANALYSIS TERMINAL"
-                    description="Executing threshold diagnostics, scenario perturbations, and verdict synthesis."
+                    description="Running the threshold test, creating demographic clones, and putting together your verdict."
                 />
             ) : null}
         </div>

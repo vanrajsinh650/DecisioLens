@@ -48,7 +48,7 @@ export const insuranceDomain: DomainConfig = {
         {
             id: "senior-claim-rejection",
             title: "Senior Citizen Claim",
-            description: "Older patient with pre-existing condition near approval boundary — tests age and condition bias.",
+            description: "Older patient with a pre-existing condition sitting near the approval cutoff. Tests whether age and health history affect the outcome.",
             threshold: 0.52,
             profile: {
                 name: "Ramesh Sharma",
@@ -63,7 +63,7 @@ export const insuranceDomain: DomainConfig = {
         {
             id: "young-claim-stable",
             title: "Young Urban Applicant",
-            description: "Younger metro applicant — expected stable approval, useful baseline for comparison.",
+            description: "Younger metro applicant with no pre-existing conditions. Useful as a clean baseline to compare against higher-risk profiles.",
             threshold: 0.52,
             profile: {
                 name: "Priya Iyer",

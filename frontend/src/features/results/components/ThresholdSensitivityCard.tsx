@@ -44,7 +44,7 @@ export default function ThresholdSensitivityCard({
                         SIGNAL ANALYSIS
                     </p>
                     <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
-                        Testing score stability against strictness variations.
+                        How does the outcome change when the strictness level shifts?
                     </p>
                 </div>
             </div>
@@ -266,9 +266,9 @@ export default function ThresholdSensitivityCard({
                     }}
                 >
                     <p className="font-body" style={{ fontSize: "var(--fs-body)", color: "var(--t1)" }}>
-                        This decision flips at {flipPoints} of {rows.length} tested threshold levels.
-                        The candidate is in the <strong>{confidenceZone.toLowerCase()}</strong> zone —
-                        minor policy changes could alter this outcome.
+                        The outcome flipped at {flipPoints} out of {rows.length} threshold levels we tested.
+                        This profile sits in the <strong>{confidenceZone.toLowerCase()}</strong> zone.
+                        A small policy change could flip this decision.
                     </p>
                 </div>
             )}

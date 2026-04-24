@@ -53,7 +53,7 @@ export const welfareDomain: DomainConfig = {
         {
             id: "rural-farmer-borderline",
             title: "Rural Farmer — Borderline",
-            description: "Small farmer in a remote region near the eligibility boundary — tests regional and category bias.",
+            description: "A small farmer in a remote region sitting right at the eligibility cutoff. Tests whether region and category affect the final decision.",
             threshold: 0.48,
             profile: {
                 name: "Mohan Patel",
@@ -68,7 +68,7 @@ export const welfareDomain: DomainConfig = {
         {
             id: "ews-urban-applicant",
             title: "EWS Urban Applicant",
-            description: "Urban EWS applicant — tests whether algorithm treats urban poor fairly vs rural.",
+            description: "Urban EWS applicant with no land. Tests whether the system treats city-based poor applicants the same as rural ones.",
             threshold: 0.48,
             profile: {
                 name: "Fatima Khan",

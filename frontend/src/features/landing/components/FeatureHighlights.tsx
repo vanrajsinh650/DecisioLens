@@ -3,22 +3,22 @@ import Card from "@/components/shared/Card";
 const FEATURES = [
     {
         title: "Is it stable?",
-        description: "Shift the decision threshold and see exactly where the outcome flips — tested across 10 sensitivity points.",
+        description: "We test the same profile at 10 different strictness levels and show you exactly where the outcome flips.",
         stat: "THRESHOLD_SIMULATION",
     },
     {
         title: "Is it fair?",
-        description: "Swap gender, city, category, or college and check if the simulated decision changes when it shouldn't.",
+        description: "We swap gender, city, category, or college and check if the result changes when it shouldn't.",
         stat: "COUNTERFACTUAL_SCAN",
     },
     {
         title: "Can you appeal it?",
-        description: "Get a plain-language breakdown of the decision and a formal appeal letter — ready to send to whoever made the call.",
+        description: "Get a plain-language breakdown of the decision and a formal appeal letter ready to send to whoever made the call.",
         stat: "APPEAL_GENERATOR",
     },
     {
         title: "Why us?",
-        description: "Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation — anyone can use it.",
+        description: "Most fairness tools need full dataset access. We work with a single profile and a single decision. Anyone can use it.",
         stat: "USER_LEVEL_SIMULATION",
     },
 ];

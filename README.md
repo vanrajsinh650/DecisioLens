@@ -2,102 +2,100 @@
 
 ### *Was this AI decision fair to you?*
 
-**DecisioLens** is an open-source counterfactual simulation tool that lets anyone test whether an AI decision — in hiring, lending, education, health insurance, or government welfare — would have been different if they were a different gender, from a different city, or from a different social background.
+**DecisioLens** is a free, open-source tool that helps you test whether an AI decision was fair. Pick a domain (hiring, lending, education, health insurance, or government welfare), fill in a profile, and find out what happens when you change the gender, city, or social category. Does the outcome stay the same? Or does the AI treat people differently based on who they are?
 
-> Unlike traditional fairness tools that analyze datasets, DecisioLens tests **individual decision behavior** through profile-level simulation — so anyone can check if an AI was fair to them.
-
----
-
-## 🌍 UN Sustainable Development Goals
-
-This project directly addresses **6 UN SDGs**:
-
-| SDG | Goal | How DecisioLens Helps |
-|-----|------|-----------------------|
-| **SDG 10** | Reduced Inequalities | Detects demographic bias in AI decisions across gender, location, and caste |
-| **SDG 16** | Peace, Justice & Strong Institutions | Enables algorithmic accountability and generates formal appeal documentation |
-| **SDG 8** | Decent Work & Economic Growth | Audits AI hiring systems to surface unfair candidate rejection patterns |
-| **SDG 4** | Quality Education | Tests college admission algorithms for bias against reserved categories and rural students |
-| **SDG 3** | Good Health & Well-Being | Exposes age and condition-based discrimination in insurance claim AI |
-| **SDG 1** | No Poverty | Surfaces regional bias in automated government welfare eligibility systems |
+You don't need access to the real AI system. You don't need to be a developer. Just enter your details and run the test.
 
 ---
 
-## 🔥 The Problem
+## The UN Goals We're Working Toward
 
-Every day, millions of people are **rejected by AI systems** they cannot see, question, or challenge.
-
-- A woman applies for a software job. AI rejects her. She doesn't know if it was her skills — or her gender.
-- A farmer in a remote district applies for PM-KISAN. The automated system denies him. He has no recourse.
-- A 65-year-old submits a health insurance claim. AI flags it as high-risk and rejects it. His younger neighbor with the same policy gets approved.
-
-These people have **no tool** to understand what happened — and no way to fight back.
-
-**DecisioLens gives them one.**
+| SDG | Goal | What DecisioLens Does About It |
+|-----|------|-------------------------------|
+| **SDG 10** | Reduced Inequalities | Shows when AI decisions change based on gender, location, or caste |
+| **SDG 16** | Peace, Justice and Strong Institutions | Helps people document unfair AI decisions and write formal appeals |
+| **SDG 8** | Decent Work and Economic Growth | Tests hiring AI systems for unfair candidate rejection |
+| **SDG 4** | Quality Education | Checks college admission tools for bias against reserved categories and rural students |
+| **SDG 3** | Good Health and Well-Being | Finds age and health-based discrimination in insurance claim processing |
+| **SDG 1** | No Poverty | Surfaces regional bias in automated welfare eligibility checks |
 
 ---
 
-## 💡 What DecisioLens Does
+## The Problem
 
-DecisioLens uses **counterfactual simulation** to answer three questions about any AI decision:
+Every year, millions of people get rejected by AI systems they cannot see or question.
 
-| Question | What We Do |
+- A woman applies for a software job. The AI rejects her. She has no idea if it was her skills or her gender.
+- A farmer in a remote district applies for PM-KISAN. The system denies him. He has no recourse.
+- A 65-year-old files a health insurance claim. The AI marks it high-risk and rejects it. His younger neighbor with the same policy gets approved.
+
+These people don't have a tool to understand what happened. DecisioLens is that tool.
+
+---
+
+## What DecisioLens Does
+
+Three questions. One simulation. Clear answers.
+
+| Question | What Happens |
 |---|---|
-| **Is it stable?** | Test the decision at 9 different threshold cutpoints — see exactly where it flips from ACCEPT to REJECT |
-| **Is it fair?** | Swap gender, location, category, age, or employment type — check if the outcome changes when it shouldn't |
-| **Can you appeal it?** | Get a plain-language explanation of every risk signal + a formal appeal letter written by Gemini AI |
+| **Is it stable?** | We test the same profile at 9 different threshold levels and show you exactly where the outcome flips |
+| **Is it fair?** | We swap gender, city, category, age, or employment type and check if the result changes when it shouldn't |
+| **Can you appeal it?** | We generate a plain-language breakdown of every risk signal, plus a formal appeal letter you can send |
 
 ---
 
-## 🗂️ Supported Domains
+## Supported Domains
 
-| Domain | Who Uses It | Key Bias Variables Tested |
+| Domain | Who Uses It | What We Test |
 |---|---|---|
-| 🧑‍💼 **Hiring** | Job applicant rejected by an AI recruiter | Gender, city, college tier |
-| 🏦 **Lending** | Loan applicant denied by a bank AI | Gender, employment type, city |
-| 🎓 **Education** | Student rejected from a private college admission AI | Gender, city, caste category, family income |
-| 🏥 **Health Insurance** | Patient whose insurance claim was auto-rejected | Age, pre-existing condition, city tier |
-| 🌾 **Govt. Welfare** | Citizen denied PM-KISAN or other benefit scheme | Category (SC/OBC/ST/EWS), region tier, gender |
+| Hiring | Job applicant rejected by an automated recruiter | Gender, city, college tier |
+| Lending | Loan applicant denied by a bank AI | Gender, employment type, city |
+| Education | Student rejected from a private college admission system | Gender, city, caste category, family income |
+| Health Insurance | Patient whose claim was auto-rejected | Age, pre-existing condition, city tier |
+| Govt. Welfare | Citizen denied PM-KISAN or another benefit scheme | Category (SC/OBC/ST/EWS), region, gender |
 
-Each domain has **domain-specific scoring** where demographic variables genuinely influence the outcome — making bias detection real, not theatrical.
+Every domain has its own scoring formula where your demographic details actually change the outcome. The bias you find is real, not made up.
 
 ---
 
-## 🔬 How It Works
+## How It Works
 
 ```
-User enters profile  →  Domain-specific AI scorer  →  Baseline decision
-        ↓
-Threshold sensitivity test (9 cutpoints: 0.1 → 0.9)
-        ↓
-Counterfactual variation generator
-  [gender swap] [location change] [category/employment change] [age group change]
-        ↓
-Instability detection (how many variations flip the outcome?)
-Bias pattern detection (which demographic swaps cause score deltas > 5%?)
-        ↓
-Risk score (0–100) + Confidence zone classification
-        ↓
-Gemini 2.5 Flash → Plain-language explanation + Formal appeal letter
+You enter a profile
+        |
+Domain-specific scorer runs the numbers
+        |
+We try 9 different decision thresholds (0.1 to 0.9)
+        |
+We create 3 profile clones (gender swap, location change, category change)
+        |
+We score every clone and compare results
+        |
+We flag: flips (same person, different outcome) and suspicious score gaps
+        |
+Risk score (0-100) + confidence zone label
+        |
+Gemini 2.5 Flash writes a plain-language explanation and a formal appeal letter
 ```
 
-### The AI Pipeline (Backend)
+### The Full API Pipeline
 
 ```
 POST /audit/run
-  │
-  ├─ validate_profile()          # Pydantic schema — multi-domain flexible
-  ├─ compute_score_from_validated()  # Domain-specific scoring formula
-  ├─ make_decision(score, threshold)
-  ├─ analyze_threshold_sensitivity()  # 9 threshold test points
-  ├─ generate_variations()       # Domain-aware counterfactual generator
-  ├─ evaluate_variations()       # Score + decide each clone
-  ├─ detect_instability()        # Count decision flips
-  ├─ detect_bias_patterns()      # Flag suspicious score deltas
-  ├─ classify_confidence()       # High / Borderline / Unstable zone
-  ├─ compute_risk_score()        # 0–100 band: Low / Medium / High
-  ├─ build_reason_tags()         # Structured flags for UI rendering
-  └─ asyncio.gather(             # Parallel Gemini calls
+  |
+  |- validate_profile()               Accepts any domain's fields
+  |- compute_score_from_validated()   Domain-specific scoring
+  |- make_decision(score, threshold)  ACCEPT or REJECT
+  |- analyze_threshold_sensitivity()  9 threshold test points
+  |- generate_variations()            Domain-aware counterfactual clones
+  |- evaluate_variations()            Score and decide each clone
+  |- detect_instability()             Count how many decisions flipped
+  |- detect_bias_patterns()           Flag suspicious score differences
+  |- classify_confidence()            High / Borderline / Unstable
+  |- compute_risk_score()             0-100 risk band
+  |- build_reason_tags()              Labels for the UI
+  |- asyncio.gather(                  Both Gemini calls run at the same time
        generate_explanation(),
        generate_appeal()
      )
@@ -105,98 +103,99 @@ POST /audit/run
 
 ---
 
-## 🏗️ Architecture
+## Project Structure
 
 ```
 decisiolens/
-├── backend/                    # Python FastAPI
-│   ├── ai/
-│   │   └── gemini.py           # Google Gemini 2.5 Flash integration (async, singleton)
-│   ├── core/
-│   │   ├── model.py            # 5 domain-specific scoring engines
-│   │   ├── scenario.py         # Domain-aware counterfactual generator
-│   │   ├── analysis.py         # Instability + bias detection
-│   │   ├── threshold.py        # Threshold sensitivity analysis
-│   │   ├── cache.py            # LRU in-memory cache (256 entries, 5-min TTL)
-│   │   ├── middleware.py       # Request timing + structured error handling
-│   │   └── config.py           # Pydantic BaseSettings (env-based)
-│   ├── schemas/
-│   │   ├── request.py          # Flexible multi-domain profile schema
-│   │   └── response.py         # Typed AuditResponse model
-│   ├── services/
-│   │   └── audit_service.py    # Pipeline orchestrator (async)
-│   └── routers/
-│       └── audit.py            # FastAPI route — thin HTTP controller
-│
-└── frontend/                   # Next.js 14 + TypeScript
-    └── src/
-        ├── app/                # Next.js App Router pages
-        ├── features/
-        │   ├── audit/          # Instrument panel + real-time results
-        │   ├── results/        # Scrollable verdict narrative (7 sections)
-        │   ├── history/        # Audit session history
-        │   ├── batch/          # CSV batch audit
-        │   └── landing/        # Hero + feature highlights
-        ├── lib/
-        │   ├── domains/        # Per-domain field configs + presets
-        │   │   ├── hiring.ts
-        │   │   ├── lending.ts
-        │   │   ├── education.ts
-        │   │   ├── insurance.ts
-        │   │   └── welfare.ts
-        │   └── api.ts          # Typed fetch client
-        └── hooks/              # useAudit, useAuditHistory, useOnboarding
+|-- backend/                    Python, FastAPI
+|   |-- ai/
+|   |   `-- gemini.py           Gemini 2.5 Flash (async, singleton, fallback mode)
+|   |-- core/
+|   |   |-- model.py            5 domain-specific scoring formulas
+|   |   |-- scenario.py         Domain-aware counterfactual generator
+|   |   |-- analysis.py         Instability and bias detection logic
+|   |   |-- threshold.py        9-point threshold sensitivity tester
+|   |   |-- cache.py            LRU cache (256 slots, 5-min TTL)
+|   |   |-- middleware.py       Request timing and error handling
+|   |   `-- config.py           Pydantic settings (reads from .env)
+|   |-- schemas/
+|   |   |-- request.py          Flexible multi-domain input schema
+|   |   `-- response.py         Typed audit response model
+|   |-- services/
+|   |   `-- audit_service.py    Full pipeline, step by step
+|   `-- routers/
+|       `-- audit.py            HTTP route layer only
+|
+`-- frontend/                   Next.js 14, TypeScript
+    `-- src/
+        |-- app/                Next.js App Router pages
+        |-- features/
+        |   |-- audit/          Input form and live results
+        |   |-- results/        Full verdict report (7 sections)
+        |   |-- history/        Past audit sessions
+        |   |-- batch/          CSV bulk testing
+        |   `-- landing/        Home page
+        |-- lib/
+        |   |-- domains/        Per-domain field configs and test presets
+        |   |   |-- hiring.ts
+        |   |   |-- lending.ts
+        |   |   |-- education.ts
+        |   |   |-- insurance.ts
+        |   |   `-- welfare.ts
+        |   `-- api.ts          Typed fetch client
+        `-- hooks/              useAudit, useAuditHistory, useOnboarding
 ```
 
 ---
 
-## 🤖 Google Technology Used
+## Google Technology Used
 
-| Technology | Usage |
+| Technology | What We Use It For |
 |---|---|
-| **Google Gemini 2.5 Flash** | Generates plain-language audit explanations and formal appeal letters |
-| **Google GenAI SDK (`google-genai`)** | Async Gemini client with fallback mode when API is unavailable |
-| **Google AI Studio** | API key provisioning and model testing during development |
+| **Google Gemini 2.5 Flash** | Writes the plain-language audit explanation and formal appeal letter |
+| **Google GenAI SDK (`google-genai`)** | Async client with graceful fallback when the API is offline |
+| **Google AI Studio** | API key setup and model testing |
 
-The Gemini integration uses `asyncio.gather` to fire explanation and appeal generation **concurrently**, halving the round-trip latency for the two AI calls.
+Both Gemini calls (explanation and appeal) run at the same time using `asyncio.gather`, which cuts the response time roughly in half.
 
 ---
 
-## 🚀 Getting Started
+## Run It Yourself
 
-### Prerequisites
+### What You Need
 
-- Python 3.11+
-- Node.js 18+
-- A [Google AI Studio](https://aistudio.google.com/) API key (free)
+- Python 3.11 or higher
+- Node.js 18 or higher
+- A free [Google AI Studio](https://aistudio.google.com/) API key
 
-### 1. Clone the repository
+### 1. Clone the repo
 
 ```bash
 git clone https://github.com/vanrajsinh650/DecisioLens.git
 cd DecisioLens
 ```
 
-### 2. Start the Backend
+### 2. Start the backend
 
 ```bash
 cd backend
+
 python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac or Linux
 
 pip install -r requirements.txt
 
-# Create .env file
+# Create your .env file
 echo GEMINI_API_KEY=your_api_key_here > .env
 
 python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-The API will be live at `http://127.0.0.1:8000`
-Interactive docs at `http://127.0.0.1:8000/docs`
+API is live at `http://127.0.0.1:8000`
+Swagger docs at `http://127.0.0.1:8000/docs`
 
-### 3. Start the Frontend
+### 3. Start the frontend
 
 ```bash
 cd frontend
@@ -208,13 +207,13 @@ Open `http://localhost:3000`
 
 ---
 
-## 📡 API Reference
+## API Reference
 
-### `POST /audit/run`
+### POST /audit/run
 
-Run a full counterfactual audit simulation.
+Send a profile and get a full fairness report back.
 
-**Request body:**
+**Request:**
 
 ```json
 {
@@ -232,106 +231,105 @@ Run a full counterfactual audit simulation.
 ```
 
 **Response includes:**
-- `original` — baseline score + decision
-- `threshold_analysis` — decision at each of 9 threshold points
-- `variations` — counterfactual scores and decisions (gender swap, location change, etc.)
-- `insights` — instability flag, bias flag, risk score (0–100), reason tags
-- `explanation` — Gemini-generated plain-language audit summary
-- `appeal` — Gemini-generated formal appeal letter
-- `ai_jury_view` — auditor / challenger / judge verdict panel
+- `original` - baseline score and decision
+- `threshold_analysis` - decision at each of 9 threshold points
+- `variations` - what happens when we swap the demographic fields
+- `insights` - instability flag, bias flag, risk score (0-100), reason tags
+- `explanation` - Gemini's plain-language summary of the audit
+- `appeal` - a formal letter you can send to request a review
+- `ai_jury_view` - a three-part verdict from the auditor, challenger, and judge
 
-### `GET /health`
+### GET /health
 ```json
 { "status": "ok" }
 ```
 
 ---
 
-## 📊 Sample Audit Output
+## A Real Example
 
-**Profile:** Riya Shah | Score: 66 | 3 yrs experience | Female | Mumbai | Tier 1 college  
-**Decision:** `REJECT` at threshold 0.50
+**Profile:** Riya Shah, Score 66, 3 years experience, Female, Mumbai, Tier 1 college
+**Decision at threshold 0.50:** REJECT
 
-| Variation | Score | Decision | Changed? |
+| What We Tested | Score | Result | Changed? |
 |---|---|---|---|
-| ✅ Baseline (Riya) | 0.481 | REJECT | — |
-| 🔄 Gender → Male | 0.511 | **ACCEPT** | ✅ Yes |
-| 🔄 Location → Nagpur | 0.441 | REJECT | No |
-| 🔄 College → Tier 2 | 0.461 | REJECT | No |
+| Original (Riya) | 0.481 | REJECT | No |
+| Gender changed to Male | 0.511 | ACCEPT | Yes |
+| Location changed to Nagpur | 0.441 | REJECT | No |
+| College changed to Tier 2 | 0.461 | REJECT | No |
 
-**Risk Score:** 72 / 100 — **HIGH**  
-**Flags:** `demographic_sensitive`, `threshold_sensitive`  
-**Gemini Explanation:** *"The decision is highly sensitive to gender variation. A male candidate with identical qualifications would have been accepted at this threshold. This is a high-risk pattern consistent with gender proxy bias..."*
-
----
-
-## ✨ Key Features
-
-- **5 Domains** — Hiring, Lending, Education, Health Insurance, Government Welfare
-- **Counterfactual Testing** — 3–4 controlled demographic swaps per audit
-- **Threshold Sensitivity** — Tested across 9 cutpoints from 0.1 → 0.9
-- **Gemini AI Explanation** — Plain-language verdict + formal appeal letter
-- **Dynamic AI Jury** — Auditor / Challenger / Judge panel computed from real analysis
-- **Audit History** — Local session persistence with full replay
-- **Batch Audit** — CSV upload for bulk profile testing
-- **Shareable Reports** — URL-encoded audit sessions you can share as a link
-- **Print / PDF Export** — Download a formatted audit report
-- **Onboarding Walkthrough** — First-time user guide built into the UI
-- **Fully Offline Fallback** — Deterministic explanations when Gemini API is unavailable
+**Risk Score:** 72 out of 100 (HIGH)
+**Flags:** gender_sensitive, threshold_sensitive
+**Gemini wrote:** *"The decision is sensitive to gender. A male candidate with the same qualifications would have been accepted at this threshold. This is a high-risk pattern and the applicant has grounds to request a manual review."*
 
 ---
 
-## 🗺️ Roadmap
+## Features
 
-- [ ] Deploy to Vercel (frontend) + Google Cloud Run (backend)
-- [ ] Upload real AI model predictions (CSV) for external system auditing
-- [ ] Healthcare domain — medical treatment eligibility
-- [ ] Housing / rental AI bias simulation
-- [ ] SHAP-style feature importance visualization
-- [ ] Multilingual support (Hindi, Gujarati, Tamil)
-- [ ] WhatsApp / SMS interface for low-tech users in rural areas
+- 5 domains: Hiring, Lending, Education, Health Insurance, Government Welfare
+- 3 to 4 demographic swaps per audit (gender, city, category, employment type, age)
+- Threshold tested at 9 points from 0.1 to 0.9
+- Gemini writes the explanation and the appeal letter
+- AI Jury panel computed from actual analysis results
+- Audit history saved locally with full replay
+- CSV batch upload for testing many profiles at once
+- Shareable report links via URL
+- Print to PDF
+- First-time user walkthrough built into the UI
+- Works offline: falls back to rule-based explanations if Gemini is unavailable
 
 ---
 
-## 📁 Tech Stack
+## What's Next
+
+- Deploy on Vercel (frontend) and Google Cloud Run (backend)
+- Let users upload CSV predictions from their own AI systems
+- Add healthcare and housing/rental domains
+- SHAP-style feature importance charts
+- Hindi, Gujarati, and Tamil language support
+- WhatsApp interface for users in rural areas with limited internet
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Frontend | Next.js 14, TypeScript, Tailwind CSS |
 | Backend | Python 3.11, FastAPI, Pydantic v2, Uvicorn |
 | AI | Google Gemini 2.5 Flash via `google-genai` SDK |
-| Async | `asyncio.gather` for concurrent Gemini calls |
-| Caching | LRU in-memory cache (256 slots, 5-min TTL) |
-| Validation | Pydantic BaseSettings + BaseModel |
-| Logging | Structured JSON logging with request timing middleware |
+| Async | asyncio.gather for parallel Gemini calls |
+| Caching | LRU cache with 256 slots and 5-minute TTL |
+| Validation | Pydantic BaseModel and BaseSettings |
+| Logging | Structured JSON logs with request timing |
 
 ---
 
-## 🏆 Google Solution Challenge 2026
+## Google Solution Challenge 2026
 
-This project was built for the **Google Solution Challenge 2026** under the **Open Innovation** track.
+Built for the **Google Solution Challenge 2026** under the **Open Innovation** track.
 
-**Core Innovation:**  
-Counterfactual fairness simulation at the individual profile level — not aggregate dataset analysis. Any person who received an AI decision can test it themselves, without needing access to the underlying system.
+**What makes it different:**
+Most AI fairness tools need access to a full dataset or the underlying model. DecisioLens works at the level of a single person and a single decision. Anyone who got an AI decision they didn't understand can use it, without technical knowledge and without access to the system that rejected them.
 
-**Impact Focus:**  
-India-specific bias patterns: city tier penalties, caste category discrimination, gender gaps in STEM hiring, age discrimination in insurance AI, regional friction in welfare disbursement.
+**Who it's for:**
+People who got rejected. Students who didn't get admitted. Farmers who lost benefits. Anyone who got a "no" from an algorithm and wants to know if it was fair.
 
-**Google Tech:**  
-Google Gemini 2.5 Flash powers the explanation and appeal generation — turning raw statistical findings into human-readable accountability documents.
+**Google tech:**
+Gemini 2.5 Flash turns statistical findings into something any person can read and act on.
 
 ---
 
-## 📜 License
+## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
 
-**Built with 💙 for people who deserve to know why the AI said no.**
+**Built for everyone who got a "no" from an algorithm and deserved to know why.**
 
-*DecisioLens — Counterfactual Simulation for AI Fairness*
+*DecisioLens - AI Fairness Simulation*
 
 </div>
