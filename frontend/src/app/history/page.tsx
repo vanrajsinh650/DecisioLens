@@ -9,6 +9,7 @@ import EmptyState from "@/components/shared/EmptyState";
 import TrustTimeline from "@/features/history/components/TrustTimeline";
 import { useAuditHistory } from "@/hooks/useAuditHistory";
 import { DOMAIN_OPTIONS } from "@/lib/constants";
+import { formatDateTime, formatNumber } from "@/lib/format";
 import { setSelectedHistoryAuditId } from "@/lib/storage";
 import { DomainType, StoredAuditSession } from "@/types/audit";
 
@@ -56,53 +57,80 @@ export default function HistoryPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <SectionHeader
-                eyebrow="Audit History"
-                title="Past trust audits"
-                description="Review previous audits and monitor risk score trends over time."
+                overline="AUDIT HISTORY"
+                title="Past Trust Audits"
+                subtitle="Review previous audits and monitor risk score trends over time."
                 actions={
                     <button
                         type="button"
                         onClick={clear}
-                        className="rounded-lg border border-signal-risk/40 bg-signal-riskSoft/30 px-3 py-2 text-xs font-semibold text-signal-risk"
+                        className="dl-btn-ghost"
+                        style={{
+                            color: "var(--aurora-crimson)",
+                            borderColor: "hsl(350, 68%, 30%)",
+                            background: "var(--aurora-crimson-surface)",
+                        }}
                     >
                         Clear History
                     </button>
                 }
             />
 
-            <div className="grid gap-3 rounded-2xl border border-ink-600/70 bg-ink-800/70 p-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-ink-200">
-                    Domain
-                    <select
-                        value={domainFilter}
-                        onChange={(event) => setDomainFilter(event.target.value as DomainType | "all")}
-                        className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm normal-case text-ink-50"
-                    >
-                        <option value="all">All Domains</option>
-                        {DOMAIN_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+            <div
+                className="dl-card"
+                style={{ padding: "16px" }}
+            >
+                <div
+                    style={{
+                        display: "grid",
+                        gap: "12px",
+                        gridTemplateColumns: "1fr",
+                    }}
+                    className="sm:[grid-template-columns:1fr_1fr]"
+                >
+                    <label style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <span
+                            className="font-mono uppercase"
+                            style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                        >
+                            Domain
+                        </span>
+                        <select
+                            value={domainFilter}
+                            onChange={(event) => setDomainFilter(event.target.value as DomainType | "all")}
+                            className="dl-select"
+                        >
+                            <option value="all">All Domains</option>
+                            {DOMAIN_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
 
-                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-ink-200">
-                    Time Range
-                    <select
-                        value={timeRange}
-                        onChange={(event) => setTimeRange(event.target.value as TimeRangeFilter)}
-                        className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm normal-case text-ink-50"
-                    >
-                        {TIME_RANGE_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+                    <label style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <span
+                            className="font-mono uppercase"
+                            style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                        >
+                            Time Range
+                        </span>
+                        <select
+                            value={timeRange}
+                            onChange={(event) => setTimeRange(event.target.value as TimeRangeFilter)}
+                            className="dl-select"
+                        >
+                            {TIME_RANGE_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                </div>
             </div>
 
             <TrustTimeline
@@ -124,39 +152,51 @@ export default function HistoryPage() {
                     ctaHref="/audit"
                 />
             ) : (
-                <div className="overflow-x-auto rounded-2xl border border-ink-600/70">
-                    <table className="min-w-full divide-y divide-ink-600/70 text-sm">
-                        <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
+                <div style={{ overflowX: "auto", border: "1px solid var(--rim)", borderRadius: "10px" }}>
+                    <table style={{ minWidth: "100%", fontSize: "0.875rem", borderCollapse: "collapse" }}>
+                        <thead style={{ background: "var(--s2)" }}>
                             <tr>
-                                <th className="px-3 py-2">Profile</th>
-                                <th className="px-3 py-2">Domain</th>
-                                <th className="px-3 py-2">Trust Verdict</th>
-                                <th className="px-3 py-2">Risk</th>
-                                <th className="px-3 py-2">Date</th>
-                                <th className="px-3 py-2">Action</th>
+                                {["Profile", "Domain", "Trust Verdict", "Risk", "Date", "Action"].map((h) => (
+                                    <th
+                                        key={h}
+                                        className="font-mono uppercase"
+                                        style={{
+                                            padding: "12px",
+                                            textAlign: "left",
+                                            fontSize: "var(--fs-micro)",
+                                            letterSpacing: "0.08em",
+                                            color: "var(--t3)",
+                                        }}
+                                    >
+                                        {h}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-ink-700/70 bg-ink-900/35">
+                        <tbody>
                             {filteredHistory.map((entry) => (
-                                <tr key={entry.id}>
-                                    <td className="px-3 py-2 text-ink-100">{String(entry.request.profile.name ?? "Unknown")}</td>
-                                    <td className="px-3 py-2">
+                                <tr key={entry.id} style={{ borderTop: "1px solid var(--rim)" }}>
+                                    <td className="font-mono" style={{ padding: "12px", color: "var(--t1)", fontSize: "var(--fs-mono)" }}>
+                                        {String(entry.request.profile.name ?? "Unknown")}
+                                    </td>
+                                    <td style={{ padding: "12px" }}>
                                         <Badge label={entry.domain} tone="info" />
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td style={{ padding: "12px" }}>
                                         <Badge label={entry.trustVerdict} tone={verdictTone(entry.trustVerdict)} dot />
                                     </td>
-                                    <td className="px-3 py-2 text-ink-100">
-                                        {Math.round(entry.response.insights.risk_score)}/100
+                                    <td className="font-mono" style={{ padding: "12px", color: "var(--t1)", fontSize: "var(--fs-mono)" }}>
+                                        {formatNumber(entry.response.insights.risk_score, 0)}/100
                                     </td>
-                                    <td className="px-3 py-2 text-ink-200">
-                                        {new Date(entry.submittedAt).toLocaleString()}
+                                    <td className="font-mono" style={{ padding: "12px", color: "var(--t2)", fontSize: "var(--fs-micro)" }}>
+                                        {formatDateTime(entry.submittedAt)}
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td style={{ padding: "12px" }}>
                                         <button
                                             type="button"
                                             onClick={() => openHistoryResult(entry)}
-                                            className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/35 px-3 py-1.5 text-xs font-semibold text-signal-info"
+                                            className="dl-btn-ghost"
+                                            style={{ padding: "6px 12px" }}
                                         >
                                             Open Result
                                         </button>

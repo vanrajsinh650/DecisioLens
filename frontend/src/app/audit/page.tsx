@@ -4,7 +4,7 @@ import AuditPageClient from "@/features/audit/AuditPageClient";
 
 export default function AuditPage() {
     return (
-        <Suspense fallback={<div className="text-sm text-ink-200">Loading audit workspace...</div>}>
+        <Suspense fallback={<div className="font-body text-sm" style={{ color: "var(--t2)" }}>Loading audit workspace...</div>}>
             <AuditPageClient />
         </Suspense>
     );

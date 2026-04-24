@@ -21,8 +21,8 @@ export default function FeatureHighlights() {
             <div className="grid gap-4 md:grid-cols-3">
                 {FEATURES.map((feature) => (
                     <Card key={feature.title}>
-                        <h2 className="font-display text-xl font-semibold text-ink-50">{feature.title}</h2>
-                        <p className="mt-2 text-sm text-ink-200">{feature.description}</p>
+                        <h2 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--t1)" }}>{feature.title}</h2>
+                        <p className="font-body" style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--t2)" }}>{feature.description}</p>
                     </Card>
                 ))}
             </div>

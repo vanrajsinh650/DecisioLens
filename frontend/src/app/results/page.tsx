@@ -15,7 +15,7 @@ export function generateMetadata() {
 
 export default function ResultsPage() {
     return (
-        <Suspense fallback={<div className="text-sm text-ink-200">Loading report...</div>}>
+        <Suspense fallback={<div className="font-body text-sm" style={{ color: "var(--t2)" }}>Loading report...</div>}>
             <ResultsPageClient />
         </Suspense>
     );

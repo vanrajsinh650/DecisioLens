@@ -17,9 +17,9 @@ const CHART_HEIGHT = 220;
 const MARGIN = { top: 20, right: 20, bottom: 48, left: 48 };
 
 const verdictColor: Record<TrustVerdict, string> = {
-    STABLE: "#22c55e",
-    UNSTABLE: "#f59e0b",
-    HIGH_RISK: "#ef4444",
+    STABLE: "hsl(145, 65%, 52%)",
+    UNSTABLE: "hsl(38, 82%, 55%)",
+    HIGH_RISK: "hsl(350, 68%, 52%)",
 };
 
 function clampRisk(value: number): number {
@@ -84,16 +84,28 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
     }, [points]);
 
     return (
-        <div className="rounded-2xl border border-ink-600/70 bg-ink-800/70 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
+        <div
+            className="dl-card"
+            style={{ padding: "16px" }}
+        >
+            <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                 <div>
-                    <h3 className="font-display text-lg font-semibold text-ink-50">Trust Score Timeline</h3>
-                    <p className="text-sm text-ink-200">Risk score trend over time, color-coded by trust verdict.</p>
+                    <h3
+                        className="font-display"
+                        style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--t1)" }}
+                    >
+                        Trust Score Timeline
+                    </h3>
+                    <p className="font-body" style={{ fontSize: "0.875rem", color: "var(--t2)" }}>
+                        Risk score trend over time, color-coded by trust verdict.
+                    </p>
                 </div>
             </div>
 
             {points.length === 0 ? (
-                <p className="text-sm text-ink-200">No history points to plot yet.</p>
+                <p className="font-body" style={{ fontSize: "0.875rem", color: "var(--t2)" }}>
+                    No history points to plot yet.
+                </p>
             ) : (
                 <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} width="100%" role="img" aria-label="Trust score timeline">
                     {chart.ticksY.map((tick) => (
@@ -103,10 +115,10 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                                 y1={tick.y}
                                 x2={CHART_WIDTH - MARGIN.right}
                                 y2={tick.y}
-                                stroke="rgba(138,146,168,0.2)"
+                                stroke="hsl(230, 10%, 22%)"
                                 strokeWidth="1"
                             />
-                            <text x={MARGIN.left - 10} y={tick.y + 4} textAnchor="end" fontSize="11" fill="#8a92a8">
+                            <text x={MARGIN.left - 10} y={tick.y + 4} textAnchor="end" fontSize="11" fill="hsl(230, 10%, 48%)" fontFamily="var(--ff-mono)">
                                 {tick.value}
                             </text>
                         </g>
@@ -119,7 +131,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                                 y1={CHART_HEIGHT - MARGIN.bottom}
                                 x2={tick.x}
                                 y2={CHART_HEIGHT - MARGIN.bottom + 6}
-                                stroke="rgba(138,146,168,0.45)"
+                                stroke="hsl(230, 10%, 30%)"
                                 strokeWidth="1"
                             />
                             <text
@@ -127,7 +139,8 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                                 y={CHART_HEIGHT - MARGIN.bottom + 18}
                                 textAnchor="middle"
                                 fontSize="10"
-                                fill="#8a92a8"
+                                fill="hsl(230, 10%, 48%)"
+                                fontFamily="var(--ff-mono)"
                             >
                                 {tick.label}
                             </text>
@@ -137,7 +150,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                     <polyline
                         points={chart.polyline}
                         fill="none"
-                        stroke="#7c9cff"
+                        stroke="hsl(265, 65%, 60%)"
                         strokeWidth="2.5"
                         strokeLinejoin="round"
                         strokeLinecap="round"
@@ -150,7 +163,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                             cy={item.y}
                             r={4.5}
                             fill={verdictColor[item.point.verdict]}
-                            stroke="#0b0e14"
+                            stroke="#03030A"
                             strokeWidth="1.5"
                         >
                             <title>

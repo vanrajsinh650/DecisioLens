@@ -93,11 +93,11 @@ interface SlotResultProps {
 
 function SlotResult({ title, session, loading, error, onClear, onRerun }: SlotResultProps) {
     return (
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <SectionHeader
-                eyebrow={title}
+                overline={title.toUpperCase()}
                 title={`${title} Result`}
-                description="Independent run against the same AI system"
+                subtitle="Independent run against the same AI system"
             />
 
             {loading ? (
@@ -241,11 +241,11 @@ export default function ComparisonExperience() {
     const safeVerdictB = verdictB ?? "STABLE";
 
     return (
-        <div className="space-y-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <SectionHeader
-                eyebrow="Comparison Mode"
-                title="Side-by-side trust audit"
-                description="Run two profiles against the same AI to detect demographic outcome gaps."
+                overline="COMPARISON MODE"
+                title="Side-by-Side Trust Audit"
+                subtitle="Run two profiles against the same AI to detect demographic outcome gaps."
                 actions={
                     <button
                         type="button"
@@ -254,7 +254,7 @@ export default function ComparisonExperience() {
                             setFormA(createInitialFormState());
                             setFormB(createInitialFormState());
                         }}
-                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100"
+                        className="dl-btn-ghost"
                     >
                         Reset Comparison
                     </button>
@@ -263,18 +263,25 @@ export default function ComparisonExperience() {
 
             <Card>
                 {verdictA && verdictB ? (
-                    <div className={`rounded-xl border p-3 ${hasVerdictDelta ? "border-signal-risk/45 bg-signal-riskSoft/30" : "border-signal-stable/45 bg-signal-stableSoft/20"}`}>
-                        <p className="font-semibold text-ink-50">
+                    <div
+                        style={{
+                            borderRadius: "10px",
+                            border: hasVerdictDelta ? "1px solid hsl(350, 68%, 30%)" : "1px solid hsl(140, 55%, 25%)",
+                            background: hasVerdictDelta ? "var(--aurora-crimson-surface)" : "var(--aurora-green-surface)",
+                            padding: "12px",
+                        }}
+                    >
+                        <p className="font-display" style={{ color: "var(--t1)", fontWeight: 700 }}>
                             {hasVerdictDelta
-                                ? "Same context, different trust verdicts → Bias Detected 🚨"
-                                : "Both profiles produced aligned trust verdicts ✅"}
+                                ? "Same context, different trust verdicts → Bias Detected"
+                                : "Both profiles produced aligned trust verdicts"}
                         </p>
-                        <p className="mt-1 text-sm text-ink-200">
+                        <p className="font-mono" style={{ marginTop: "4px", fontSize: "var(--fs-micro)", color: "var(--t2)" }}>
                             Slot A: {verdictA} · Slot B: {verdictB}
                         </p>
                     </div>
                 ) : (
-                    <p className="text-sm text-ink-200">
+                    <p className="font-body" style={{ fontSize: "0.875rem", color: "var(--t2)" }}>
                         Submit both slots to unlock verdict delta insights.
                     </p>
                 )}
@@ -349,10 +356,10 @@ export default function ComparisonExperience() {
             {(sessionA && sessionB) ? (
                 <Card title="Comparison Summary" subtitle="At-a-glance slot diagnostics">
                     <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-xl border border-ink-600/70 bg-ink-900/50 p-3">
-                            <p className="text-xs uppercase tracking-wide text-ink-200">Slot A</p>
-                            <p className="mt-2 text-sm text-ink-100">Decision: {sessionA.response.original.decision}</p>
-                            <p className="text-sm text-ink-100">Risk Score: {Math.round(sessionA.response.insights.risk_score)}/100</p>
+                        <div style={{ borderRadius: "10px", border: "1px solid var(--rim)", background: "var(--s2)", padding: "12px" }}>
+                            <p className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Slot A</p>
+                            <p className="font-body" style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--t1)" }}>Decision: {sessionA.response.original.decision}</p>
+                            <p className="font-mono" style={{ fontSize: "var(--fs-mono)", color: "var(--t1)" }}>Risk Score: {Math.round(sessionA.response.insights.risk_score)}/100</p>
                             <Badge
                                 label={`Trust Verdict: ${safeVerdictA}`}
                                 tone={safeVerdictA === "HIGH_RISK" ? "risk" : safeVerdictA === "UNSTABLE" ? "caution" : "stable"}
@@ -361,10 +368,10 @@ export default function ComparisonExperience() {
                             />
                         </div>
 
-                        <div className="rounded-xl border border-ink-600/70 bg-ink-900/50 p-3">
-                            <p className="text-xs uppercase tracking-wide text-ink-200">Slot B</p>
-                            <p className="mt-2 text-sm text-ink-100">Decision: {sessionB.response.original.decision}</p>
-                            <p className="text-sm text-ink-100">Risk Score: {Math.round(sessionB.response.insights.risk_score)}/100</p>
+                        <div style={{ borderRadius: "10px", border: "1px solid var(--rim)", background: "var(--s2)", padding: "12px" }}>
+                            <p className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Slot B</p>
+                            <p className="font-body" style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--t1)" }}>Decision: {sessionB.response.original.decision}</p>
+                            <p className="font-mono" style={{ fontSize: "var(--fs-mono)", color: "var(--t1)" }}>Risk Score: {Math.round(sessionB.response.insights.risk_score)}/100</p>
                             <Badge
                                 label={`Trust Verdict: ${safeVerdictB}`}
                                 tone={safeVerdictB === "HIGH_RISK" ? "risk" : safeVerdictB === "UNSTABLE" ? "caution" : "stable"}
