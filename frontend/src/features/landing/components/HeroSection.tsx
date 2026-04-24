@@ -100,15 +100,15 @@ export default function HeroSection() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "flex-start",
-                    paddingTop: "0", // Removed inner padding to push text flush to the top
-                    paddingBottom: "0",
+                    justifyContent: "space-between",
+                    paddingTop: "8px",
+                    paddingBottom: "40px",
                 }}
             >
                 {/* 3D Decision Lens scene */}
                 <DecisionLensScene />
 
-                {/* Text content — sits on top of 3D */}
+                {/* TOP: Text content — sits on top of 3D */}
                 <div
                     style={{
                         position: "relative",
@@ -126,7 +126,7 @@ export default function HeroSection() {
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "10px",
-                            fontSize: "0.5rem",
+                            fontSize: "0.7rem",
                             letterSpacing: "0.15em",
                             color: "var(--aurora-violet)",
                             padding: "8px 16px",
@@ -183,46 +183,47 @@ export default function HeroSection() {
                     </p>
                 </div>
 
-                {/* CTA - Absolutely positioned in the center hole of the orbit */}
+                {/* BOTTOM: CTA Button + Keywords */}
                 <div
-                    className="hero-stagger-4"
                     style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        zIndex: 2,
-                    }}
-                >
-                    <Link href="/audit" className="dl-btn-primary dl-btn-hero">
-                        Analyze a Decision →
-                    </Link>
-                </div>
-
-                {/* ASCII-style status bar - Absolutely positioned just below the orbit's bottom edge */}
-                <div
-                    className="hero-stagger-5 font-data"
-                    style={{
-                        position: "absolute",
-                        top: "calc(50% + 160px)",
-                        left: "50%",
-                        transform: "translateX(-50%)",
+                        position: "relative",
                         zIndex: 2,
                         width: "100%",
                         maxWidth: "900px",
                         textAlign: "center",
-                        fontSize: "1rem",
-                        letterSpacing: "0.04em",
-                        color: "var(--t3)",
+                        padding: "0 16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "24px",
                     }}
                 >
-                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
-                    <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
-                        <span style={{ color: "var(--aurora-amber)" }}>◈ THRESHOLD</span>
-                        <span style={{ color: "var(--aurora-crimson)" }}>◈ DRIFT</span>
-                        <span style={{ color: "var(--aurora-green)" }}>◈ VERDICT</span>
+                    {/* CTA */}
+                    <div className="hero-stagger-4">
+                        <Link href="/audit" className="dl-btn-primary dl-btn-hero">
+                            Analyze a Decision →
+                        </Link>
                     </div>
-                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
+
+                    {/* ASCII-style status bar */}
+                    <div
+                        className="hero-stagger-5 font-data"
+                        style={{
+                            width: "100%",
+                            maxWidth: "700px",
+                            fontSize: "1rem",
+                            letterSpacing: "0.04em",
+                            color: "var(--t3)",
+                        }}
+                    >
+                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
+                        <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
+                            <span style={{ color: "var(--aurora-amber)" }}>◈ THRESHOLD</span>
+                            <span style={{ color: "var(--aurora-crimson)" }}>◈ DRIFT</span>
+                            <span style={{ color: "var(--aurora-green)" }}>◈ VERDICT</span>
+                        </div>
+                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
+                    </div>
                 </div>
             </div>
 
@@ -257,7 +258,7 @@ export default function HeroSection() {
                             className="font-pixel uppercase"
                             style={{
                                 margin: 0,
-                                fontSize: "0.45rem",
+                                fontSize: "0.65rem",
                                 letterSpacing: "0.1em",
                                 lineHeight: 1.6,
                                 color: feature.color,

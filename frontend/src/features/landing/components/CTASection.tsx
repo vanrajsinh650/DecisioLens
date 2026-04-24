@@ -14,7 +14,7 @@ export default function CTASection() {
             <p
                 className="font-pixel uppercase"
                 style={{
-                    fontSize: "0.45rem",
+                    fontSize: "0.65rem",
                     letterSpacing: "0.12em",
                     color: "var(--aurora-green)",
                     marginBottom: "16px",

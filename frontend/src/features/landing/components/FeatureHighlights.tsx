@@ -8,7 +8,7 @@ const FEATURES = [
     },
     {
         title: "Is it fair?",
-        description: "Swap gender, location, or education and check if the decision changes — it shouldn't.",
+        description: "Swap gender, location, or education and check if the decision changes it shouldn't.",
         stat: "FAIRNESS_SCAN",
     },
     {
@@ -25,7 +25,7 @@ export default function FeatureHighlights() {
             <p
                 className="font-pixel uppercase"
                 style={{
-                    fontSize: "0.45rem",
+                    fontSize: "0.65rem",
                     letterSpacing: "0.12em",
                     color: "var(--aurora-teal)",
                     marginBottom: "24px",

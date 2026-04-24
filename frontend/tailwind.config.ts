@@ -6,10 +6,10 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Syne"', "sans-serif"],
+        display: ['"Pixelify Sans"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
         body: ['"Plus Jakarta Sans"', "sans-serif"],
-        pixel: ['"Press Start 2P"', "monospace"],
+        pixel: ['"Silkscreen"', "monospace"],
         data: ['"VT323"', "monospace"],
       },
       colors: {
