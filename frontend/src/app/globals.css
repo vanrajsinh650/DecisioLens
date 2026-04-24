@@ -371,6 +371,7 @@ input[type="range"]::-moz-range-thumb {
 
 .dl-btn-primary:hover {
     transform: translateY(-2px);
+    animation: glow-pulse 2s infinite ease-in-out;
 }
 
 .dl-btn-hero:hover {
