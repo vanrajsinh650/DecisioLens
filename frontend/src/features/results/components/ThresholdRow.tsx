@@ -1,4 +1,4 @@
-import { formatThreshold } from "@/lib/format";
+import { formatSignedNumber, formatThreshold } from "@/lib/format";
 import { ThresholdAnalysisItem } from "@/types/audit";
 
 interface ThresholdRowProps {
@@ -12,14 +12,14 @@ export default function ThresholdRow({ row, baselineThreshold, originalDecision,
     const isBaseline = Math.abs(row.threshold - baselineThreshold) < 0.001;
     const isFlipped = originalDecision ? row.decision !== originalDecision : false;
     const delta = row.threshold - baselineThreshold;
-    
+
     // Alternating rows in var(--s1) and var(--s2)
     const bgClass = index % 2 === 0 ? "bg-s1" : "bg-s2";
 
     return (
         <tr className={`border-t border-rim ${bgClass}`}>
             <td className="px-4 py-3 font-mono text-mono text-t1">
-                {isBaseline ? "Baseline (Current)" : `${delta > 0 ? "+" : ""}${(delta * 100).toFixed(0)}% strictness`}
+                {isBaseline ? "Baseline (Current)" : `${formatSignedNumber(delta * 100, 0)}% strictness`}
             </td>
             <td className="px-4 py-3 font-mono text-mono text-t2">
                 {formatThreshold(row.threshold * 100)}

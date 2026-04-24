@@ -1,13 +1,58 @@
 import { REASON_TAG_LABELS, VARIATION_LABELS } from "@/lib/constants";
 
+const number2 = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const number0 = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const number1 = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+const dateTime = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+export const formatNumber = (value: number, digits = 2): string => {
+  if (!Number.isFinite(value)) return "-";
+  if (digits === 0) return number0.format(value);
+  if (digits === 1) return number1.format(value);
+  return number2.format(value);
+};
+
+export const formatDateTime = (value: string | Date): string => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return dateTime.format(date);
+};
+
 export const formatPercent = (value: number, digits = 1): string => {
   if (!Number.isFinite(value)) return "-";
-  return `${(value * 100).toFixed(digits)}%`;
+  return `${formatNumber(value * 100, digits)}%`;
 };
 
 export const formatThreshold = (value: number): string => {
   if (!Number.isFinite(value)) return "-";
-  return value.toFixed(2);
+  return formatNumber(value, 2);
+};
+
+export const formatSignedNumber = (value: number, digits = 0, suffix = ""): string => {
+  if (!Number.isFinite(value)) return "-";
+
+  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+  const base = formatNumber(Math.abs(value), digits);
+
+  return `${sign}${base}${suffix}`;
 };
 
 export const formatRiskLabel = (level: string): string => {
@@ -30,7 +75,7 @@ export const formatRiskLabel = (level: string): string => {
 
 export const formatRiskScore = (score: number): string => {
   if (!Number.isFinite(score)) return "N/A";
-  return `${Math.round(score)}/100`;
+  return `${formatNumber(score, 0)}/100`;
 };
 
 export const formatVariationName = (name: string): string => {
@@ -169,7 +214,7 @@ export const signalClasses: Record<
     soft: "bg-[var(--aurora-amber-surface)]",
     colorVar: "var(--aurora-amber)",
     surfaceVar: "var(--aurora-amber-surface)",
-    borderColorVar: "hsl(35, 70%, 24%)",
+    borderColorVar: "hsl(38, 82%, 24%)",
   },
 };
 

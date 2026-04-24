@@ -11,19 +11,31 @@ export default function TopBar() {
     return (
         <header
             data-no-print
-            className="sticky top-0 z-40"
+            className="dl-topbar sticky top-0 z-40"
             style={{
                 height: "56px",
-                background: "var(--s0)",
-                borderBottom: "1px solid var(--rim)",
             }}
         >
             <div className="mx-auto flex h-full w-full max-w-[1200px] items-center justify-between px-6 lg:px-8">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                     <Link href="/" className="flex items-baseline gap-2">
                         <span
-                            className="font-body text-[1rem] font-semibold"
-                            style={{ color: "var(--t1)" }}
+                            aria-hidden="true"
+                            className="dl-pulse-dot inline-block rounded-full"
+                            style={{
+                                width: "6px",
+                                height: "6px",
+                                background: "var(--aurora-violet)",
+                            }}
+                        />
+                        <span
+                            className="font-display"
+                            style={{
+                                color: "var(--t1)",
+                                fontSize: "1rem",
+                                fontWeight: 800,
+                                letterSpacing: "0.02em",
+                            }}
                         >
                             {APP_NAME}
                         </span>
@@ -45,11 +57,29 @@ export default function TopBar() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`rounded-inset px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all duration-150 ${
-                                        isActive
-                                            ? "bg-s2 text-t1"
-                                            : "text-t2 hover:bg-s1 hover:text-t1"
-                                    }`}
+                                    className="font-mono uppercase"
+                                    style={{
+                                        fontSize: "var(--fs-micro)",
+                                        letterSpacing: "0.08em",
+                                        borderRadius: "4px",
+                                        padding: "7px 10px",
+                                        color: isActive ? "var(--t1)" : "var(--t2)",
+                                        background: isActive ? "var(--s2)" : "transparent",
+                                        border: isActive ? "1px solid var(--rim)" : "1px solid transparent",
+                                        transition: "all 0.15s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (isActive) return;
+                                        e.currentTarget.style.color = "var(--t1)";
+                                        e.currentTarget.style.background = "var(--s1)";
+                                        e.currentTarget.style.borderColor = "var(--rim)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (isActive) return;
+                                        e.currentTarget.style.color = "var(--t2)";
+                                        e.currentTarget.style.background = "transparent";
+                                        e.currentTarget.style.borderColor = "transparent";
+                                    }}
                                 >
                                     {link.label}
                                 </Link>
@@ -59,9 +89,12 @@ export default function TopBar() {
 
                     <span
                         className="font-mono text-t3"
-                        style={{ fontSize: "var(--fs-micro)" }}
+                        style={{
+                            fontSize: "var(--fs-micro)",
+                            letterSpacing: "0.06em",
+                        }}
                     >
-                        v1.0 · Hiring
+                        OBSERVATORY v1.0
                     </span>
                 </div>
             </div>

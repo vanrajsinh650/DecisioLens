@@ -31,6 +31,7 @@ export default function AppealCard({ appeal }: AppealCardProps) {
             <div
                 style={{
                     background: "var(--s2)",
+                    border: "1px solid var(--rim)",
                     borderRadius: "6px",
                     padding: "20px",
                     position: "relative",

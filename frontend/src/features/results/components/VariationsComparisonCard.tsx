@@ -48,33 +48,26 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                     const changeText =
                         row.profile && !isBaseline
                             ? Object.entries(row.profile)
-                                  .filter(
-                                      ([key]) =>
-                                          key !== "name" &&
-                                          key !== "score" &&
-                                          key !== "experience"
-                                  )
-                                  .slice(0, 2)
-                                  .map(([key, val]) => `${key} → ${val}`)
-                                  .join(", ")
+                                .filter(
+                                    ([key]) =>
+                                        key !== "name" &&
+                                        key !== "score" &&
+                                        key !== "experience"
+                                )
+                                .slice(0, 2)
+                                .map(([key, val]) => `${key} → ${val}`)
+                                .join(", ")
                             : null;
 
                     return (
                         <div
                             key={row.label}
-                            className="dl-card"
+                            className="dl-card dl-scenario-card"
                             style={{
                                 borderLeft: isChanged
                                     ? "2px solid var(--aurora-crimson)"
                                     : "1px solid var(--rim)",
-                                transition: "transform 0.15s ease, border-color 0.15s ease",
                                 cursor: "default",
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = "translateY(-3px)";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = "translateY(0)";
                             }}
                         >
                             {/* Scenario name */}

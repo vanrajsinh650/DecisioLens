@@ -4,24 +4,19 @@ interface SubmitAuditButtonProps {
 }
 
 export default function SubmitAuditButton({ isLoading, disabled }: SubmitAuditButtonProps) {
+    const inactive = isLoading || disabled;
+
     return (
         <button
             type="submit"
-            disabled={isLoading || disabled}
+            disabled={inactive}
+            className="dl-btn-primary"
             style={{
                 marginTop: "24px",
                 width: "100%",
-                background: isLoading || disabled ? "var(--s3)" : "var(--aurora-violet)",
-                color: isLoading || disabled ? "var(--t2)" : "#fff",
-                padding: "13px 30px",
-                borderRadius: "6px",
-                border: "none",
-                fontFamily: '"Plus Jakarta Sans", sans-serif',
-                fontSize: "var(--fs-body)",
-                fontWeight: 600,
-                cursor: isLoading || disabled ? "not-allowed" : "pointer",
-                opacity: isLoading || disabled ? 0.5 : 1,
-                transition: "all 0.15s ease",
+                background: inactive ? "var(--s3)" : "var(--aurora-violet)",
+                color: inactive ? "var(--t2)" : "#fff",
+                opacity: inactive ? 0.5 : 1,
             }}
         >
             {isLoading ? "Running Scan..." : "Analyze a Decision →"}

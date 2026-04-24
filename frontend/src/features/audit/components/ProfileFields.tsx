@@ -59,7 +59,7 @@ export default function ProfileFields({
                                 value={String(value)}
                                 onChange={(e) => onChange(field.key, e.target.value)}
                                 disabled={disabled}
-                                className="dl-input"
+                                className="dl-select"
                             >
                                 {field.options?.map((opt) => (
                                     <option key={opt} value={opt}>

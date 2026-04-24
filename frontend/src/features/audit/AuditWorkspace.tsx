@@ -21,6 +21,7 @@ import VariationsComparisonCard from "@/features/results/components/VariationsCo
 import { useAudit } from "@/hooks/useAudit";
 import { useAuditHistory } from "@/hooks/useAuditHistory";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import {
     DEFAULT_DOMAIN,
     DEFAULT_PROFILE,
@@ -36,6 +37,7 @@ import {
     saveAuditDraft,
     saveAuditSession,
 } from "@/lib/session";
+import { formatSignedNumber } from "@/lib/format";
 import { TrustVerdict, AuditProfile, AuditRequest, AuditSession, DomainType } from "@/types/audit";
 
 function createSessionId(): string {
@@ -112,11 +114,11 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
         Math.abs(distance) < 10
             ? "var(--aurora-teal)"
             : distance > 0
-              ? "var(--aurora-green)"
-              : "var(--aurora-crimson)";
+                ? "var(--aurora-green)"
+                : "var(--aurora-crimson)";
 
     return (
-        <div className="dl-card" style={{ padding: "20px" }}>
+        <div className="dl-card dl-reveal" style={{ padding: "20px" }}>
             <p
                 className="font-body uppercase"
                 style={{
@@ -130,7 +132,6 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
                 RISK PREVIEW
             </p>
 
-            {/* Spectrum bar: 100% wide, 6px tall with gradient */}
             <div style={{ position: "relative", height: "6px", width: "100%", borderRadius: "3px", overflow: "visible" }}>
                 <div
                     style={{
@@ -140,7 +141,6 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
                         background: "linear-gradient(to right, var(--aurora-crimson) 0%, var(--aurora-teal) 45%, var(--aurora-teal) 55%, var(--aurora-green) 100%)",
                     }}
                 />
-                {/* Threshold tick */}
                 <div
                     style={{
                         position: "absolute",
@@ -152,7 +152,6 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
                         zIndex: 5,
                     }}
                 />
-                {/* Score dot — 12px circle */}
                 <div
                     style={{
                         position: "absolute",
@@ -181,7 +180,7 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
             >
                 <span>0</span>
                 <span style={{ color: dotColor }}>
-                    {distance > 0 ? "+" : ""}{distance.toFixed(0)} pts margin
+                    {formatSignedNumber(distance, 0, " pts margin")}
                 </span>
                 <span>100</span>
             </div>
@@ -192,6 +191,7 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
 export default function AuditWorkspace() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const revealRef = useScrollReveal();
     const isCompareMode = searchParams.get("mode") === "compare";
     const { submitAudit, loading, error, result, lastRequest, clearResult } = useAudit();
     const { save: saveHistory } = useAuditHistory();
@@ -368,7 +368,7 @@ export default function AuditWorkspace() {
     ];
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
+        <div ref={revealRef} style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
             <SectionHeader
                 overline="AUDIT CHAMBER"
                 title="Instrument Panel"
@@ -380,17 +380,11 @@ export default function AuditWorkspace() {
                             id="btn-compare-mode"
                             data-no-print
                             onClick={() => router.push(isCompareMode ? "/audit" : "/audit?mode=compare")}
-                            className="font-mono uppercase"
+                            className="dl-btn-ghost"
                             style={{
-                                fontSize: "var(--fs-label)",
-                                letterSpacing: "0.12em",
                                 color: "var(--aurora-teal)",
                                 background: "var(--aurora-teal-surface)",
                                 border: "1px solid hsl(172, 60%, 24%)",
-                                borderRadius: "6px",
-                                padding: "8px 12px",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
                             }}
                         >
                             {isCompareMode ? "Exit Compare" : "Compare Mode"}
@@ -398,18 +392,7 @@ export default function AuditWorkspace() {
                         <button
                             type="button"
                             onClick={resetDraft}
-                            className="font-mono uppercase"
-                            style={{
-                                fontSize: "var(--fs-label)",
-                                letterSpacing: "0.12em",
-                                color: "var(--t2)",
-                                background: "var(--s3)",
-                                border: "1px solid var(--rim)",
-                                borderRadius: "6px",
-                                padding: "8px 12px",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                            }}
+                            className="dl-btn-ghost"
                         >
                             Reset
                         </button>
@@ -427,7 +410,7 @@ export default function AuditWorkspace() {
                 className="xl:[grid-template-columns:58fr_42fr]"
             >
                 {/* Left: Instrument Panel */}
-                <div>
+                <div className="dl-card">
                     <AuditForm
                         domain={domain}
                         domainOptions={DOMAIN_OPTIONS}
@@ -451,7 +434,7 @@ export default function AuditWorkspace() {
                     className="xl:sticky xl:top-[88px] xl:self-start"
                 >
                     {/* What We Analyze */}
-                    <div className="dl-card" style={{ padding: "20px" }}>
+                    <div className="dl-card dl-reveal" style={{ padding: "20px" }}>
                         <p
                             className="font-body uppercase"
                             style={{
@@ -499,6 +482,7 @@ export default function AuditWorkspace() {
 
                     {/* Pull-quote */}
                     <div
+                        className="dl-reveal"
                         style={{
                             borderLeft: "2px solid var(--aurora-violet)",
                             paddingLeft: "20px",
@@ -517,11 +501,10 @@ export default function AuditWorkspace() {
                         </p>
                     </div>
 
-                    <AuditPresetCard />
+                    <div className="dl-reveal">
+                        <AuditPresetCard />
+                    </div>
 
-                    {loading ? (
-                        <LoadingState compact />
-                    ) : null}
                     {error ? (
                         <ErrorState
                             title="Analysis Failed"
@@ -587,6 +570,13 @@ export default function AuditWorkspace() {
 
             {showWalkthrough ? (
                 <Walkthrough steps={AUDIT_WALKTHROUGH_STEPS} onComplete={completeOnboarding} />
+            ) : null}
+
+            {loading ? (
+                <LoadingState
+                    label="ANALYSIS TERMINAL"
+                    description="Executing threshold diagnostics, scenario perturbations, and verdict synthesis."
+                />
             ) : null}
         </div>
     );

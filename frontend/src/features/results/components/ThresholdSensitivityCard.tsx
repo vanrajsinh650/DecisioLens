@@ -62,6 +62,7 @@ export default function ThresholdSensitivityCard({
                             fontSize: "var(--fs-micro)",
                             color: "var(--aurora-teal)",
                             letterSpacing: "0.05em",
+                            textTransform: "uppercase",
                         }}
                     >
                         FLIP ZONE
@@ -87,7 +88,7 @@ export default function ThresholdSensitivityCard({
                             height: "100%",
                             left: `${flipZoneStart}%`,
                             width: `${flipZoneWidth}%`,
-                            background: "hsl(172, 60%, 48%, 0.10)",
+                            background: "hsl(172, 60%, 48%, 0.12)",
                         }}
                     />
                 </div>

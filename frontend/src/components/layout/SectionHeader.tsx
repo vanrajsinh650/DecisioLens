@@ -35,7 +35,7 @@ export default function SectionHeader({
             <div style={{ maxWidth: "720px" }}>
                 {displayOverline ? (
                     <p
-                        className="font-body uppercase"
+                        className="font-mono uppercase"
                         style={{
                             marginBottom: "8px",
                             fontSize: "var(--fs-label)",
@@ -49,6 +49,7 @@ export default function SectionHeader({
                     >
                         <span
                             aria-hidden="true"
+                            className="dl-pulse-dot"
                             style={{
                                 display: "inline-block",
                                 width: "6px",
@@ -61,10 +62,11 @@ export default function SectionHeader({
                     </p>
                 ) : null}
                 <h2
-                    className="font-body"
+                    className="font-display"
                     style={{
                         fontSize: "var(--fs-h1)",
-                        fontWeight: 600,
+                        fontWeight: 800,
+                        lineHeight: 1.2,
                         color: "var(--t1)",
                     }}
                 >
@@ -76,7 +78,7 @@ export default function SectionHeader({
                         style={{
                             marginTop: "8px",
                             fontSize: "var(--fs-body)",
-                            lineHeight: 1.8,
+                            lineHeight: 1.75,
                             color: "var(--t2)",
                         }}
                     >

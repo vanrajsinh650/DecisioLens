@@ -1,6 +1,7 @@
 import Badge from "@/components/shared/Badge";
 import StatPill from "@/components/shared/StatPill";
 import {
+    formatDateTime,
     formatRiskLabel,
     formatRiskScore,
     formatThreshold,
@@ -163,7 +164,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                     color: "var(--t2)",
                 }}
             >
-                <span>{new Date(session.submittedAt).toLocaleString()}</span>
+                <span>{formatDateTime(session.submittedAt)}</span>
                 <span>·</span>
                 <span>Domain: {session.domain}</span>
                 <span>·</span>

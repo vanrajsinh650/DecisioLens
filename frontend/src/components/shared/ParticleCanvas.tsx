@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
  * DecisioLens — Living Ambient Dust Field
  * 
- * 1,200 static dust particles rendered via Three.js WebGL.
+ * 800 static dust particles rendered via Three.js WebGL.
  * Parallax shift on mouse-move using lerp interpolation at 0.04 speed.
  * requestAnimationFrame-driven at 60fps with devicePixelRatio awareness.
  * Auto-pauses when document.hidden is true.
  * Hidden below 768px viewport width (handled via CSS).
  */
 
-const PARTICLE_COUNT = 1200;
+const PARTICLE_COUNT = 800;
 const PARALLAX_RANGE = 18; // ±18px max shift
 const LERP_SPEED = 0.04;
 
@@ -27,6 +27,7 @@ function lerp(current: number, target: number, factor: number): number {
 }
 
 export default function ParticleCanvas() {
+    const [enabled, setEnabled] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const sceneRef = useRef<THREE.Scene | null>(null);
@@ -37,6 +38,20 @@ export default function ParticleCanvas() {
     const rafId = useRef<number>(0);
 
     useEffect(() => {
+        const media = window.matchMedia("(min-width: 768px)");
+        const sync = () => setEnabled(media.matches);
+        sync();
+
+        const listener = () => sync();
+        media.addEventListener("change", listener);
+        return () => media.removeEventListener("change", listener);
+    }, []);
+
+    useEffect(() => {
+        if (!enabled) {
+            return;
+        }
+
         const container = containerRef.current;
         if (!container) return;
 
@@ -84,11 +99,11 @@ export default function ParticleCanvas() {
             positions[i * 3 + 1] = (Math.random() - 0.5) * height * 1.2;
             positions[i * 3 + 2] = 0;
 
-            // Size: 0.8–1.4px
-            sizes[i] = 0.8 + Math.random() * 0.6;
+            // Size: 0.3–1.5px
+            sizes[i] = 0.3 + Math.random() * 1.2;
 
-            // Opacity: 0.08–0.3
-            opacities[i] = 0.08 + Math.random() * 0.22;
+            // Opacity: 0.06–0.3
+            opacities[i] = 0.06 + Math.random() * 0.24;
 
             // Color distribution
             const colorRoll = Math.random();
@@ -159,24 +174,35 @@ export default function ParticleCanvas() {
         };
         window.addEventListener("mousemove", handleMouseMove);
 
-        // Animation loop
-        const animate = () => {
-            if (document.hidden) {
+        const startAnimation = () => {
+            if (rafId.current !== 0) return;
+
+            const animate = () => {
+                // Lerp interpolation — gravitational, slow
+                mouseCurrent.current.x = lerp(mouseCurrent.current.x, mouseTarget.current.x, LERP_SPEED);
+                mouseCurrent.current.y = lerp(mouseCurrent.current.y, mouseTarget.current.y, LERP_SPEED);
+
+                group.position.x = mouseCurrent.current.x;
+                group.position.y = mouseCurrent.current.y;
+
+                renderer.render(scene, camera);
                 rafId.current = requestAnimationFrame(animate);
-                return;
-            }
+            };
 
-            // Lerp interpolation — gravitational, slow
-            mouseCurrent.current.x = lerp(mouseCurrent.current.x, mouseTarget.current.x, LERP_SPEED);
-            mouseCurrent.current.y = lerp(mouseCurrent.current.y, mouseTarget.current.y, LERP_SPEED);
-
-            group.position.x = mouseCurrent.current.x;
-            group.position.y = mouseCurrent.current.y;
-
-            renderer.render(scene, camera);
             rafId.current = requestAnimationFrame(animate);
         };
-        rafId.current = requestAnimationFrame(animate);
+
+        const stopAnimation = () => {
+            if (rafId.current !== 0) {
+                cancelAnimationFrame(rafId.current);
+                rafId.current = 0;
+            }
+        };
+
+        // Animation loop
+        if (!document.hidden) {
+            startAnimation();
+        }
 
         // Resize handler
         const handleResize = () => {
@@ -193,14 +219,17 @@ export default function ParticleCanvas() {
 
         // Visibility change
         const handleVisibility = () => {
-            if (!document.hidden && rafId.current === 0) {
-                rafId.current = requestAnimationFrame(animate);
+            if (document.hidden) {
+                stopAnimation();
+                return;
             }
+
+            startAnimation();
         };
         document.addEventListener("visibilitychange", handleVisibility);
 
         return () => {
-            cancelAnimationFrame(rafId.current);
+            stopAnimation();
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("resize", handleResize);
             document.removeEventListener("visibilitychange", handleVisibility);
@@ -211,7 +240,11 @@ export default function ParticleCanvas() {
                 container.removeChild(renderer.domElement);
             }
         };
-    }, []);
+    }, [enabled]);
+
+    if (!enabled) {
+        return null;
+    }
 
     return (
         <div

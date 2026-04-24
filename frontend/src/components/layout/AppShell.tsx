@@ -15,10 +15,13 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
     return (
-        <div className="relative min-h-screen text-t1">
+        <div className="dl-shell text-t1">
             <ParticleCanvas />
+            <div aria-hidden className="dl-orbit-ring dl-orbit-ring--inner" />
+            <div aria-hidden className="dl-orbit-ring dl-orbit-ring--outer" />
+            <div aria-hidden className="dl-scan-line" />
             <TopBar />
-            <main className="relative z-10 mx-auto w-full max-w-[1200px] px-6 py-12 lg:px-8">
+            <main className="dl-content mx-auto w-full max-w-[1200px] px-6 py-12 lg:px-8">
                 {children}
             </main>
         </div>

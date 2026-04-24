@@ -1,260 +1,213 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 
-/* ── Custom Geometric SVG Icons (stroke-only, 32×32, strokeWidth 1.5) ── */
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-function SensitivityIcon() {
+function CrosshairIcon() {
     return (
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 20L12 10L18 16L26 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M18 16V26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
-            <circle cx="12" cy="10" r="2" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="26" cy="6" r="2" stroke="currentColor" strokeWidth="1.5" />
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <circle cx="16" cy="16" r="9" stroke="currentColor" strokeWidth="1.4" />
+            <circle cx="16" cy="16" r="2.4" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M16 3V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M16 24V29" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M3 16H8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M24 16H29" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
     );
 }
 
-function DriftIcon() {
+function ConcentricRingsIcon() {
     return (
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="16" r="4" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="22" cy="16" r="4" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M14 16H18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M10 20V26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
-            <path d="M22 20V26" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <circle cx="16" cy="16" r="3" stroke="currentColor" strokeWidth="1.4" />
+            <circle cx="16" cy="16" r="7" stroke="currentColor" strokeWidth="1.4" />
+            <circle cx="16" cy="16" r="11" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M16 2V5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M30 16H27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M16 30V27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <path d="M2 16H5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
     );
 }
 
-function DecodedIcon() {
+function DocumentCheckIcon() {
     return (
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="5" y="7" width="22" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M10 13H22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M10 18H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M10 22H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path d="M9 5H20L25 10V26H9V5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+            <path d="M20 5V10H25" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+            <path d="M12 17L14.5 19.5L19.5 14.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 23H21" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
     );
 }
 
 const FEATURES = [
     {
-        icon: <SensitivityIcon />,
-        overline: "THRESHOLD SENSITIVITY",
-        heading: "Where the Score Flips",
-        body: "AI decisions live on threshold edges. We test every boundary to show exactly where acceptance turns to rejection.",
-        accentColor: "var(--aurora-amber)",
-        iconColor: "var(--aurora-amber)",
+        title: "Threshold Sensitivity",
+        description:
+            "Probe boundary pressure to reveal exactly where a small threshold shift flips acceptance into rejection.",
+        color: "var(--aurora-amber)",
+        icon: <CrosshairIcon />,
     },
     {
-        icon: <DriftIcon />,
-        overline: "SCENARIO DRIFT",
-        heading: "Hidden Disparate Impact",
-        body: "Parallel profiles surface demographic bias that aggregate statistics conceal. Every variable tested independently.",
-        accentColor: "var(--aurora-crimson)",
-        iconColor: "var(--aurora-crimson)",
+        title: "Scenario Drift",
+        description:
+            "Run controlled profile variations in parallel and detect where outcomes diverge under demographic perturbations.",
+        color: "var(--aurora-crimson)",
+        icon: <ConcentricRingsIcon />,
     },
     {
-        icon: <DecodedIcon />,
-        overline: "DECODED VERDICT",
-        heading: "No Black Boxes",
-        body: "Every result includes structured reasoning, a trust score, and a ready-to-use appeal letter for accountability.",
-        accentColor: "var(--aurora-green)",
-        iconColor: "var(--aurora-green)",
+        title: "Decoded Verdict",
+        description:
+            "Translate the final decision into a transparent narrative with risk signals, drivers, and response protocol.",
+        color: "var(--aurora-green)",
+        icon: <DocumentCheckIcon />,
     },
 ];
 
 export default function HeroSection() {
-    const cardsRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!cardsRef.current) return;
-
-        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReducedMotion) {
-            const els = cardsRef.current.querySelectorAll(".dl-reveal-card");
-            els.forEach((el) => el.classList.add("revealed"));
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        const el = entry.target as HTMLElement;
-                        const delay = el.dataset.staggerDelay;
-                        if (delay) {
-                            setTimeout(() => el.classList.add("revealed"), parseFloat(delay) * 1000);
-                        } else {
-                            el.classList.add("revealed");
-                        }
-                        observer.unobserve(el);
-                    }
-                });
-            },
-            { threshold: 0.15 }
-        );
-
-        const cards = cardsRef.current.querySelectorAll(".dl-reveal-card");
-        cards.forEach((card) => observer.observe(card));
-
-        return () => observer.disconnect();
-    }, []);
+    const revealRef = useScrollReveal();
 
     return (
         <section
-            className="mx-auto flex flex-col items-center justify-center text-center"
+            ref={revealRef}
             style={{
-                maxWidth: "680px",
-                minHeight: "calc(100vh - 56px)",
-                paddingTop: "0",
+                display: "flex",
+                flexDirection: "column",
+                gap: "64px",
+                paddingTop: "24px",
+                paddingBottom: "64px",
             }}
         >
-            {/* Overline with 6px aurora-violet dot */}
-            <p className="hero-stagger-1 flex items-center gap-2 font-body uppercase tracking-[0.12em]"
-                style={{
-                    fontSize: "var(--fs-label)",
-                    fontWeight: 600,
-                    color: "var(--t2)",
-                }}
-            >
-                <span
-                    aria-hidden="true"
-                    className="inline-block rounded-full"
-                    style={{
-                        width: "6px",
-                        height: "6px",
-                        backgroundColor: "var(--aurora-violet)",
-                    }}
-                />
-                DECISION INTEGRITY SCANNER
-            </p>
-
-            {/* Headline — Syne 800 */}
-            <h1
-                className="hero-stagger-2 mt-6 font-display"
-                style={{
-                    fontSize: "clamp(2.8rem, 5.5vw, 4rem)",
-                    fontWeight: 800,
-                    lineHeight: 1.1,
-                    color: "var(--t1)",
-                }}
-            >
-                Can you trust<br />this AI decision?
-            </h1>
-
-            {/* Subheadline */}
-            <p
-                className="hero-stagger-3 mt-6 font-body"
-                style={{
-                    fontSize: "var(--fs-body)",
-                    fontWeight: 400,
-                    lineHeight: 1.8,
-                    color: "var(--t2)",
-                }}
-            >
-                DecisioLens stress-tests algorithmic decisions — revealing threshold
-                fragility, scenario bias, and confidence gaps before they become consequences.
-            </p>
-
-            {/* CTA Button */}
-            <Link
-                href="/audit"
-                className="hero-stagger-4 mt-8 inline-flex items-center font-body font-semibold transition-all duration-150"
-                style={{
-                    background: "var(--aurora-violet)",
-                    color: "#fff",
-                    padding: "13px 30px",
-                    borderRadius: "6px",
-                    border: "none",
-                    fontSize: "var(--fs-body)",
-                }}
-                onMouseEnter={(e) => {
-                    const el = e.currentTarget;
-                    el.style.transform = "translateY(-2px)";
-                    el.style.background = "hsl(265, 65%, 70%)";
-                    el.style.boxShadow = "0 12px 32px hsl(265, 65%, 62%, 0.22)";
-                }}
-                onMouseLeave={(e) => {
-                    const el = e.currentTarget;
-                    el.style.transform = "translateY(0)";
-                    el.style.background = "var(--aurora-violet)";
-                    el.style.boxShadow = "none";
-                }}
-            >
-                Analyze a Decision →
-            </Link>
-
-            {/* Signal Strip */}
-            <p
-                className="hero-stagger-5 mt-5 font-mono"
-                style={{
-                    fontSize: "var(--fs-micro)",
-                    color: "var(--t3)",
-                    letterSpacing: "0.05em",
-                }}
-            >
-                ◈ Threshold Sensitivity · ◈ Scenario Drift · ◈ Bias Detection
-            </p>
-
-            {/* Three-card feature row */}
             <div
-                ref={cardsRef}
-                className="mt-16 grid w-full gap-6 text-left sm:grid-cols-3"
+                style={{
+                    width: "100%",
+                    maxWidth: "720px",
+                    margin: "0 auto",
+                    textAlign: "center",
+                }}
+            >
+                <p
+                    className="hero-stagger-1 font-mono uppercase"
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "var(--fs-label)",
+                        letterSpacing: "0.12em",
+                        color: "var(--aurora-violet)",
+                    }}
+                >
+                    <span
+                        aria-hidden
+                        className="dl-pulse-dot"
+                        style={{
+                            width: "6px",
+                            height: "6px",
+                            borderRadius: "50%",
+                            background: "var(--aurora-violet)",
+                        }}
+                    />
+                    DECISION INTEGRITY SCANNER
+                </p>
+
+                <h1
+                    className="hero-stagger-2 font-display"
+                    style={{
+                        marginTop: "24px",
+                        marginBottom: 0,
+                        fontSize: "var(--fs-hero)",
+                        fontWeight: 800,
+                        lineHeight: 1.08,
+                        color: "var(--t1)",
+                    }}
+                >
+                    Can you trust
+                    <br />
+                    <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>
+                        this AI decision?
+                    </em>
+                </h1>
+
+                <p
+                    className="hero-stagger-3"
+                    style={{
+                        marginTop: "24px",
+                        marginBottom: 0,
+                        fontSize: "var(--fs-body)",
+                        color: "var(--t2)",
+                        lineHeight: 1.75,
+                    }}
+                >
+                    DecisioLens peers into the void where algorithmic decisions are made — exposing
+                    threshold fragility, hidden bias, and the invisible forces that determine who gets
+                    accepted and who gets left behind.
+                </p>
+
+                <div className="hero-stagger-4" style={{ marginTop: "32px" }}>
+                    <Link href="/audit" className="dl-btn-primary dl-btn-hero">
+                        Analyze a Decision →
+                    </Link>
+                </div>
+
+                <p
+                    className="hero-stagger-5 font-mono"
+                    style={{
+                        marginTop: "16px",
+                        marginBottom: 0,
+                        fontSize: "var(--fs-micro)",
+                        letterSpacing: "0.06em",
+                        color: "var(--t3)",
+                    }}
+                >
+                    ◈ THRESHOLD SENSITIVITY&nbsp;&nbsp;&nbsp;◈ SCENARIO DRIFT&nbsp;&nbsp;&nbsp;◈ DECODED VERDICT
+                </p>
+            </div>
+
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                    gap: "24px",
+                }}
             >
                 {FEATURES.map((feature, index) => (
-                    <div
-                        key={feature.overline}
+                    <article
+                        key={feature.title}
                         className="dl-reveal-card dl-card"
-                        data-stagger-delay={index * 0.1}
+                        data-stagger-delay={String(index * 0.1)}
                         style={{
-                            borderLeft: `2px solid ${feature.accentColor}`,
+                            padding: "24px",
+                            borderLeft: `2px solid ${feature.color}`,
+                            borderTopLeftRadius: 0,
+                            borderBottomLeftRadius: 0,
                         }}
                     >
-                        {/* 32×32 stroke-only icon */}
-                        <div style={{ color: feature.iconColor, marginBottom: "16px" }}>
-                            {feature.icon}
-                        </div>
-
-                        {/* Uppercase overline in accent color */}
+                        <div style={{ color: feature.color, marginBottom: "16px" }}>{feature.icon}</div>
                         <p
-                            className="font-body uppercase"
+                            className="font-mono uppercase"
                             style={{
+                                margin: 0,
                                 fontSize: "var(--fs-label)",
-                                fontWeight: 600,
                                 letterSpacing: "0.12em",
-                                color: feature.accentColor,
+                                color: feature.color,
                             }}
                         >
-                            {feature.overline}
+                            {feature.title}
                         </p>
-
-                        {/* Heading */}
-                        <h2
-                            className="mt-3 font-body"
-                            style={{
-                                fontSize: "var(--fs-h2)",
-                                fontWeight: 600,
-                                color: "var(--t1)",
-                            }}
-                        >
-                            {feature.heading}
-                        </h2>
-
-                        {/* Body — two lines max */}
                         <p
-                            className="mt-2 font-body"
                             style={{
+                                marginTop: "12px",
+                                marginBottom: 0,
                                 fontSize: "0.875rem",
-                                lineHeight: 1.6,
                                 color: "var(--t2)",
+                                lineHeight: 1.7,
                             }}
                         >
-                            {feature.body}
+                            {feature.description}
                         </p>
-                    </div>
+                    </article>
                 ))}
             </div>
         </section>

@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import { formatThreshold } from "@/lib/format";
+import { formatNumber, formatThreshold } from "@/lib/format";
 
 interface ThresholdControlProps {
     value: number;
@@ -12,29 +11,43 @@ export default function ThresholdControl({
     onChange,
     disabled = false,
 }: ThresholdControlProps) {
-    const positionPercent = useMemo(() => `${value * 100}%`, [value]);
+    const boundaryPoints = formatNumber(value * 100, 2);
+    const normalizedThreshold = formatThreshold(value);
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* Zone labels: REJECT · BORDERLINE · ACCEPT */}
-            <div
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "16px",
+                background: "var(--s2)",
+                border: "1px solid var(--rim)",
+                borderRadius: "10px",
+                padding: "24px",
+            }}
+        >
+            <p
                 className="font-mono uppercase"
                 style={{
-                    display: "flex",
-                    justifyContent: "space-between",
+                    margin: 0,
                     fontSize: "var(--fs-micro)",
-                    fontWeight: 600,
                     letterSpacing: "0.08em",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "8px",
                 }}
             >
                 <span style={{ color: "var(--aurora-crimson)" }}>REJECT</span>
+                <span style={{ color: "var(--t3)" }}>·</span>
                 <span style={{ color: "var(--aurora-teal)" }}>BORDERLINE</span>
+                <span style={{ color: "var(--t3)" }}>·</span>
                 <span style={{ color: "var(--aurora-green)" }}>ACCEPT</span>
-            </div>
+            </p>
 
-            {/* Custom slider track */}
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", paddingInline: "4px" }}>
                 <input
+                    id="threshold-slider"
                     type="range"
                     min="0"
                     max="1"
@@ -43,6 +56,11 @@ export default function ThresholdControl({
                     onChange={(e) => onChange(Number(e.target.value))}
                     disabled={disabled}
                     title="Decision Threshold"
+                    aria-label="Decision threshold"
+                    aria-valuemin={0}
+                    aria-valuemax={1}
+                    aria-valuenow={value}
+                    aria-valuetext={`${normalizedThreshold} normalized threshold`}
                     style={{
                         width: "100%",
                         cursor: disabled ? "not-allowed" : "pointer",
@@ -50,17 +68,26 @@ export default function ThresholdControl({
                 />
             </div>
 
-            {/* Live value display — large JetBrains Mono 600 */}
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
                 <span
                     className="font-mono"
                     style={{
-                        fontSize: "1.5rem",
+                        fontSize: "1.75rem",
                         fontWeight: 600,
                         color: "var(--t1)",
                     }}
                 >
-                    {formatThreshold(value)}
+                    {boundaryPoints}
+                </span>
+                <span
+                    className="font-mono"
+                    style={{
+                        fontSize: "var(--fs-micro)",
+                        color: "var(--t3)",
+                        letterSpacing: "0.04em",
+                    }}
+                >
+                    Boundary score · {normalizedThreshold} normalized
                 </span>
             </div>
         </div>

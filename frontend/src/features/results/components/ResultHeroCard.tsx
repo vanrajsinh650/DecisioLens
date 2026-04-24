@@ -1,4 +1,4 @@
-import { formatThreshold, signalClasses, SignalTone } from "@/lib/format";
+import { formatDateTime, formatSignedNumber, formatThreshold, signalClasses, SignalTone } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
 interface ResultHeroCardProps {
@@ -45,7 +45,7 @@ export default function ResultHeroCard({
     const originalScore = response.original.score;
     const threshold = request.threshold;
     const distance = originalScore - threshold * 100;
-    const timestamp = new Date(session.submittedAt).toISOString();
+    const timestamp = formatDateTime(session.submittedAt);
 
     return (
         <div
@@ -102,9 +102,7 @@ export default function ResultHeroCard({
                     }}
                 >
                     Score: {formatThreshold(originalScore)} · Threshold:{" "}
-                    {formatThreshold(threshold * 100)} · Margin:{" "}
-                    {distance > 0 ? "+" : ""}
-                    {distance.toFixed(0)}pts
+                    {formatThreshold(threshold * 100)} · Margin: {formatSignedNumber(distance, 0, "pts")}
                 </p>
 
                 {/* Action buttons */}
@@ -119,36 +117,14 @@ export default function ResultHeroCard({
                         <button
                             type="button"
                             onClick={onRerun}
-                            className="font-mono uppercase"
-                            style={{
-                                fontSize: "var(--fs-label)",
-                                letterSpacing: "0.12em",
-                                color: "var(--t2)",
-                                background: "var(--s2)",
-                                border: "1px solid var(--rim)",
-                                borderRadius: "6px",
-                                padding: "8px 16px",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                            }}
+                            className="dl-btn-ghost"
                         >
                             RE-RUN AUDIT
                         </button>
                         <button
                             type="button"
                             onClick={onClear}
-                            className="font-mono uppercase"
-                            style={{
-                                fontSize: "var(--fs-label)",
-                                letterSpacing: "0.12em",
-                                color: "var(--t2)",
-                                background: "var(--s2)",
-                                border: "1px solid var(--rim)",
-                                borderRadius: "6px",
-                                padding: "8px 16px",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                            }}
+                            className="dl-btn-ghost"
                         >
                             CLEAR RESULTS
                         </button>

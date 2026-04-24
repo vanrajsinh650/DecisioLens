@@ -20,7 +20,7 @@ export default function DomainSelector({
     disabled = false,
 }: DomainSelectorProps) {
     return (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <div className="dl-segmented">
             {options.map((option) => {
                 const isSelected = value === option.value;
                 return (
@@ -29,20 +29,8 @@ export default function DomainSelector({
                         type="button"
                         onClick={() => onChange(option.value as DomainType)}
                         disabled={disabled}
-                        className="font-mono"
-                        style={{
-                            fontSize: "var(--fs-mono)",
-                            padding: "8px 14px",
-                            borderRadius: "4px",
-                            border: isSelected
-                                ? "1px solid var(--aurora-violet)"
-                                : "1px solid var(--rim)",
-                            background: isSelected ? "var(--s2)" : "var(--s1)",
-                            color: isSelected ? "var(--t1)" : "var(--t2)",
-                            cursor: disabled ? "not-allowed" : "pointer",
-                            opacity: disabled ? 0.5 : 1,
-                            transition: "all 0.15s ease",
-                        }}
+                        className={`dl-segment ${isSelected ? "is-active" : ""}`}
+                        title={option.description}
                     >
                         {option.label}
                     </button>

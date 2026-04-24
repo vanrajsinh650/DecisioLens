@@ -89,11 +89,7 @@ export default function AuditForm({
                         >
                             DEFINE CUSTOM SCHEMA
                         </label>
-                        <CustomFieldBuilder
-                            fields={profileFields}
-                            onChange={onCustomFieldsChange}
-                            disabled={isLoading}
-                        />
+                        <CustomFieldBuilder onChange={onCustomFieldsChange} disabled={isLoading} />
                     </div>
                     <div style={{ height: "1px", background: "var(--rim)" }} />
                 </>
