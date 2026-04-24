@@ -155,8 +155,9 @@ class GeminiService:
                     maxOutputTokens=max_output_tokens,
                 ),
             )
-        except Exception:
-            logger.warning("Gemini API call failed — using fallback", exc_info=True)
+        except Exception as exc:
+            # Log a clean one-liner, not the full traceback
+            logger.warning("Gemini API call failed — using fallback: %s", exc)
             return None
 
         text = getattr(response, "text", None)
