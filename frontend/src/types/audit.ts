@@ -40,6 +40,16 @@ export interface AIJuryView {
   judge: string;
 }
 
+export interface RecourseItem {
+  action: string;
+  impact: string;
+}
+
+export interface HumanReview {
+  level: "REQUIRED" | "RECOMMENDED" | "NOT_REQUIRED";
+  reason: string;
+}
+
 export interface Insights {
   instability: boolean;
   bias_detected: boolean;
@@ -55,6 +65,9 @@ export interface AuditResult {
   insights: Insights;
   explanation: string;
   appeal: string;
+  explanation_request: string;
+  recourse: RecourseItem[];
+  human_review: HumanReview;
   ai_jury_view?: AIJuryView;
 }
 

@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState, useRef } from "react";
 
 import AppealCard from "./components/AppealCard";
 import ExplanationCard from "./components/ExplanationCard";
+import HumanReviewCard from "./components/HumanReviewCard";
 import JuryPanel from "./components/JuryPanel";
+import RecourseCard from "./components/RecourseCard";
 import ResultHeroCard from "./components/ResultHeroCard";
 import RiskInsightCard from "./components/RiskInsightCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
@@ -246,14 +248,34 @@ export default function ResultsExperience() {
                 />
             </div>
 
+            {/* Section 4a — Human Review Recommendation */}
+            {session.response.human_review && (
+                <div className="print-section">
+                    <HumanReviewCard humanReview={session.response.human_review} />
+                </div>
+            )}
+
             {/* Section 5 — Decoded Insight */}
             <div className="print-section">
                 <ExplanationCard explanation={session.response.explanation} />
             </div>
 
-            {/* Section 6 — Response Protocol */}
+            {/* Section 5a — Actionable Recourse */}
+            {session.response.recourse && session.response.recourse.length > 0 && (
+                <div className="print-section">
+                    <RecourseCard
+                        recourse={session.response.recourse}
+                        originalDecision={session.response.original.decision}
+                    />
+                </div>
+            )}
+
+            {/* Section 6 — Response Protocol (Appeal + Explanation Request tabs) */}
             <div className="print-section">
-                <AppealCard appeal={session.response.appeal} />
+                <AppealCard
+                    appeal={session.response.appeal}
+                    explanationRequest={session.response.explanation_request}
+                />
             </div>
 
             {/* Section 7 — Jury Panel */}

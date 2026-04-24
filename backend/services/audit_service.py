@@ -24,6 +24,8 @@ from ai.gemini import GeminiService
 from core.analysis import (
     build_reason_tags,
     classify_confidence,
+    compute_human_review_recommendation,
+    compute_recourse_suggestions,
     compute_risk_score,
     detect_bias_patterns,
     detect_instability,
@@ -37,8 +39,10 @@ from schemas.request import validate_profile
 from schemas.response import (
     AIJuryView,
     AuditResponse,
+    HumanReview,
     Insights,
     OriginalDecision,
+    RecourseItem,
     RiskAssessment,
     ThresholdAnalysisItem,
     VariationResult,
@@ -185,18 +189,35 @@ class AuditService:
             ai_jury_view=ai_jury_view.model_dump(),
         )
 
-        explanation, appeal = await asyncio.gather(
+        explanation, appeal, explanation_request = await asyncio.gather(
             self._gemini.generate_explanation(context),
             self._gemini.generate_appeal(context),
+            self._gemini.generate_explanation_request(context),
         )
+        # ── 9. Recourse + human review ───────────────────────────────
+        recourse_list = compute_recourse_suggestions(
+            original_score=original_score,
+            original_decision=original_decision,
+            threshold=threshold,
+            instability_report=instability_report,
+            bias_report=bias_report,
+        )
+        human_review = compute_human_review_recommendation(
+            risk_score=risk_assessment["score"],
+            instability_report=instability_report,
+            bias_report=bias_report,
+            confidence_zone=confidence_zone,
+        )
+
         logger.info(
-            "Audit complete: decision=%s score=%.4f risk=%s",
+            "Audit complete: decision=%s score=%.4f risk=%s review=%s",
             original_decision,
             original_score,
             risk_assessment["level"],
+            human_review["level"],
         )
 
-        # ── 9. Assemble response ─────────────────────────────────────
+        # ── 10. Assemble response ────────────────────────────────────
         return AuditResponse(
             original=OriginalDecision(score=original_score, decision=original_decision),
             threshold_analysis=threshold_analysis,
@@ -215,6 +236,9 @@ class AuditService:
             ),
             explanation=explanation,
             appeal=appeal,
+            explanation_request=explanation_request,
+            recourse=[RecourseItem(**r) for r in recourse_list],
+            human_review=HumanReview(**human_review),
         )
 
     # ── Private ──────────────────────────────────────────────────────

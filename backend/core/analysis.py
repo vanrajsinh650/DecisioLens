@@ -288,3 +288,115 @@ def build_reason_tags(
 
     # Preserve first-seen ordering while removing duplicates.
     return list(dict.fromkeys(tags))
+
+
+def compute_recourse_suggestions(
+    *,
+    original_score: float,
+    original_decision: str,
+    threshold: float,
+    instability_report: Mapping[str, Any],
+    bias_report: Mapping[str, Any],
+) -> list[dict[str, str]]:
+    """
+    Generate actionable recourse suggestions: concrete changes that would
+    flip a REJECT decision to ACCEPT.
+
+    Returns a list of {"action": str, "impact": str} dicts.
+    """
+    suggestions: list[dict[str, str]] = []
+
+    if original_decision == "ACCEPT":
+        return suggestions  # No recourse needed
+
+    gap = threshold - original_score  # How far the score is below threshold
+
+    # 1. Threshold-based recourse
+    for flip_threshold in instability_report.get("threshold_switch_points", []):
+        if float(flip_threshold) < threshold:
+            suggestions.append({
+                "action": f"Request a lower decision threshold (currently {threshold:.2f}, accepted at {float(flip_threshold):.2f})",
+                "impact": "Would flip outcome to ACCEPT at the indicated threshold",
+            })
+            break
+
+    # 2. Score-based recourse
+    if gap > 0:
+        pct = round(gap * 100, 1)
+        suggestions.append({
+            "action": f"Improve the primary qualification score by {pct} points",
+            "impact": f"A score increase of {pct}% would meet the current threshold of {threshold:.2f}",
+        })
+
+    # 3. Demographic-based recourse (flags only, no prescriptive bias)
+    suspicious_patterns = bias_report.get("suspicious_patterns", [])
+    for pattern in suspicious_patterns:
+        if not isinstance(pattern, Mapping):
+            continue
+        variation = str(pattern.get("variation", ""))
+        delta = float(pattern.get("score_delta", 0))
+        if delta > 0 and pattern.get("decision_changed"):
+            field_map = {
+                "gender_swap": "gender classification",
+                "location_change": "location or city tier",
+                "college_change": "college or education tier",
+                "employment_change": "employment category",
+                "category_change": "social category classification",
+                "age_change": "age group",
+            }
+            field = field_map.get(variation, variation.replace("_", " "))
+            suggestions.append({
+                "action": f"Request review of how {field} was factored into this decision",
+                "impact": f"Changing this variable improved the simulated score by {round(delta * 100, 1)}% and flipped the outcome",
+            })
+
+    # 4. Human review as recourse
+    if bool(instability_report.get("is_unstable")) or bool(bias_report.get("has_bias_flags")):
+        suggestions.append({
+            "action": "Request a manual review by a human decision-maker",
+            "impact": "Automated decision shows instability or bias indicators — human oversight is warranted",
+        })
+
+    return suggestions[:5]  # Cap at 5 so the UI stays readable
+
+
+def compute_human_review_recommendation(
+    *,
+    risk_score: int,
+    instability_report: Mapping[str, Any],
+    bias_report: Mapping[str, Any],
+    confidence_zone: str,
+) -> dict[str, str]:
+    """
+    Determine whether human review is Required, Recommended, or Not Required.
+
+    Trigger conditions:
+    - REQUIRED: risk_score > 70, OR bias detected, OR confidence == Unstable
+    - RECOMMENDED: risk_score > 35, OR any threshold flips, OR any variation flips
+    - NOT_REQUIRED: otherwise
+    """
+    bias_detected = bool(bias_report.get("has_bias_flags"))
+    is_unstable = bool(instability_report.get("is_unstable"))
+
+    if risk_score > 70 or bias_detected or confidence_zone == "Unstable":
+        level = "REQUIRED"
+        reason = (
+            "This decision has a high risk score, detected bias indicators, or sits "
+            "in an unstable confidence zone. A human reviewer should assess this before "
+            "the outcome is finalized."
+        )
+    elif risk_score > 35 or is_unstable:
+        level = "RECOMMENDED"
+        reason = (
+            "The decision shows moderate instability or sensitivity. A human review "
+            "is not mandatory but would improve confidence in the outcome."
+        )
+    else:
+        level = "NOT_REQUIRED"
+        reason = (
+            "The decision is stable across threshold and variation testing. "
+            "Automated processing can proceed with standard audit logging."
+        )
+
+    return {"level": level, "reason": reason}
+

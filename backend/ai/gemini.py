@@ -104,6 +104,32 @@ class GeminiService:
         )
         return output if output is not None else _fallback_appeal(context)
 
+    async def generate_explanation_request(self, context: Mapping[str, Any]) -> str:
+        """Generate a formal right-to-explanation request letter (GDPR/DPDP-aligned)."""
+        profile = context.get("original", {}).get("profile", {})
+        name = str(profile.get("name", "the applicant"))
+        domain = str(profile.get("domain", "this decision"))
+        decision = context.get("original", {}).get("decision", "REJECT")
+        prompt = (
+            f"Write a formal Right-to-Explanation request letter for {name} regarding an "
+            f"automated {domain} decision with outcome {decision}.\n"
+            "The letter must request:\n"
+            "1. Meaningful information about the automated decision-making logic used\n"
+            "2. The main factors and their relative weights that influenced the outcome\n"
+            "3. Disclosure of whether human oversight was applied\n"
+            "4. The right to request human review of this specific decision\n"
+            "5. The data categories used and their sources\n"
+            "Use formal, professional language. Keep it under 250 words. No markdown.\n"
+            f"Context:\n{_context_to_json(context)}"
+        )
+        output = await self._call_once(
+            system_instruction="You draft formal right-to-explanation letters aligned with data protection regulations.",
+            prompt=prompt,
+            max_output_tokens=400,
+            temperature=0.1,
+        )
+        return output if output is not None else _fallback_explanation_request(context)
+
     # ── Private helpers ──────────────────────────────────────────────
 
     async def _call_once(
@@ -276,3 +302,32 @@ def _fallback_appeal(context: Mapping[str, Any]) -> str:
         "Given these indicators, I request a manual reassessment to confirm fairness and consistency.\n\n"
         "Thank you for your time and consideration.\n"
     )
+
+
+def _fallback_explanation_request(context: Mapping[str, Any]) -> str:
+    original = context.get("original", {})
+    profile = original.get("profile", {})
+    name = str(profile.get("name", "the applicant"))
+    domain = str(profile.get("domain", "automated system"))
+    decision = str(original.get("decision", "REJECT"))
+    decision_quality = context.get("decision_quality", {})
+    risk = decision_quality.get("risk", {})
+    risk_level = str(risk.get("level", "Unknown"))
+
+    return (
+        f"Subject: Right to Explanation — Automated {domain.title()} Decision\n\n"
+        "Dear Sir or Madam,\n\n"
+        f"I am writing to formally request a meaningful explanation of the automated decision "
+        f"made regarding my {domain} application, which resulted in a {decision} outcome.\n\n"
+        "Under applicable data protection regulations, I am entitled to:\n\n"
+        "1. A clear explanation of the logic and criteria applied by the automated system\n"
+        "2. Disclosure of the main factors and their relative weights that led to this outcome\n"
+        "3. Information on whether any human oversight was applied before finalizing the decision\n"
+        "4. The right to contest this decision and request human review\n"
+        "5. Details of the personal data categories used and their sources\n\n"
+        f"The independent audit of this decision flagged it as {risk_level} risk. "
+        "I respectfully request a formal response within 30 days.\n\n"
+        f"Applicant: {name}\n\n"
+        "Thank you for your attention to this matter.\n"
+    )
+

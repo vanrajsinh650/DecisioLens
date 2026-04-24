@@ -64,6 +64,20 @@ class AIJuryView(BaseModel):
     judge: str
 
 
+class RecourseItem(BaseModel):
+    """One actionable recourse suggestion."""
+
+    action: str = Field(description="What the person can do")
+    impact: str = Field(description="What effect that action would have")
+
+
+class HumanReview(BaseModel):
+    """Human oversight recommendation based on risk analysis."""
+
+    level: str = Field(description="REQUIRED / RECOMMENDED / NOT_REQUIRED")
+    reason: str = Field(description="Plain-language justification")
+
+
 class AuditResponse(BaseModel):
     """
     Complete audit result returned by ``POST /audit/run``.
@@ -82,3 +96,7 @@ class AuditResponse(BaseModel):
     insights: Insights
     explanation: str
     appeal: str
+    explanation_request: str
+    recourse: list[RecourseItem]
+    human_review: HumanReview
+

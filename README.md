@@ -74,8 +74,16 @@ Every domain has its own scoring formula where the demographic variables actuall
     "risk_level": "HIGH",
     "reason_tags": ["gender_sensitive", "threshold_sensitive"]
   },
-  "explanation": "...",              // Gemini plain-language summary
+  "human_review": {
+    "level": "REQUIRED",             // REQUIRED / RECOMMENDED / NOT_REQUIRED
+    "reason": "..."                  // plain-language justification
+  },
+  "recourse": [                      // concrete steps that could flip the decision
+    { "action": "...", "impact": "..." }
+  ],
+  "explanation": "...",              // Gemini plain-language audit summary
   "appeal": "...",                   // Gemini formal appeal letter
+  "explanation_request": "...",      // Gemini formal right-to-explanation letter
   "ai_jury_view": {
     "auditor": "bias detected (1 flag)",
     "challenger": "unstable",
@@ -83,6 +91,39 @@ Every domain has its own scoring formula where the demographic variables actuall
   }
 }
 ```
+
+### Human Review Recommendation
+
+Every audit ends with a human oversight recommendation based on three criteria:
+
+| Level | Triggers When |
+|---|---|
+| REQUIRED | Risk score above 70, OR bias detected, OR confidence zone is Unstable |
+| RECOMMENDED | Risk score above 35, OR any threshold or variation flips |
+| NOT_REQUIRED | Decision is stable across all tests |
+
+This is designed around regulatory expectations in the EU AI Act and India's DPDP Act, which require that high-risk automated decisions include a human review pathway.
+
+### Actionable Recourse
+
+Instead of just saying "this looks risky", DecisioLens tells you what you can actually do. For rejected decisions it generates:
+
+- Which threshold level would have accepted the profile
+- How much the primary score needs to improve to cross the threshold
+- Which demographic variable to request a review of (when bias was detected)
+- Whether to ask for human review (when instability or bias flags are present)
+
+### Right-to-Explanation Letter
+
+Alongside the appeal letter, DecisioLens generates a separate formal Right-to-Explanation request letter. This is grounded in data protection rights (GDPR Article 22, India DPDP Act) that entitle affected people to:
+
+1. A clear explanation of the logic used
+2. The main factors and their weights
+3. Disclosure of whether human oversight was applied
+4. The right to request human review
+5. Details of data categories used
+
+Both letters appear in the same card with a tab switcher. Each has a copy button so it can be sent directly.
 
 ---
 
