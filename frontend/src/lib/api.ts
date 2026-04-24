@@ -145,6 +145,26 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     }
     : undefined;
 
+  // Normalize new governance fields
+  const explanationRequest = typeof payload.explanation_request === "string"
+    ? payload.explanation_request
+    : undefined;
+
+  const recourse = Array.isArray(payload.recourse)
+    ? payload.recourse.map((r: unknown) => {
+      const item = isRecord(r) ? r : {};
+      return { action: toString(item.action), impact: toString(item.impact) };
+    })
+    : undefined;
+
+  const humanReviewRaw = isRecord(payload.human_review) ? payload.human_review : null;
+  const humanReview = humanReviewRaw
+    ? {
+      level: toString(humanReviewRaw.level, "NOT_REQUIRED") as "REQUIRED" | "RECOMMENDED" | "NOT_REQUIRED",
+      reason: toString(humanReviewRaw.reason),
+    }
+    : undefined;
+
   return {
     original: {
       score: originalScore,
@@ -157,6 +177,9 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     insights,
     explanation: toString(payload.explanation),
     appeal: toString(payload.appeal),
+    ...(explanationRequest ? { explanation_request: explanationRequest } : {}),
+    ...(recourse && recourse.length > 0 ? { recourse } : {}),
+    ...(humanReview ? { human_review: humanReview } : {}),
     ...(aiJuryView ? { ai_jury_view: aiJuryView } : {}),
   };
 };
