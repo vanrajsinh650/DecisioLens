@@ -100,9 +100,9 @@ export default function HeroSection() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-start",
                     paddingTop: "0", // Removed inner padding to push text flush to the top
-                    paddingBottom: "8vh",
+                    paddingBottom: "0",
                 }}
             >
                 {/* 3D Decision Lens scene */}
@@ -183,44 +183,46 @@ export default function HeroSection() {
                     </p>
                 </div>
 
-                {/* Bottom CTA Block — sits below 3D orbit */}
+                {/* CTA - Absolutely positioned in the center hole of the orbit */}
                 <div
+                    className="hero-stagger-4"
                     style={{
-                        position: "relative",
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        zIndex: 2,
+                    }}
+                >
+                    <Link href="/audit" className="dl-btn-primary dl-btn-hero">
+                        Analyze a Decision →
+                    </Link>
+                </div>
+
+                {/* ASCII-style status bar - Absolutely positioned just below the orbit's bottom edge */}
+                <div
+                    className="hero-stagger-5 font-data"
+                    style={{
+                        position: "absolute",
+                        top: "calc(50% + 160px)",
+                        left: "50%",
+                        transform: "translateX(-50%)",
                         zIndex: 2,
                         width: "100%",
                         maxWidth: "900px",
                         textAlign: "center",
-                        padding: "0 16px",
+                        fontSize: "1rem",
+                        letterSpacing: "0.04em",
+                        color: "var(--t3)",
                     }}
                 >
-                    {/* CTA */}
-                    <div className="hero-stagger-4">
-                        <Link href="/audit" className="dl-btn-primary dl-btn-hero">
-                            Analyze a Decision →
-                        </Link>
+                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
+                        <span style={{ color: "var(--aurora-amber)" }}>◈ THRESHOLD</span>
+                        <span style={{ color: "var(--aurora-crimson)" }}>◈ DRIFT</span>
+                        <span style={{ color: "var(--aurora-green)" }}>◈ VERDICT</span>
                     </div>
-
-                    {/* ASCII-style status bar */}
-                    <div
-                        className="hero-stagger-5 font-data"
-                        style={{
-                            marginTop: "200px",
-                            marginBottom: 0,
-                            fontSize: "1rem",
-                            letterSpacing: "0.04em",
-                            color: "var(--t3)",
-                            overflow: "hidden",
-                        }}
-                    >
-                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
-                        <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
-                            <span style={{ color: "var(--aurora-amber)" }}>◈ THRESHOLD</span>
-                            <span style={{ color: "var(--aurora-crimson)" }}>◈ DRIFT</span>
-                            <span style={{ color: "var(--aurora-green)" }}>◈ VERDICT</span>
-                        </div>
-                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
-                    </div>
+                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
                 </div>
             </div>
 
