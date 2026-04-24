@@ -85,8 +85,8 @@ export default function HeroSection() {
             style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "80px",
-                paddingTop: "0", // Removed outer padding
+                gap: "0",
+                paddingTop: "0",
                 paddingBottom: "80px",
             }}
         >
@@ -95,14 +95,14 @@ export default function HeroSection() {
                 style={{
                     position: "relative",
                     width: "100%",
-                    minHeight: "750px",
-                    height: "85vh",
+                    minHeight: "640px",
+                    height: "80vh",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-start",
                     paddingTop: "8px",
-                    paddingBottom: "40px",
+                    paddingBottom: "0",
                 }}
             >
                 {/* 3D Decision Lens scene */}
@@ -163,7 +163,7 @@ export default function HeroSection() {
                         Was this AI decision <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>fair to you?</em>
                     </h1>
 
-                    {/* Body copy */}
+                    {/* Body copy — 2 lines */}
                     <p
                         className="hero-stagger-3 font-body"
                         style={{
@@ -172,58 +172,58 @@ export default function HeroSection() {
                             fontSize: "var(--fs-body)",
                             color: "var(--t2)",
                             lineHeight: 1.75,
-                            maxWidth: "750px",
+                            maxWidth: "100%",
                             marginLeft: "auto",
                             marginRight: "auto",
                         }}
                     >
-                        DecisioLens simulates AI decision behavior using realistic profiles. It reveals threshold fragility, demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
+                        DecisioLens simulates AI decision behavior using realistic profiles.
+                        <br />
+                        It reveals threshold fragility, demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
                     </p>
-                </div>
 
-                {/* BOTTOM: CTA Button + Keywords */}
-                <div
-                    style={{
-                        position: "relative",
-                        zIndex: 2,
-                        width: "100%",
-                        maxWidth: "900px",
-                        textAlign: "center",
-                        padding: "0 16px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "24px",
-                    }}
-                >
-                    {/* CTA */}
-                    <div className="hero-stagger-4">
+                    {/* CTA — directly below body text */}
+                    <div className="hero-stagger-4" style={{ marginTop: "28px" }}>
                         <Link href="/audit" className="dl-btn-primary dl-btn-hero">
                             Simulate a Decision →
                         </Link>
                     </div>
+                </div>
 
-                    {/* ASCII-style status bar */}
-                    <div
-                        className="hero-stagger-5 font-data"
-                        style={{
-                            width: "100%",
-                            maxWidth: "700px",
-                            fontSize: "1rem",
-                            letterSpacing: "0.04em",
-                            color: "var(--t3)",
-                        }}
-                    >
-                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
-                        <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
-                            <span style={{ color: "var(--aurora-amber)" }}>◈ HIRING</span>
-                            <span style={{ color: "var(--aurora-crimson)" }}>◈ LENDING</span>
-                            <span style={{ color: "var(--aurora-green)" }}>◈ EDUCATION</span>
-                            <span style={{ color: "var(--aurora-teal)" }}>◈ INSURANCE</span>
-                            <span style={{ color: "var(--aurora-violet)" }}>◈ WELFARE</span>
-                        </div>
-                        <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
+
+            </div>
+
+            {/* MIDDLE: Domain pills — sits between orbit and cards */}
+            <div
+                style={{
+                    width: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    padding: "32px 16px 48px 16px",
+                    position: "relative",
+                    zIndex: 10,
+                }}
+            >
+                <div
+                    className="hero-stagger-5 font-data"
+                    style={{
+                        width: "80%",
+                        maxWidth: "700px",
+                        textAlign: "center",
+                        fontSize: "1rem",
+                        letterSpacing: "0.04em",
+                        color: "var(--t3)",
+                    }}
+                >
+                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
+                        <span style={{ color: "var(--aurora-amber)" }}>◈ HIRING</span>
+                        <span style={{ color: "var(--aurora-crimson)" }}>◈ LENDING</span>
+                        <span style={{ color: "var(--aurora-green)" }}>◈ EDUCATION</span>
+                        <span style={{ color: "var(--aurora-teal)" }}>◈ INSURANCE</span>
+                        <span style={{ color: "var(--aurora-violet)" }}>◈ WELFARE</span>
                     </div>
+                    <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
                 </div>
             </div>
 
