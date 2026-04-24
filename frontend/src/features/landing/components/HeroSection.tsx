@@ -173,7 +173,7 @@ export default function HeroSection() {
                             fontSize: "var(--fs-body)",
                             color: "var(--t2)",
                             lineHeight: 1.75,
-                            maxWidth: "100%",
+                            maxWidth: "820px",
                             marginLeft: "auto",
                             marginRight: "auto",
                         }}
