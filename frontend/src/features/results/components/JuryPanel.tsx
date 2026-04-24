@@ -50,7 +50,7 @@ export default function JuryPanel({ jury }: JuryPanelProps) {
                 {JURY_ROLES.map(({ key, role, accentColor }) => (
                     <div
                         key={key}
-                        className="dl-card"
+                        className="dl-card dl-scenario-card"
                         style={{ padding: "20px" }}
                     >
                         {/* Role badge */}

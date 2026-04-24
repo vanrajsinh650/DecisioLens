@@ -40,16 +40,13 @@ export default function CopyButton({
             id={id}
             type="button"
             onClick={handleCopy}
-            className="font-mono"
+            className="dl-btn-ghost"
             style={{
                 fontSize: "var(--fs-micro)",
                 color: copied ? "var(--aurora-green)" : "var(--t2)",
                 background: "var(--s2)",
                 border: "1px solid var(--rim)",
-                borderRadius: "6px",
                 padding: "6px 14px",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
             }}
         >
             {copied ? copiedLabel : label}

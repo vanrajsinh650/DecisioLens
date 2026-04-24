@@ -199,18 +199,7 @@ export default function ResultsExperience() {
                             data-no-print
                             type="button"
                             onClick={() => printAuditReport(String(session.request.profile.name ?? "Audit Report"))}
-                            className="font-mono uppercase"
-                            style={{
-                                fontSize: "var(--fs-label)",
-                                letterSpacing: "0.12em",
-                                color: "var(--t2)",
-                                background: "var(--s2)",
-                                border: "1px solid var(--rim)",
-                                borderRadius: "6px",
-                                padding: "8px 12px",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                            }}
+                            className="dl-btn-ghost"
                         >
                             Download Report
                         </button>

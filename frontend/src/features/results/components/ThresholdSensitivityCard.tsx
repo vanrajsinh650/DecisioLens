@@ -256,6 +256,7 @@ export default function ThresholdSensitivityCard({
             {/* Instability callout */}
             {isSensitive && (
                 <div
+                    className="dl-reveal"
                     style={{
                         marginTop: "16px",
                         background: "var(--aurora-crimson-surface)",
