@@ -1,32 +1,12 @@
-"use client";
-
-import { useEffect, useState } from "react";
-
-import ThresholdRow from "./ThresholdRow";
-import Badge from "@/components/shared/Badge";
-import Card from "@/components/shared/Card";
-import {
-    formatThreshold,
-    normalizeConfidenceTone,
-    normalizeDecisionTone,
-    shouldRecommendHumanReview,
-} from "@/lib/format";
-import { Decision, ThresholdAnalysisRow } from "@/types/audit";
+import { formatThreshold } from "@/lib/format";
+import { ThresholdAnalysisItem } from "@/types/audit";
 
 interface ThresholdSensitivityCardProps {
-    rows: ThresholdAnalysisRow[];
+    rows: ThresholdAnalysisItem[];
     baselineThreshold: number;
     originalScore: number;
     confidenceZone: string;
 }
-
-const clampThreshold = (value: number): number => {
-    return Math.max(0, Math.min(1, value));
-};
-
-const getDecisionAtThreshold = (score: number, threshold: number): Decision => {
-    return score >= threshold ? "ACCEPT" : "REJECT";
-};
 
 export default function ThresholdSensitivityCard({
     rows,
@@ -34,139 +14,262 @@ export default function ThresholdSensitivityCard({
     originalScore,
     confidenceZone,
 }: ThresholdSensitivityCardProps) {
-    const sortedRows = [...rows].sort((a, b) => a.threshold - b.threshold);
-    const [selectedThreshold, setSelectedThreshold] = useState(baselineThreshold);
+    const originalDecision = rows.find(
+        (r) => Math.abs(r.threshold - baselineThreshold) < 0.001
+    )?.decision;
+    const flipPoints = rows.filter((row) => row.decision !== originalDecision).length;
+    const isSensitive = flipPoints > 0;
 
-    useEffect(() => {
-        setSelectedThreshold(baselineThreshold);
-    }, [baselineThreshold]);
+    const thresholdPos = baselineThreshold * 100;
+    const scorePos = Math.min(100, Math.max(0, originalScore));
 
-    const switchPoints: number[] = [];
-    for (let index = 1; index < sortedRows.length; index += 1) {
-        if (sortedRows[index].decision !== sortedRows[index - 1].decision) {
-            switchPoints.push(sortedRows[index].threshold);
-        }
-    }
-
-    const firstSwitchPoint = switchPoints[0];
-    const baselineDecision = getDecisionAtThreshold(originalScore, baselineThreshold);
-    const simulatedDecision = getDecisionAtThreshold(originalScore, selectedThreshold);
-    const hasBorderlineSignal =
-        confidenceZone.toLowerCase().includes("borderline") || switchPoints.length > 0;
-    const humanReviewRecommended = shouldRecommendHumanReview({
-        riskScore: hasBorderlineSignal ? 71 : 30,
-        reasonTags: switchPoints.length > 0 ? ["threshold_sensitive"] : [],
-        instabilityDetected: switchPoints.length > 0,
-        confidenceZone,
-    });
-
-    const baselineConfidenceLabel = confidenceZone || "Unknown";
+    // Flip zone is ±4 points from threshold
+    const flipZoneStart = Math.max(0, thresholdPos - 4);
+    const flipZoneWidth = 8;
 
     return (
-        <Card
-            title="Threshold Sensitivity"
-            subtitle="Threshold-wise outcomes and points where the decision flips"
-            rightSlot={
-                <Badge
-                    label={hasBorderlineSignal ? "Borderline / Unstable Flag" : "Stable Threshold Pattern"}
-                    tone={hasBorderlineSignal ? "caution" : "stable"}
-                    dot
-                />
-            }
-        >
-            <div className="mb-4 rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
-                <p className="text-sm font-semibold text-ink-50">
-                    {firstSwitchPoint !== undefined
-                        ? `Decision flips at threshold ${formatThreshold(firstSwitchPoint)}`
-                        : "No decision flip in scanned thresholds"}
-                </p>
-                <p className="mt-1 text-sm text-ink-200">
-                    {hasBorderlineSignal
-                        ? "This indicates a borderline outcome"
-                        : "This indicates a stable outcome"}
-                </p>
-            </div>
-
-            <div className="mb-4 rounded-xl border border-ink-600/70 bg-ink-700/50 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                        Interactive Threshold Simulator (Threshold: {formatThreshold(selectedThreshold)})
+        <div className="dl-reveal dl-card">
+            {/* Header */}
+            <div style={{ marginBottom: "24px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: "16px" }}>
+                <div>
+                    <p
+                        className="font-body uppercase"
+                        style={{
+                            fontSize: "var(--fs-label)",
+                            fontWeight: 600,
+                            letterSpacing: "0.12em",
+                            color: "var(--t1)",
+                        }}
+                    >
+                        SIGNAL ANALYSIS
                     </p>
-                    <Badge label={simulatedDecision} tone={normalizeDecisionTone(simulatedDecision)} dot />
-                </div>
-
-                <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px] sm:items-center">
-                    <input
-                        type="range"
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={selectedThreshold}
-                        onChange={(event) => setSelectedThreshold(clampThreshold(Number(event.target.value)))}
-                        className="w-full accent-signal-info"
-                    />
-                    <input
-                        type="number"
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={selectedThreshold.toFixed(2)}
-                        onChange={(event) => setSelectedThreshold(clampThreshold(Number(event.target.value)))}
-                        className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20"
-                    />
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-ink-200">
-                    <span>Score: {formatThreshold(originalScore)}</span>
-                    <span>·</span>
-                    <span>Baseline decision: {baselineDecision}</span>
-                    <span>·</span>
-                    <Badge label={baselineConfidenceLabel} tone={normalizeConfidenceTone(baselineConfidenceLabel)} dot />
-                </div>
-            </div>
-
-            {humanReviewRecommended ? (
-                <div className="mb-4 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
-                    <Badge label="Human Review Recommended" tone="caution" dot />
-                    <p className="mt-1 text-sm text-ink-100">
-                        Threshold-sensitive behavior was detected. Consider manual review to ensure a fair final decision.
+                    <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
+                        Testing score stability against strictness variations.
                     </p>
                 </div>
-            ) : null}
-
-            <div className="mb-3 flex flex-wrap gap-2">
-                {switchPoints.length > 0 ? (
-                    switchPoints.map((point) => (
-                        <Badge key={point} label={`Decision Flipped @ Threshold: ${formatThreshold(point)}`} tone="caution" dot />
-                    ))
-                ) : (
-                    <Badge label="No flips across scanned thresholds" tone="stable" dot />
-                )}
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-ink-600/70">
-                <table className="min-w-full divide-y divide-ink-600/70 text-sm">
-                    <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
-                        <tr>
-                            <th className="px-3 py-2">Threshold</th>
-                            <th className="px-3 py-2">Decision</th>
-                            <th className="px-3 py-2">Change vs Baseline</th>
-                            <th className="px-3 py-2">Marker</th>
+            {/* Score-on-spectrum visual */}
+            <div style={{ marginBottom: "32px", marginTop: "16px" }}>
+                {/* FLIP ZONE label */}
+                <div style={{ position: "relative", height: "16px", marginBottom: "4px" }}>
+                    <span
+                        className="font-mono"
+                        style={{
+                            position: "absolute",
+                            left: `${flipZoneStart + flipZoneWidth / 2}%`,
+                            transform: "translateX(-50%)",
+                            fontSize: "var(--fs-micro)",
+                            color: "var(--aurora-teal)",
+                            letterSpacing: "0.05em",
+                        }}
+                    >
+                        FLIP ZONE
+                    </span>
+                </div>
+
+                <div style={{ position: "relative", height: "8px", width: "100%", borderRadius: "4px", overflow: "hidden" }}>
+                    {/* Full gradient track */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "linear-gradient(to right, var(--aurora-crimson) 0%, var(--aurora-teal) 45%, var(--aurora-teal) 55%, var(--aurora-green) 100%)",
+                            borderRadius: "4px",
+                        }}
+                    />
+
+                    {/* Flip zone shading */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            height: "100%",
+                            left: `${flipZoneStart}%`,
+                            width: `${flipZoneWidth}%`,
+                            background: "hsl(172, 60%, 48%, 0.10)",
+                        }}
+                    />
+                </div>
+
+                {/* Threshold tick and Score dot (positioned outside overflow:hidden) */}
+                <div style={{ position: "relative", height: "0px" }}>
+                    {/* Threshold vertical tick */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "-8px",
+                            height: "8px",
+                            width: "2px",
+                            background: "var(--t2)",
+                            left: `${thresholdPos}%`,
+                            transform: "translateX(-1px)",
+                            zIndex: 10,
+                        }}
+                    />
+
+                    {/* Score dot */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "-11px",
+                            width: "14px",
+                            height: "14px",
+                            borderRadius: "50%",
+                            background: isSensitive ? "var(--aurora-teal)" : "var(--aurora-green)",
+                            left: `${scorePos}%`,
+                            transform: "translateX(-7px)",
+                            zIndex: 20,
+                        }}
+                    />
+                </div>
+
+                {/* Labels */}
+                <div
+                    className="font-mono"
+                    style={{
+                        marginTop: "12px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "var(--fs-micro)",
+                        color: "var(--t2)",
+                    }}
+                >
+                    <span>0</span>
+                    <span>100</span>
+                </div>
+            </div>
+
+            {/* Decision table */}
+            <div
+                style={{
+                    borderRadius: "6px",
+                    border: "1px solid var(--rim)",
+                    overflow: "hidden",
+                }}
+            >
+                <table style={{ width: "100%", textAlign: "left", fontSize: "0.875rem", borderCollapse: "collapse" }}>
+                    <thead>
+                        <tr style={{ background: "var(--s2)" }}>
+                            <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
+                                Threshold
+                            </th>
+                            <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
+                                Required Score
+                            </th>
+                            <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
+                                Outcome
+                            </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-ink-700/70">
-                        {sortedRows.map((row) => (
-                            <ThresholdRow
-                                key={row.threshold}
-                                row={row}
-                                baselineThreshold={baselineThreshold}
-                                selectedThreshold={selectedThreshold}
-                                baselineDecision={baselineDecision}
-                            />
-                        ))}
+                    <tbody>
+                        {rows.map((row, index) => {
+                            const isFlipped = originalDecision
+                                ? row.decision !== originalDecision
+                                : false;
+                            const bgColor = index % 2 === 0 ? "var(--s1)" : "var(--s2)";
+
+                            return (
+                                <tr
+                                    key={row.threshold}
+                                    style={{
+                                        background: bgColor,
+                                        borderTop: "1px solid var(--rim)",
+                                    }}
+                                >
+                                    <td
+                                        className="font-mono"
+                                        style={{
+                                            padding: "10px 16px",
+                                            fontSize: "var(--fs-mono)",
+                                            color: "var(--t1)",
+                                        }}
+                                    >
+                                        {formatThreshold(row.threshold * 100)}
+                                    </td>
+                                    <td
+                                        className="font-mono"
+                                        style={{
+                                            padding: "10px 16px",
+                                            fontSize: "var(--fs-mono)",
+                                            color: "var(--t2)",
+                                        }}
+                                    >
+                                        {formatThreshold(row.threshold * 100)}
+                                    </td>
+                                    <td style={{ padding: "10px 16px" }}>
+                                        {isFlipped ? (
+                                            <span
+                                                className="font-mono uppercase"
+                                                style={{
+                                                    fontSize: "var(--fs-micro)",
+                                                    letterSpacing: "0.05em",
+                                                    color: "var(--aurora-amber)",
+                                                    padding: "3px 10px",
+                                                    background: "var(--aurora-amber-surface)",
+                                                    border: "1px solid hsl(35, 70%, 24%)",
+                                                    borderRadius: "100px",
+                                                }}
+                                            >
+                                                ⚡ FLIPPED
+                                            </span>
+                                        ) : row.decision === "ACCEPT" ? (
+                                            <span
+                                                className="font-mono uppercase"
+                                                style={{
+                                                    fontSize: "var(--fs-micro)",
+                                                    letterSpacing: "0.05em",
+                                                    color: "var(--aurora-green)",
+                                                    padding: "3px 10px",
+                                                    background: "var(--aurora-green-surface)",
+                                                    border: "1px solid hsl(145, 65%, 24%)",
+                                                    borderRadius: "100px",
+                                                }}
+                                            >
+                                                ACCEPTED
+                                            </span>
+                                        ) : (
+                                            <span
+                                                className="font-mono uppercase"
+                                                style={{
+                                                    fontSize: "var(--fs-micro)",
+                                                    letterSpacing: "0.05em",
+                                                    color: "var(--aurora-crimson)",
+                                                    padding: "3px 10px",
+                                                    background: "var(--aurora-crimson-surface)",
+                                                    border: "1px solid hsl(350, 68%, 24%)",
+                                                    borderRadius: "100px",
+                                                }}
+                                            >
+                                                REJECTED
+                                            </span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
-        </Card>
+
+            {/* Instability callout */}
+            {isSensitive && (
+                <div
+                    style={{
+                        marginTop: "16px",
+                        background: "var(--aurora-crimson-surface)",
+                        borderLeft: "3px solid var(--aurora-crimson)",
+                        borderRadius: "6px",
+                        padding: "16px",
+                    }}
+                >
+                    <p className="font-body" style={{ fontSize: "var(--fs-body)", color: "var(--t1)" }}>
+                        This decision flips at {flipPoints} of {rows.length} tested threshold levels.
+                        The candidate is in the <strong>{confidenceZone.toLowerCase()}</strong> zone —
+                        minor policy changes could alter this outcome.
+                    </p>
+                </div>
+            )}
+        </div>
     );
 }

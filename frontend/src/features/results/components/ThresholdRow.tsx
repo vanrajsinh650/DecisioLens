@@ -1,44 +1,42 @@
-import Badge from "@/components/shared/Badge";
-import { formatThreshold, normalizeDecisionTone } from "@/lib/format";
-import { Decision, ThresholdAnalysisRow } from "@/types/audit";
+import { formatThreshold } from "@/lib/format";
+import { ThresholdAnalysisItem } from "@/types/audit";
 
 interface ThresholdRowProps {
-    row: ThresholdAnalysisRow;
+    row: ThresholdAnalysisItem;
     baselineThreshold: number;
-    selectedThreshold: number;
-    baselineDecision: Decision;
+    originalDecision?: string;
+    index: number;
 }
 
-export default function ThresholdRow({
-    row,
-    baselineThreshold,
-    selectedThreshold,
-    baselineDecision,
-}: ThresholdRowProps) {
-    const isBaselineThreshold = Math.abs(row.threshold - baselineThreshold) < 0.0001;
-    const isSelectedThreshold = Math.abs(row.threshold - selectedThreshold) < 0.0001;
-    const decisionChanged = row.decision !== baselineDecision;
+export default function ThresholdRow({ row, baselineThreshold, originalDecision, index }: ThresholdRowProps) {
+    const isBaseline = Math.abs(row.threshold - baselineThreshold) < 0.001;
+    const isFlipped = originalDecision ? row.decision !== originalDecision : false;
+    const delta = row.threshold - baselineThreshold;
+    
+    // Alternating rows in var(--s1) and var(--s2)
+    const bgClass = index % 2 === 0 ? "bg-s1" : "bg-s2";
 
     return (
-        <tr className="bg-ink-800/50">
-            <td className="px-3 py-2 text-ink-100">{formatThreshold(row.threshold)}</td>
-            <td className="px-3 py-2">
-                <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
+        <tr className={`border-t border-rim ${bgClass}`}>
+            <td className="px-4 py-3 font-mono text-mono text-t1">
+                {isBaseline ? "Baseline (Current)" : `${delta > 0 ? "+" : ""}${(delta * 100).toFixed(0)}% strictness`}
             </td>
-            <td className="px-3 py-2 text-ink-200">
-                <Badge
-                    label={decisionChanged ? "Flips from baseline" : "Same as baseline"}
-                    tone={decisionChanged ? "caution" : "stable"}
-                    className="px-2 py-0.5 text-[10px]"
-                    dot
-                />
+            <td className="px-4 py-3 font-mono text-mono text-t2">
+                {formatThreshold(row.threshold * 100)}
             </td>
-            <td className="px-3 py-2 text-ink-200">
-                {isSelectedThreshold
-                    ? "Slider"
-                    : isBaselineThreshold
-                        ? "Baseline"
-                        : "-"}
+            <td className="px-4 py-3 font-mono text-mono text-t1">
+                {row.decision}
+            </td>
+            <td className="px-4 py-3">
+                {isFlipped ? (
+                    <span className="rounded-[4px] bg-a-crimson-surface border border-a-crimson/40 px-2 py-1 font-mono text-xs uppercase tracking-wider text-a-crimson">
+                        FLIPPED
+                    </span>
+                ) : (
+                    <span className="font-mono text-xs uppercase tracking-wider text-t2">
+                        UNCHANGED
+                    </span>
+                )}
             </td>
         </tr>
     );

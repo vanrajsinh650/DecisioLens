@@ -1,22 +1,22 @@
-import CustomFieldBuilder from "./CustomFieldBuilder";
-import Card from "@/components/shared/Card";
-import { DomainFieldConfig } from "@/lib/domains";
+import { FormEvent } from "react";
 import DomainSelector from "./DomainSelector";
 import ProfileFields from "./ProfileFields";
 import SubmitAuditButton from "./SubmitAuditButton";
 import ThresholdControl from "./ThresholdControl";
-import { AuditProfile, DomainOption, DomainType } from "@/types/audit";
+import CustomFieldBuilder from "./CustomFieldBuilder";
+import { DomainFieldConfig } from "@/lib/domains";
+import { AuditProfile, DomainType } from "@/types/audit";
 
 interface AuditFormProps {
     domain: DomainType;
-    domainOptions: DomainOption[];
+    domainOptions: { value: string; label: string; description: string }[];
     domainDescription: string;
     profile: AuditProfile;
     profileFields: DomainFieldConfig[];
     threshold: number;
     isLoading: boolean;
     canSubmit: boolean;
-    onDomainChange: (value: DomainType) => void;
+    onDomainChange: (domain: DomainType) => void;
     onProfileChange: (field: string, value: string | number) => void;
     onCustomFieldsChange: (fields: DomainFieldConfig[]) => void;
     onThresholdChange: (value: number) => void;
@@ -38,42 +38,120 @@ export default function AuditForm({
     onThresholdChange,
     onSubmit,
 }: AuditFormProps) {
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        if (canSubmit) {
+            onSubmit();
+        }
+    };
+
     return (
-        <form
-            className="space-y-4"
-            onSubmit={(event) => {
-                event.preventDefault();
-                onSubmit();
-            }}
-        >
-            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Domain">
-                <div id="domain-selector">
-                    <DomainSelector
-                        value={domain}
-                        options={domainOptions}
-                        description={domainDescription}
-                        onChange={onDomainChange}
-                    />
-                </div>
-            </Card>
-
-            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Candidate Profile">
-                <div id="profile-fields">
-                    <ProfileFields profile={profile} fields={profileFields} onChange={onProfileChange} />
-                </div>
-            </Card>
-
-            {domain === "custom" ? <CustomFieldBuilder onChange={onCustomFieldsChange} /> : null}
-
-            <Card className="border-ink-600/60 bg-ink-900/30 p-4" title="Decision Threshold">
-                <div id="threshold-control">
-                    <ThresholdControl threshold={threshold} onChange={onThresholdChange} />
-                </div>
-            </Card>
-
-            <div className="flex flex-wrap items-center gap-3">
-                <SubmitAuditButton isLoading={isLoading} isDisabled={!canSubmit} />
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {/* Domain selector */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <label
+                    className="font-body uppercase"
+                    style={{
+                        fontSize: "var(--fs-label)",
+                        fontWeight: 600,
+                        letterSpacing: "0.12em",
+                        color: "var(--t2)",
+                    }}
+                >
+                    SELECT AUDIT DOMAIN
+                </label>
+                <DomainSelector
+                    options={domainOptions}
+                    value={domain}
+                    onChange={onDomainChange}
+                    disabled={isLoading}
+                />
+                <p className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)" }}>
+                    {domainDescription}
+                </p>
             </div>
+
+            {/* Divider */}
+            <div style={{ height: "1px", background: "var(--rim)" }} />
+
+            {/* Custom field builder for custom domain */}
+            {domain === "custom" && (
+                <>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <label
+                            className="font-body uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                fontWeight: 600,
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                            }}
+                        >
+                            DEFINE CUSTOM SCHEMA
+                        </label>
+                        <CustomFieldBuilder
+                            fields={profileFields}
+                            onChange={onCustomFieldsChange}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div style={{ height: "1px", background: "var(--rim)" }} />
+                </>
+            )}
+
+            {/* Candidate Profile — section overline */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <p
+                    className="font-body uppercase"
+                    style={{
+                        fontSize: "var(--fs-label)",
+                        fontWeight: 600,
+                        letterSpacing: "0.12em",
+                        color: "var(--t1)",
+                    }}
+                >
+                    CANDIDATE PROFILE
+                </p>
+
+                {/* Full-width rule under overline */}
+                <div style={{ height: "1px", background: "var(--rim)" }} />
+
+                <ProfileFields
+                    fields={profileFields}
+                    profile={profile}
+                    onChange={onProfileChange}
+                    disabled={isLoading}
+                />
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: "1px", background: "var(--rim)" }} />
+
+            {/* Decision Threshold section */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <p
+                    className="font-body uppercase"
+                    style={{
+                        fontSize: "var(--fs-label)",
+                        fontWeight: 600,
+                        letterSpacing: "0.12em",
+                        color: "var(--t1)",
+                    }}
+                >
+                    DECISION THRESHOLD
+                </p>
+                <p className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)" }}>
+                    Set the strictness of the decision boundary. Scores below the threshold are rejected.
+                </p>
+
+                <ThresholdControl
+                    value={threshold}
+                    onChange={onThresholdChange}
+                    disabled={isLoading}
+                />
+            </div>
+
+            <SubmitAuditButton isLoading={isLoading} disabled={!canSubmit} />
         </form>
     );
 }

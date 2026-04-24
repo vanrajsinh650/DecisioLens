@@ -1,5 +1,4 @@
 import Badge from "@/components/shared/Badge";
-import Card from "@/components/shared/Card";
 import StatPill from "@/components/shared/StatPill";
 import {
     formatRiskLabel,
@@ -31,20 +30,41 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
     });
 
     return (
-        <Card
-            title="Pass 2 — Decision Summary"
-            subtitle="Core factual checks separate from the visual hero"
-        >
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="dl-reveal dl-card">
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--t2)",
+                    marginBottom: "16px",
+                }}
+            >
+                DECISION SUMMARY
+            </p>
+
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "12px",
+                }}
+            >
                 <StatPill
                     label="Score"
-                    value={`Score: ${formatThreshold(response.original.score)}`}
-                    tone="info"
+                    value={formatThreshold(response.original.score)}
+                    tone="neutral"
                 />
 
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Current Decision</p>
-                    <div className="mt-2">
+                <div className="dl-inset" style={{ border: "1px solid var(--rim)" }}>
+                    <p
+                        className="font-body uppercase"
+                        style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
+                    >
+                        Decision
+                    </p>
+                    <div style={{ marginTop: "8px" }}>
                         <Badge
                             label={response.original.decision}
                             tone={normalizeDecisionTone(response.original.decision)}
@@ -53,22 +73,32 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Instability Signal</p>
-                    <div className="mt-2">
+                <div className="dl-inset" style={{ border: "1px solid var(--rim)" }}>
+                    <p
+                        className="font-body uppercase"
+                        style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
+                    >
+                        Instability
+                    </p>
+                    <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={instabilityDetected ? "Decision Flipped" : "No Decision Change"}
+                            label={instabilityDetected ? "Detected" : "Stable"}
                             tone={instabilityDetected ? "caution" : "stable"}
                             dot
                         />
                     </div>
                 </div>
 
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Status</p>
-                    <div className="mt-2">
+                <div className="dl-inset" style={{ border: "1px solid var(--rim)" }}>
+                    <p
+                        className="font-body uppercase"
+                        style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
+                    >
+                        Bias
+                    </p>
+                    <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={biasDetected ? "Bias Detected" : "Stable"}
+                            label={biasDetected ? "Detected" : "Clear"}
                             tone={biasDetected ? "risk" : "stable"}
                             dot
                         />
@@ -76,36 +106,69 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 </div>
             </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div
+                style={{
+                    marginTop: "16px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "12px",
+                }}
+            >
                 <StatPill
                     label="Threshold"
-                    value={`Threshold: ${formatThreshold(request.threshold)}`}
-                    tone="caution"
+                    value={formatThreshold(request.threshold)}
+                    tone="warn"
                 />
                 <StatPill
                     label="Risk"
-                    value={`Risk: ${riskLabel} · Score: ${formatRiskScore(response.insights.risk_score)}`}
+                    value={`${riskLabel} · ${formatRiskScore(response.insights.risk_score)}`}
                     tone={riskTone}
                     emphasize={riskTone === "risk"}
                 />
             </div>
 
-            {humanReviewRecommended ? (
-                <div className="mt-3 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
-                    <Badge label="Human Review Recommended" tone="caution" dot />
-                    <p className="mt-1 text-sm text-ink-100">
-                        Sensitive risk signals were detected. A manual review is recommended before finalizing this outcome.
+            {humanReviewRecommended && (
+                <div
+                    style={{
+                        marginTop: "16px",
+                        background: "var(--aurora-teal-surface)",
+                        border: "1px solid hsl(172, 60%, 24%)",
+                        borderRadius: "6px",
+                        padding: "16px",
+                    }}
+                >
+                    <Badge label="Human Review Recommended" tone="warn" dot />
+                    <p
+                        className="font-body"
+                        style={{
+                            marginTop: "8px",
+                            fontSize: "0.875rem",
+                            color: "var(--t1)",
+                        }}
+                    >
+                        Sensitive risk signals were detected. Manual review recommended before finalizing.
                     </p>
                 </div>
-            ) : null}
+            )}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-200">
-                <span>Submitted: {new Date(session.submittedAt).toLocaleString()}</span>
+            <div
+                className="font-mono"
+                style={{
+                    marginTop: "16px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontSize: "var(--fs-micro)",
+                    color: "var(--t2)",
+                }}
+            >
+                <span>{new Date(session.submittedAt).toLocaleString()}</span>
                 <span>·</span>
                 <span>Domain: {session.domain}</span>
                 <span>·</span>
-                <span>Baseline threshold: Threshold: {formatThreshold(request.threshold)}</span>
+                <span>Threshold: {formatThreshold(request.threshold)}</span>
             </div>
-        </Card>
+        </div>
     );
 }

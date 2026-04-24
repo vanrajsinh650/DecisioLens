@@ -1,20 +1,30 @@
 interface SubmitAuditButtonProps {
     isLoading: boolean;
-    isDisabled?: boolean;
+    disabled: boolean;
 }
 
-export default function SubmitAuditButton({ isLoading, isDisabled = false }: SubmitAuditButtonProps) {
-    const disabled = isLoading || isDisabled;
-
+export default function SubmitAuditButton({ isLoading, disabled }: SubmitAuditButtonProps) {
     return (
         <button
-            id="btn-submit-audit"
-            data-no-print
             type="submit"
-            disabled={disabled}
-            className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-4 py-2 text-sm font-semibold text-signal-info transition hover:bg-signal-infoSoft/90 disabled:cursor-wait disabled:opacity-70"
+            disabled={isLoading || disabled}
+            style={{
+                marginTop: "24px",
+                width: "100%",
+                background: isLoading || disabled ? "var(--s3)" : "var(--aurora-violet)",
+                color: isLoading || disabled ? "var(--t2)" : "#fff",
+                padding: "13px 30px",
+                borderRadius: "6px",
+                border: "none",
+                fontFamily: '"Plus Jakarta Sans", sans-serif',
+                fontSize: "var(--fs-body)",
+                fontWeight: 600,
+                cursor: isLoading || disabled ? "not-allowed" : "pointer",
+                opacity: isLoading || disabled ? 0.5 : 1,
+                transition: "all 0.15s ease",
+            }}
         >
-            {isLoading ? "Analyzing..." : "Analyze Decision"}
+            {isLoading ? "Running Scan..." : "Analyze a Decision →"}
         </button>
     );
 }

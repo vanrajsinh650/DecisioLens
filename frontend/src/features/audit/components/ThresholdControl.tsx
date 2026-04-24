@@ -1,59 +1,68 @@
-const QUICK_ACTIONS = [
-    { id: "down", label: "-0.02", delta: -0.02 },
-    { id: "up", label: "+0.02", delta: 0.02 },
-];
+import { useMemo } from "react";
+import { formatThreshold } from "@/lib/format";
 
 interface ThresholdControlProps {
-    threshold: number;
+    value: number;
     onChange: (value: number) => void;
+    disabled?: boolean;
 }
 
-export default function ThresholdControl({ threshold, onChange }: ThresholdControlProps) {
+export default function ThresholdControl({
+    value,
+    onChange,
+    disabled = false,
+}: ThresholdControlProps) {
+    const positionPercent = useMemo(() => `${value * 100}%`, [value]);
+
     return (
-        <div>
-            <div className="flex items-center justify-between gap-3">
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
-                    Threshold ({threshold.toFixed(2)})
-                </label>
-                <div className="flex items-center gap-2">
-                    {QUICK_ACTIONS.map((action) => (
-                        <button
-                            key={action.id}
-                            type="button"
-                            onClick={() => onChange(threshold + action.delta)}
-                            className="rounded-lg border border-ink-500 bg-ink-700/60 px-2.5 py-1 text-xs font-semibold text-ink-100 transition hover:border-ink-300"
-                        >
-                            {action.label}
-                        </button>
-                    ))}
-                </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Zone labels: REJECT · BORDERLINE · ACCEPT */}
+            <div
+                className="font-mono uppercase"
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "var(--fs-micro)",
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                }}
+            >
+                <span style={{ color: "var(--aurora-crimson)" }}>REJECT</span>
+                <span style={{ color: "var(--aurora-teal)" }}>BORDERLINE</span>
+                <span style={{ color: "var(--aurora-green)" }}>ACCEPT</span>
             </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px] sm:items-center">
+            {/* Custom slider track */}
+            <div style={{ position: "relative" }}>
                 <input
                     type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={threshold}
-                    onChange={(event) => onChange(Number(event.target.value))}
-                    className="w-full accent-signal-info"
-                />
-
-                <input
-                    type="number"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={threshold.toFixed(2)}
-                    onChange={(event) => onChange(Number(event.target.value))}
-                    className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={value}
+                    onChange={(e) => onChange(Number(e.target.value))}
+                    disabled={disabled}
+                    title="Decision Threshold"
+                    style={{
+                        width: "100%",
+                        cursor: disabled ? "not-allowed" : "pointer",
+                    }}
                 />
             </div>
 
-            <p className="mt-2 text-xs text-ink-200">
-                The threshold determines the minimum score required for acceptance.
-            </p>
+            {/* Live value display — large JetBrains Mono 600 */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+                <span
+                    className="font-mono"
+                    style={{
+                        fontSize: "1.5rem",
+                        fontWeight: 600,
+                        color: "var(--t1)",
+                    }}
+                >
+                    {formatThreshold(value)}
+                </span>
+            </div>
         </div>
     );
 }

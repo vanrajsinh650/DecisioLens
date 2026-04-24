@@ -1,49 +1,144 @@
-const DEFAULT_LOADING_STEPS = [
-  "Analyzing decision…",
-  "Testing variations…",
-  "Generating appeal…",
-];
+"use client";
+
+import { useEffect, useState } from "react";
 
 interface LoadingStateProps {
-  label?: string;
-  description?: string;
-  compact?: boolean;
-  steps?: string[];
+    label?: string;
+    description?: string;
+    compact?: boolean;
 }
 
-export default function LoadingState({
-  label = "Running audit...",
-  description = "Please wait while we evaluate the profile and prepare findings.",
-  compact = false,
-  steps = DEFAULT_LOADING_STEPS,
-}: LoadingStateProps) {
-  const visibleSteps = compact ? steps.slice(0, 2) : steps;
+const LOADING_MESSAGES = [
+    "> Parsing candidate signal...",
+    "> Mapping threshold boundary...",
+    "> Running 14 scenario variants...",
+    "> Detecting bias vectors...",
+    "> Compiling verdict...",
+];
 
-  return (
-    <div
-      className={`rounded-2xl border border-ink-600/70 bg-ink-800/80 ${compact ? "p-4" : "p-6"} shadow-card`}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="flex items-center gap-3">
-        <span
-          className="h-4 w-4 animate-spin rounded-full border-2 border-ink-300 border-t-signal-info"
-          aria-hidden
-        />
-        <p className="font-semibold text-ink-50">{label}</p>
-      </div>
-      <p className={`mt-2 text-ink-200 ${compact ? "text-xs" : "text-sm"}`}>{description}</p>
+export default function LoadingState({ label, description, compact = false }: LoadingStateProps) {
+    const [currentIndex, setCurrentIndex] = useState(0);
 
-      <div className={`mt-3 ${compact ? "flex flex-wrap gap-2" : "grid gap-2 sm:grid-cols-3"}`}>
-        {visibleSteps.map((step) => (
-          <span
-            key={step}
-            className="inline-flex rounded-full border border-signal-info/30 bg-signal-infoSoft/40 px-2.5 py-1 text-xs font-medium text-signal-info"
-          >
-            {step}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => {
+                if (prev >= LOADING_MESSAGES.length - 1) {
+                    clearInterval(interval);
+                    return prev;
+                }
+                return prev + 1;
+            });
+        }, 600);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    if (compact) {
+        return (
+            <div className="dl-card">
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {label && (
+                        <p className="font-body uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                fontWeight: 600,
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                            }}
+                        >
+                            {label}
+                        </p>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {LOADING_MESSAGES.slice(0, currentIndex + 1).map((msg, i) => (
+                            <p
+                                key={i}
+                                className="font-mono"
+                                style={{
+                                    fontSize: "var(--fs-mono)",
+                                    color: i === currentIndex ? "var(--aurora-violet)" : "var(--t2)",
+                                    transition: "opacity 0.15s ease",
+                                }}
+                            >
+                                {msg}
+                                {i === currentIndex && (
+                                    <span className="terminal-cursor" style={{ marginLeft: "4px", color: "var(--aurora-violet)" }}>_</span>
+                                )}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Full-viewport overlay loading state
+    return (
+        <div
+            style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 50,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "var(--s0)",
+                opacity: 0.95,
+            }}
+        >
+            <div style={{ width: "100%", maxWidth: "400px", padding: "0 24px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {LOADING_MESSAGES.slice(0, currentIndex + 1).map((msg, i) => (
+                        <p
+                            key={i}
+                            className="font-mono"
+                            style={{
+                                fontSize: "var(--fs-mono)",
+                                fontWeight: 400,
+                                color: i === currentIndex ? "var(--aurora-violet)" : "var(--t2)",
+                                transition: "opacity 0.15s ease",
+                            }}
+                        >
+                            {msg}
+                            {i === currentIndex && (
+                                <span className="terminal-cursor" style={{ marginLeft: "4px", color: "var(--aurora-violet)" }}>_</span>
+                            )}
+                        </p>
+                    ))}
+                </div>
+
+                {description && (
+                    <p className="font-body"
+                        style={{
+                            marginTop: "24px",
+                            fontSize: "0.875rem",
+                            color: "var(--t2)",
+                        }}
+                    >
+                        {description}
+                    </p>
+                )}
+
+                {/* 2px progress bar */}
+                <div
+                    style={{
+                        marginTop: "32px",
+                        height: "2px",
+                        background: "var(--rim)",
+                        borderRadius: "1px",
+                        overflow: "hidden",
+                    }}
+                >
+                    <div
+                        className="loading-progress-bar"
+                        style={{
+                            height: "100%",
+                            background: "var(--aurora-violet)",
+                            width: "0%",
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
+    );
 }

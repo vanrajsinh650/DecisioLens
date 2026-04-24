@@ -1,83 +1,107 @@
-import ReasonTags from "./ReasonTags";
-import Badge from "@/components/shared/Badge";
-import Card from "@/components/shared/Card";
 import StatPill from "@/components/shared/StatPill";
-import { formatRiskLabel, formatRiskScore, normalizeRiskTone, shouldRecommendHumanReview } from "@/lib/format";
-import { AuditInsights } from "@/types/audit";
+import { formatRiskScore, normalizeRiskTone, formatReasonTag } from "@/lib/format";
+import { Insights } from "@/types/audit";
 
 interface RiskInsightCardProps {
-    insights: AuditInsights;
+    insights: Insights;
     reasonTags: string[];
 }
 
+function getTagAccentColor(tag: string): string {
+    if (tag.includes("bias")) return "var(--aurora-crimson)";
+    if (tag.includes("instability") || tag.includes("threshold")) return "var(--aurora-teal)";
+    if (tag.includes("sensitive")) return "var(--aurora-amber)";
+    return "var(--aurora-violet)";
+}
+
 export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCardProps) {
-    const hasBiasFlag = reasonTags.includes("bias_detected") || insights.bias_detected;
-    const hasInstabilityFlag = insights.instability || reasonTags.includes("profile_instability");
     const riskTone = normalizeRiskTone(insights.risk_score);
-    const riskLabel = formatRiskLabel(insights.risk_level ?? String(insights.risk_score));
-    const humanReviewRecommended = shouldRecommendHumanReview({
-        riskScore: insights.risk_score,
-        reasonTags,
-        biasDetected: hasBiasFlag,
-        instabilityDetected: hasInstabilityFlag,
-    });
+    const instabilityDetected = insights.instability || reasonTags.includes("profile_instability");
+    const biasDetected = insights.bias_detected || reasonTags.includes("bias_detected");
+
+    const tags = reasonTags.length > 0 ? reasonTags : ["none"];
 
     return (
-        <Card title="Risk Insights" subtitle="Instability, bias signals, risk score, and reason tags">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="dl-reveal">
+            {/* Overline */}
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--t1)",
+                    marginBottom: "24px",
+                }}
+            >
+                RISK INTELLIGENCE
+            </p>
+
+            {/* Four StatPill blocks in a row with fuel gauge bars */}
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "16px",
+                }}
+            >
                 <StatPill
-                    label="Risk"
-                    value={`Risk Score: ${formatRiskScore(insights.risk_score)}`}
+                    label="COMPOSITE RISK"
+                    value={formatRiskScore(insights.risk_score)}
                     tone={riskTone}
-                    emphasize={riskTone === "risk"}
+                    emphasize
+                    gaugeValue={insights.risk_score}
                 />
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Bias Signal</p>
-                    <div className="mt-2">
-                        <Badge
-                            label={hasBiasFlag ? "Bias Detected" : "Stable"}
-                            tone={hasBiasFlag ? "risk" : "stable"}
-                            dot
-                        />
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Variation Stability</p>
-                    <div className="mt-2">
-                        <Badge
-                            label={hasInstabilityFlag ? "Unstable" : "Stable"}
-                            tone={hasInstabilityFlag ? "caution" : "stable"}
-                            dot
-                        />
-                    </div>
-                </div>
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
-                    <div className="mt-2">
-                        <Badge
-                            label={riskLabel}
-                            tone={riskTone}
-                            dot
-                        />
-                    </div>
-                    <p className="mt-2 text-xs text-ink-200">{`Score: ${formatRiskScore(insights.risk_score)}`}</p>
-                </div>
+                <StatPill
+                    label="INSTABILITY"
+                    value={instabilityDetected ? "DETECTED" : "STABLE"}
+                    tone={instabilityDetected ? "warn" : "safe"}
+                    gaugeValue={instabilityDetected ? 75 : 15}
+                />
+                <StatPill
+                    label="DEMOGRAPHIC BIAS"
+                    value={biasDetected ? "DETECTED" : "CLEAR"}
+                    tone={biasDetected ? "risk" : "safe"}
+                    gaugeValue={biasDetected ? 85 : 10}
+                />
+                <StatPill
+                    label="CONFIDENCE"
+                    value={insights.risk_level ?? "MODERATE"}
+                    tone="neutral"
+                    gaugeValue={50}
+                />
             </div>
 
-            {humanReviewRecommended ? (
-                <div className="mt-3 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
-                    <Badge label="Human Review Recommended" tone="caution" dot />
-                    <p className="mt-1 text-sm text-ink-100">
-                        Risk and fairness signals suggest a manual check before taking irreversible action.
-                    </p>
-                </div>
-            ) : null}
-
-            <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-ink-200">Reason Tags</p>
-            <ReasonTags reasonTags={reasonTags} />
-        </Card>
+            {/* Risk reason tag cloud */}
+            <div
+                style={{
+                    marginTop: "24px",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                }}
+            >
+                {tags.map((tag) => {
+                    const accentColor = getTagAccentColor(tag);
+                    return (
+                        <span
+                            key={tag}
+                            className="font-mono"
+                            style={{
+                                fontSize: "var(--fs-micro)",
+                                color: accentColor,
+                                background: "var(--s2)",
+                                border: "1px solid var(--rim)",
+                                borderRadius: "100px",
+                                padding: "5px 14px",
+                                letterSpacing: "0.03em",
+                            }}
+                        >
+                            {formatReasonTag(tag)}
+                        </span>
+                    );
+                })}
+            </div>
+        </div>
     );
 }

@@ -1,26 +1,65 @@
 import Link from "next/link";
 
 interface EmptyStateProps {
-  title: string;
-  description: string;
-  ctaLabel?: string;
-  ctaHref?: string;
+    title: string;
+    description: string;
+    ctaLabel?: string;
+    ctaHref?: string;
 }
 
 export default function EmptyState({ title, description, ctaLabel, ctaHref }: EmptyStateProps) {
-  return (
-    <div className="rounded-2xl border border-dashed border-ink-500 bg-ink-800/50 p-8 text-center">
-      <h3 className="font-display text-xl font-semibold text-ink-50">{title}</h3>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-ink-200">{description}</p>
-
-      {ctaLabel && ctaHref ? (
-        <Link
-          href={ctaHref}
-          className="mt-5 inline-flex items-center rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-4 py-2 text-sm font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
+    return (
+        <div
+            style={{
+                display: "flex",
+                minHeight: "40vh",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+            }}
         >
-          {ctaLabel}
-        </Link>
-      ) : null}
-    </div>
-  );
+            <h2
+                className="font-body"
+                style={{
+                    fontSize: "var(--fs-h1)",
+                    fontWeight: 600,
+                    color: "var(--t1)",
+                }}
+            >
+                {title}
+            </h2>
+            <p
+                className="font-body"
+                style={{
+                    marginTop: "12px",
+                    maxWidth: "480px",
+                    fontSize: "var(--fs-body)",
+                    lineHeight: 1.8,
+                    color: "var(--t2)",
+                }}
+            >
+                {description}
+            </p>
+            {ctaLabel && ctaHref && (
+                <Link
+                    href={ctaHref}
+                    style={{
+                        marginTop: "32px",
+                        background: "var(--aurora-violet)",
+                        color: "#fff",
+                        padding: "13px 30px",
+                        borderRadius: "6px",
+                        border: "none",
+                        fontFamily: '"Plus Jakarta Sans", sans-serif',
+                        fontSize: "var(--fs-body)",
+                        fontWeight: 600,
+                        transition: "all 0.15s ease",
+                    }}
+                >
+                    {ctaLabel}
+                </Link>
+            )}
+        </div>
+    );
 }

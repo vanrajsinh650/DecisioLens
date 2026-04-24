@@ -1,23 +1,37 @@
-import { toneClasses } from "@/lib/format";
-
-type Tone = "stable" | "caution" | "risk" | "info";
+import { signalClasses, SignalTone } from "@/lib/format";
 
 interface BadgeProps {
-  label: string;
-  tone?: Tone;
-  className?: string;
-  dot?: boolean;
+    label: string;
+    tone?: SignalTone | "info" | "stable" | "caution";
+    className?: string;
+    dot?: boolean;
 }
 
-export default function Badge({ label, tone = "info", className = "", dot = false }: BadgeProps) {
-  const palette = toneClasses[tone];
+function resolveSignalTone(tone: string): SignalTone {
+    if (tone === "stable") return "safe";
+    if (tone === "caution") return "warn";
+    if (tone === "info") return "neutral";
+    return tone as SignalTone;
+}
 
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold tracking-wide shadow-card transition ${palette.soft} ${palette.border} ${palette.text} ${className}`}
-    >
-      {dot ? <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
-      {label}
-    </span>
-  );
+export default function Badge({ label, tone = "neutral", className = "", dot = false }: BadgeProps) {
+    const resolved = resolveSignalTone(tone);
+    const palette = signalClasses[resolved];
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-wider ${className}`}
+            style={{
+                fontSize: "var(--fs-micro)",
+                padding: "5px 14px",
+                borderRadius: "100px",
+                border: "1px solid var(--rim)",
+                background: palette.surfaceVar,
+                color: palette.colorVar,
+            }}
+        >
+            {dot ? <span aria-hidden className="inline-block rounded-full bg-current" style={{ width: "6px", height: "6px" }} /> : null}
+            {label}
+        </span>
+    );
 }

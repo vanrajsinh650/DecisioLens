@@ -1,42 +1,98 @@
-import Card from "@/components/shared/Card";
 import { AIJuryView } from "@/types/audit";
 
 interface JuryPanelProps {
     jury: AIJuryView;
 }
 
-export default function JuryPanel({ jury }: JuryPanelProps) {
-    const cards = [
-        {
-            role: "Auditor",
-            verdict: jury.auditor,
-            accentClass: "border-signal-info/35 bg-signal-infoSoft/20",
-            roleClass: "text-signal-info",
-        },
-        {
-            role: "Challenger",
-            verdict: jury.challenger,
-            accentClass: "border-signal-caution/35 bg-signal-cautionSoft/20",
-            roleClass: "text-signal-caution",
-        },
-        {
-            role: "Judge",
-            verdict: jury.judge,
-            accentClass: "border-signal-stable/35 bg-signal-stableSoft/20",
-            roleClass: "text-signal-stable",
-        },
-    ];
+const JURY_ROLES = [
+    {
+        key: "auditor" as const,
+        role: "AUDITOR",
+        accentColor: "var(--aurora-violet)",
+    },
+    {
+        key: "challenger" as const,
+        role: "CHALLENGER",
+        accentColor: "var(--aurora-teal)",
+    },
+    {
+        key: "judge" as const,
+        role: "JUDGE",
+        accentColor: "var(--aurora-amber)",
+    },
+];
 
+export default function JuryPanel({ jury }: JuryPanelProps) {
     return (
-        <Card title="Jury Panel" subtitle="Three short AI agent opinions: auditor, challenger, and judge">
-            <div className="grid gap-3 sm:grid-cols-3">
-                {cards.map((card) => (
-                    <div key={card.role} className={`rounded-xl border p-3 ${card.accentClass}`}>
-                        <p className={`text-xs uppercase tracking-wide ${card.roleClass}`}>{card.role}</p>
-                        <p className="mt-2 line-clamp-3 text-sm text-ink-50">{card.verdict}</p>
+        <div className="dl-reveal">
+            {/* Overline */}
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--t1)",
+                    marginBottom: "24px",
+                }}
+            >
+                REVIEW BOARD
+            </p>
+
+            {/* Three cards side by side */}
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: "16px",
+                }}
+            >
+                {JURY_ROLES.map(({ key, role, accentColor }) => (
+                    <div
+                        key={key}
+                        className="dl-card"
+                        style={{ padding: "20px" }}
+                    >
+                        {/* Role badge */}
+                        <span
+                            className="font-mono uppercase"
+                            style={{
+                                fontSize: "var(--fs-micro)",
+                                letterSpacing: "0.08em",
+                                color: accentColor,
+                                padding: "4px 12px",
+                                borderRadius: "100px",
+                                border: "1px solid var(--rim)",
+                                background: "var(--s2)",
+                            }}
+                        >
+                            {role}
+                        </span>
+
+                        {/* Thin divider under badge */}
+                        <div
+                            style={{
+                                marginTop: "12px",
+                                marginBottom: "12px",
+                                height: "1px",
+                                background: "var(--rim)",
+                            }}
+                        />
+
+                        {/* Perspective text — structured, NOT dialogue */}
+                        <p
+                            className="font-body"
+                            style={{
+                                fontSize: "var(--fs-body)",
+                                lineHeight: 1.8,
+                                color: "var(--t2)",
+                            }}
+                        >
+                            {jury[key]}
+                        </p>
                     </div>
                 ))}
             </div>
-        </Card>
+        </div>
     );
 }

@@ -1,54 +1,94 @@
 import { DomainFieldConfig } from "@/lib/domains";
 import { AuditProfile } from "@/types/audit";
 
-const CONTROL_CLASS_NAME =
-    "mt-2 w-full rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20";
-
 interface ProfileFieldsProps {
-    profile: AuditProfile;
     fields: DomainFieldConfig[];
-    onChange: (field: string, value: string | number) => void;
+    profile: AuditProfile;
+    onChange: (key: string, value: string | number) => void;
+    disabled?: boolean;
 }
 
-export default function ProfileFields({ profile, fields, onChange }: ProfileFieldsProps) {
+export default function ProfileFields({
+    fields,
+    profile,
+    onChange,
+    disabled = false,
+}: ProfileFieldsProps) {
+    if (fields.length === 0) {
+        return (
+            <p className="font-mono" style={{ fontSize: "var(--fs-mono)", color: "var(--t2)" }}>
+                No fields configured.
+            </p>
+        );
+    }
+
     return (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                gap: "16px",
+            }}
+        >
             {fields.map((field) => {
-                const value = profile[field.key];
+                const value = profile[field.key] ?? "";
+
                 return (
-                    <div key={field.key}>
-                        <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">
+                    <label
+                        key={field.key}
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "8px",
+                        }}
+                    >
+                        <span
+                            className="font-body uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                fontWeight: 600,
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                            }}
+                        >
                             {field.label}
-                        </label>
+                        </span>
+
                         {field.type === "select" ? (
                             <select
-                                value={String(value ?? "")}
-                                onChange={(event) => onChange(field.key, event.target.value)}
-                                className={CONTROL_CLASS_NAME}
+                                value={String(value)}
+                                onChange={(e) => onChange(field.key, e.target.value)}
+                                disabled={disabled}
+                                className="dl-input"
                             >
-                                {(field.options ?? []).map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
+                                {field.options?.map((opt) => (
+                                    <option key={opt} value={opt}>
+                                        {opt}
                                     </option>
                                 ))}
                             </select>
+                        ) : field.type === "number" ? (
+                            <input
+                                type="number"
+                                min={field.min}
+                                max={field.max}
+                                placeholder={String(field.placeholder ?? "")}
+                                value={value}
+                                onChange={(e) => onChange(field.key, e.target.value)}
+                                disabled={disabled}
+                                className="dl-input"
+                            />
                         ) : (
                             <input
-                                type={field.type === "number" ? "number" : "text"}
-                                min={field.type === "number" ? field.min : undefined}
-                                max={field.type === "number" ? field.max : undefined}
-                                value={String(value ?? "")}
-                                placeholder={field.placeholder}
-                                onChange={(event) =>
-                                    onChange(
-                                        field.key,
-                                        field.type === "number" ? Number(event.target.value) : event.target.value,
-                                    )
-                                }
-                                className={CONTROL_CLASS_NAME}
+                                type="text"
+                                placeholder={String(field.placeholder ?? "")}
+                                value={String(value)}
+                                onChange={(e) => onChange(field.key, e.target.value)}
+                                disabled={disabled}
+                                className="dl-input"
                             />
                         )}
-                    </div>
+                    </label>
                 );
             })}
         </div>

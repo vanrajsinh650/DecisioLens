@@ -1,48 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 interface CopyButtonProps {
-  id?: string;
-  value: string;
-  label?: string;
-  copiedLabel?: string;
-  className?: string;
+    id?: string;
+    value: string;
+    label?: string;
+    copiedLabel?: string;
 }
 
 export default function CopyButton({
-  id,
-  value,
-  label = "Copy",
-  copiedLabel = "Copied",
-  className = "",
+    id,
+    value,
+    label = "Copy →",
+    copiedLabel = "✓ Copied",
 }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false);
+    const [copied, setCopied] = useState(false);
 
-  const onCopy = async () => {
-    if (!value) {
-      return;
-    }
+    const handleCopy = useCallback(async () => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+        } catch {
+            // Fallback
+            const textarea = document.createElement("textarea");
+            textarea.value = value;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+        }
+    }, [value]);
 
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1200);
-    } catch {
-      setCopied(false);
-    }
-  };
-
-  return (
-    <button
-      id={id}
-      type="button"
-      onClick={onCopy}
-      disabled={!value}
-      className={`inline-flex items-center gap-1.5 rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-1.5 text-xs font-semibold text-ink-100 transition hover:border-ink-300 hover:text-ink-50 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-    >
-      <span aria-hidden>{copied ? "✓" : "⧉"}</span>
-      {copied ? copiedLabel : label}
-    </button>
-  );
+    return (
+        <button
+            id={id}
+            type="button"
+            onClick={handleCopy}
+            className="font-mono"
+            style={{
+                fontSize: "var(--fs-micro)",
+                color: copied ? "var(--aurora-green)" : "var(--t2)",
+                background: "var(--s2)",
+                border: "1px solid var(--rim)",
+                borderRadius: "6px",
+                padding: "6px 14px",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+            }}
+        >
+            {copied ? copiedLabel : label}
+        </button>
+    );
 }

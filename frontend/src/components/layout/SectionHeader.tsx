@@ -1,28 +1,94 @@
 import { ReactNode } from "react";
 
 interface SectionHeaderProps {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  actions?: ReactNode;
+    overline?: string;
+    title: string;
+    subtitle?: string;
+    actions?: ReactNode;
+    // Legacy prop aliases
+    eyebrow?: string;
+    description?: string;
 }
 
 export default function SectionHeader({
-  eyebrow,
-  title,
-  description,
-  actions,
+    overline,
+    title,
+    subtitle,
+    actions,
+    eyebrow,
+    description,
 }: SectionHeaderProps) {
-  return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div className="max-w-3xl">
-        {eyebrow ? (
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-signal-info">{eyebrow}</p>
-        ) : null}
-        <h1 className="font-display text-3xl font-bold tracking-tight text-ink-50 sm:text-4xl">{title}</h1>
-        {description ? <p className="mt-3 text-sm text-ink-200 sm:text-base">{description}</p> : null}
-      </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
-    </div>
-  );
+    const displayOverline = overline ?? eyebrow;
+    const displaySubtitle = subtitle ?? description;
+
+    return (
+        <div
+            style={{
+                marginBottom: "32px",
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: "24px",
+            }}
+        >
+            <div style={{ maxWidth: "720px" }}>
+                {displayOverline ? (
+                    <p
+                        className="font-body uppercase"
+                        style={{
+                            marginBottom: "8px",
+                            fontSize: "var(--fs-label)",
+                            fontWeight: 600,
+                            letterSpacing: "0.12em",
+                            color: "var(--aurora-violet)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                        }}
+                    >
+                        <span
+                            aria-hidden="true"
+                            style={{
+                                display: "inline-block",
+                                width: "6px",
+                                height: "6px",
+                                borderRadius: "50%",
+                                background: "var(--aurora-violet)",
+                            }}
+                        />
+                        {displayOverline}
+                    </p>
+                ) : null}
+                <h2
+                    className="font-body"
+                    style={{
+                        fontSize: "var(--fs-h1)",
+                        fontWeight: 600,
+                        color: "var(--t1)",
+                    }}
+                >
+                    {title}
+                </h2>
+                {displaySubtitle ? (
+                    <p
+                        className="font-body"
+                        style={{
+                            marginTop: "8px",
+                            fontSize: "var(--fs-body)",
+                            lineHeight: 1.8,
+                            color: "var(--t2)",
+                        }}
+                    >
+                        {displaySubtitle}
+                    </p>
+                ) : null}
+            </div>
+            {actions ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    {actions}
+                </div>
+            ) : null}
+        </div>
+    );
 }

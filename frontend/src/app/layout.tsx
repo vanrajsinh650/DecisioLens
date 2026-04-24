@@ -7,9 +7,9 @@ import { APP_NAME } from "@/lib/constants";
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: `${APP_NAME} · AI Decision Stability + Bias Auditor`,
+    title: `${APP_NAME} · Decision Integrity Scanner`,
     description:
-        "Audit AI decisions, reveal threshold sensitivity and bias patterns, and generate structured action + appeal outputs.",
+        "DecisioLens stress-tests algorithmic decisions — revealing threshold fragility, scenario bias, and confidence gaps before they become consequences.",
 };
 
 interface RootLayoutProps {

@@ -1,17 +1,4 @@
-import Card from "@/components/shared/Card";
-import Badge from "@/components/shared/Badge";
-import StatPill from "@/components/shared/StatPill";
-import {
-    formatRiskLabel,
-    formatRiskScore,
-    formatThreshold,
-    normalizeConfidenceTone,
-    normalizeDecisionTone,
-    normalizeRiskTone,
-    shouldRecommendHumanReview,
-    toneClasses,
-} from "@/lib/format";
-import { formatVariationName } from "@/lib/format";
+import { formatThreshold, signalClasses, SignalTone } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
 interface ResultHeroCardProps {
@@ -21,167 +8,187 @@ interface ResultHeroCardProps {
     readOnly?: boolean;
 }
 
-function getStabilityVerdict(session: AuditSession): {
-    emoji: string;
-    headline: string;
-    tone: "stable" | "caution" | "risk";
-    trustLevel: string;
-    confidenceLabel: string;
-    insight: string | null;
+function getStabilityVerdict(riskScore: number): {
+    label: string;
+    tone: SignalTone;
+    pillLabels: string[];
 } {
-    const { response } = session;
-    const riskScore = response.insights.risk_score;
-    const hasInstability = response.insights.instability;
-    const hasBias = response.insights.bias_detected;
-    const flippedVariation = response.variations.find((v) => v.changed);
-    const confidenceZone = response.original.confidence_zone ?? "Unknown";
-
-    const isUnstable = hasInstability || hasBias || riskScore > 70;
-    const isBorderline =
-        confidenceZone.toLowerCase().includes("borderline") ||
-        riskScore > 30 && riskScore <= 70;
-
-    const tone: "stable" | "caution" | "risk" = isUnstable
-        ? "risk"
-        : isBorderline
-            ? "caution"
-            : "stable";
-
-    const emoji = tone === "risk" ? "⚠️" : tone === "caution" ? "⚡" : "✅";
-    const headline = tone === "risk"
-        ? "This decision is UNSTABLE"
-        : tone === "caution"
-            ? "This decision is BORDERLINE"
-            : "This decision is STABLE";
-
-    const trustLevel = tone === "risk"
-        ? "Risky"
-        : tone === "caution"
-            ? "Uncertain"
-            : "Stable";
-
-    const confidenceLabel = riskScore <= 30
-        ? "High"
-        : riskScore <= 70
-            ? "Medium"
-            : "Low";
-
-    let insight: string | null = null;
-    if (flippedVariation) {
-        insight = `Changing ${formatVariationName(flippedVariation.label).toLowerCase()} flips the decision`;
-    } else if (hasBias) {
-        insight = "Bias signals detected across profile variations";
-    } else if (hasInstability) {
-        insight = "Decision is sensitive to small threshold changes";
-    }
-
-    return { emoji, headline, tone, trustLevel, confidenceLabel, insight };
+    if (riskScore >= 70)
+        return {
+            label: "Decision is UNSTABLE",
+            tone: "risk",
+            pillLabels: ["BORDERLINE", "REVIEW REQUIRED", "HIGH FLIP RISK"],
+        };
+    if (riskScore >= 35)
+        return {
+            label: "Decision is BORDERLINE",
+            tone: "warn",
+            pillLabels: ["BORDERLINE", "CAUTION", "MODERATE RISK"],
+        };
+    return {
+        label: "Decision is STABLE",
+        tone: "safe",
+        pillLabels: ["STABLE", "CLEAR", "LOW RISK"],
+    };
 }
 
-export default function ResultHeroCard({ session, onRerun, onClear, readOnly = false }: ResultHeroCardProps) {
+export default function ResultHeroCard({
+    session,
+    onRerun,
+    onClear,
+    readOnly = false,
+}: ResultHeroCardProps) {
     const { request, response } = session;
-    const riskTone = normalizeRiskTone(response.insights.risk_score);
-    const riskLabel = formatRiskLabel(response.insights.risk_level ?? String(response.insights.risk_score));
-    const humanReviewRecommended = shouldRecommendHumanReview({
-        riskScore: response.insights.risk_score,
-        reasonTags: response.insights.reason_tags,
-        biasDetected: response.insights.bias_detected,
-        instabilityDetected: response.insights.instability,
-        confidenceZone: response.original.confidence_zone,
-    });
+    const verdict = getStabilityVerdict(response.insights.risk_score);
+    const palette = signalClasses[verdict.tone];
 
-    const verdict = getStabilityVerdict(session);
-    const verdictPalette = toneClasses[verdict.tone];
+    const originalScore = response.original.score;
+    const threshold = request.threshold;
+    const distance = originalScore - threshold * 100;
+    const timestamp = new Date(session.submittedAt).toISOString();
 
     return (
-        <Card>
-            {/* ── Big verdict banner ── */}
-            <div className={`mb-5 rounded-xl border p-4 ${verdictPalette.border} ${verdictPalette.soft}`}>
-                <p className={`font-display text-2xl font-bold ${verdictPalette.text}`}>
-                    {verdict.emoji} {verdict.headline}
+        <div
+            className="dl-reveal"
+            style={{
+                minHeight: "220px",
+                background: palette.surfaceVar,
+                border: `1px solid ${palette.borderColorVar}`,
+                borderBottom: `3px solid ${palette.colorVar}`,
+                borderRadius: "10px",
+                padding: "32px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "32px",
+                alignItems: "flex-start",
+            }}
+        >
+            {/* Left side */}
+            <div style={{ flex: "1 1 400px" }}>
+                {/* Overline with timestamp */}
+                <p
+                    className="font-mono"
+                    style={{
+                        fontSize: "var(--fs-micro)",
+                        color: "var(--t3)",
+                        letterSpacing: "0.05em",
+                    }}
+                >
+                    DECISION VERDICT · {timestamp}
                 </p>
-                {verdict.insight ? (
-                    <p className="mt-2 text-sm text-ink-100">
-                        {verdict.insight}
-                    </p>
-                ) : null}
-            </div>
 
-            {/* ── Trust + Confidence row ── */}
-            <div className="mb-5 flex flex-wrap items-center gap-3">
-                <Badge label={`Trust Level: ${verdict.trustLevel}`} tone={verdict.tone} dot />
-                <Badge label={`Decision Confidence: ${verdict.confidenceLabel}`} tone={verdict.tone === "risk" ? "risk" : verdict.tone === "caution" ? "caution" : "stable"} dot />
-                <Badge
-                    label={response.original.decision}
-                    tone={normalizeDecisionTone(response.original.decision)}
-                    dot
-                />
-            </div>
+                {/* Verdict text — Syne 800 */}
+                <h2
+                    className="font-display"
+                    style={{
+                        marginTop: "12px",
+                        fontSize: "var(--fs-verdict)",
+                        fontWeight: 800,
+                        lineHeight: 1.1,
+                        color: palette.colorVar,
+                    }}
+                >
+                    {verdict.label}
+                </h2>
 
-            {/* ── Action buttons ── */}
-            {!readOnly ? (
-                <div className="mb-5 flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={onRerun}
-                        className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/70 px-3 py-2 text-xs font-semibold text-signal-info transition hover:bg-signal-infoSoft/90"
+                {/* Three-value cluster */}
+                <p
+                    className="font-mono"
+                    style={{
+                        marginTop: "16px",
+                        fontSize: "var(--fs-mono)",
+                        fontWeight: 600,
+                        color: "var(--t2)",
+                    }}
+                >
+                    Score: {formatThreshold(originalScore)} · Threshold:{" "}
+                    {formatThreshold(threshold * 100)} · Margin:{" "}
+                    {distance > 0 ? "+" : ""}
+                    {distance.toFixed(0)}pts
+                </p>
+
+                {/* Action buttons */}
+                {!readOnly && (
+                    <div
+                        style={{
+                            marginTop: "24px",
+                            display: "flex",
+                            gap: "12px",
+                        }}
                     >
-                        Re-test at +0.02 threshold
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onClear}
-                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300"
-                    >
-                        Clear Result
-                    </button>
-                </div>
-            ) : null}
-
-            {/* ── Stat pills grid ── */}
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <StatPill
-                    label="Score"
-                    value={formatThreshold(response.original.score)}
-                    tone="info"
-                    emphasize
-                />
-
-                <StatPill
-                    label="Threshold"
-                    value={formatThreshold(request.threshold)}
-                    tone="caution"
-                />
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Confidence Zone</p>
-                    <div className="mt-2">
-                        <Badge
-                            label={response.original.confidence_zone ?? "Unknown"}
-                            tone={normalizeConfidenceTone(response.original.confidence_zone ?? "Unknown")}
-                            dot
-                        />
+                        <button
+                            type="button"
+                            onClick={onRerun}
+                            className="font-mono uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                                background: "var(--s2)",
+                                border: "1px solid var(--rim)",
+                                borderRadius: "6px",
+                                padding: "8px 16px",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                            }}
+                        >
+                            RE-RUN AUDIT
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className="font-mono uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                                background: "var(--s2)",
+                                border: "1px solid var(--rim)",
+                                borderRadius: "6px",
+                                padding: "8px 16px",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                            }}
+                        >
+                            CLEAR RESULTS
+                        </button>
                     </div>
-                </div>
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-700/60 p-3">
-                    <p className="text-xs uppercase tracking-wide text-ink-200">Risk Level</p>
-                    <div className="mt-2">
-                        <Badge label={riskLabel} tone={riskTone} dot />
-                    </div>
-                    <p className="mt-2 text-xs text-ink-200">{formatRiskScore(response.insights.risk_score)}</p>
-                </div>
+                )}
             </div>
 
-            {/* ── Human review callout ── */}
-            {humanReviewRecommended ? (
-                <div className="mt-4 rounded-xl border border-signal-caution/40 bg-signal-cautionSoft/25 p-3">
-                    <Badge label="Human Review Recommended" tone="caution" dot />
-                    <p className="mt-2 text-sm text-ink-100">
-                        Fairness or instability signals were detected. Route this case for manual review before acting.
-                    </p>
-                </div>
-            ) : null}
-        </Card>
+            {/* Right side — three StatPill-style elements */}
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    minWidth: "160px",
+                }}
+            >
+                {verdict.pillLabels.map((pillLabel, i) => (
+                    <div
+                        key={i}
+                        style={{
+                            background: palette.surfaceVar,
+                            border: `1px solid ${palette.borderColorVar}`,
+                            borderRadius: "6px",
+                            padding: "10px 16px",
+                        }}
+                    >
+                        <span
+                            className="font-mono"
+                            style={{
+                                fontSize: "var(--fs-micro)",
+                                fontWeight: 600,
+                                color: palette.colorVar,
+                                letterSpacing: "0.05em",
+                            }}
+                        >
+                            {pillLabel}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }

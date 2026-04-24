@@ -3,51 +3,53 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { useTheme } from "@/hooks/useTheme";
 import { APP_NAME, NAV_LINKS } from "@/lib/constants";
 
 export default function TopBar() {
     const pathname = usePathname();
-    const { theme, toggle } = useTheme();
-    const { resetOnboarding } = useOnboarding();
 
     return (
         <header
             data-no-print
-            className="sticky top-0 z-40 border-b border-ink-700/80 bg-ink-900/90 backdrop-blur"
+            className="sticky top-0 z-40"
+            style={{
+                height: "56px",
+                background: "var(--s0)",
+                borderBottom: "1px solid var(--rim)",
+            }}
         >
-            <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-                <div className="space-y-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-signal-info/90">
-                        AI Decision Trust Checker
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <Link href="/" className="font-display text-xl font-semibold text-ink-50">
+            <div className="mx-auto flex h-full w-full max-w-[1200px] items-center justify-between px-6 lg:px-8">
+                <div className="flex items-center gap-3">
+                    <Link href="/" className="flex items-baseline gap-2">
+                        <span
+                            className="font-body text-[1rem] font-semibold"
+                            style={{ color: "var(--t1)" }}
+                        >
                             {APP_NAME}
-                        </Link>
-                        <span className="rounded-full border border-signal-info/40 bg-signal-infoSoft/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-signal-info">
-                            Dashboard
                         </span>
-                    </div>
+                    </Link>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-end gap-2">
+                <div className="flex items-center gap-6">
                     <nav
-                        className="flex items-center gap-2 rounded-xl border border-ink-600/70 bg-ink-800/70 p-1"
+                        className="hidden items-center gap-1 sm:flex"
                         aria-label="Primary"
                     >
                         {NAV_LINKS.map((link) => {
-                            const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                            const isActive =
+                                link.href === "/"
+                                    ? pathname === "/"
+                                    : pathname.startsWith(link.href);
 
                             return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isActive
-                                        ? "border-signal-info/45 bg-signal-infoSoft/80 text-signal-info"
-                                        : "border-ink-600/70 bg-ink-800/70 text-ink-100 hover:border-ink-300 hover:text-ink-50"
-                                        }`}
+                                    className={`rounded-inset px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all duration-150 ${
+                                        isActive
+                                            ? "bg-s2 text-t1"
+                                            : "text-t2 hover:bg-s1 hover:text-t1"
+                                    }`}
                                 >
                                     {link.label}
                                 </Link>
@@ -55,24 +57,12 @@ export default function TopBar() {
                         })}
                     </nav>
 
-                    <button
-                        id="btn-theme-toggle"
-                        type="button"
-                        onClick={toggle}
-                        aria-label="Toggle theme"
-                        className="rounded-lg border border-ink-500 bg-ink-700/70 px-2.5 py-1.5 text-sm"
+                    <span
+                        className="font-mono text-t3"
+                        style={{ fontSize: "var(--fs-micro)" }}
                     >
-                        {theme === "dark" ? "☀️" : "🌙"}
-                    </button>
-
-                    <button
-                        id="btn-replay-tour"
-                        type="button"
-                        onClick={resetOnboarding}
-                        className="rounded-lg border border-ink-600/70 bg-ink-800/70 px-2.5 py-1.5 text-xs text-ink-200 hover:text-ink-50"
-                    >
-                        ? Take a Tour
-                    </button>
+                        v1.0 · Hiring
+                    </span>
                 </div>
             </div>
         </header>

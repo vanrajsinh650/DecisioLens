@@ -1,31 +1,85 @@
 interface ErrorStateProps {
-  title?: string;
-  message: string;
-  nextStep?: string;
-  onRetry?: () => void;
+    title: string;
+    message: string;
+    nextStep?: string;
+    onRetry?: () => void;
 }
 
-export default function ErrorState({
-  title = "Audit could not be completed",
-  message,
-  nextStep = "Please check the input and try again.",
-  onRetry,
-}: ErrorStateProps) {
-  return (
-    <div className="rounded-2xl border border-signal-risk/40 bg-signal-riskSoft/40 p-5">
-      <h3 className="font-display text-base font-semibold text-signal-risk">{title}</h3>
-      <p className="mt-2 text-sm text-ink-100">{message}</p>
-      <p className="mt-2 text-sm font-medium text-signal-risk">{nextStep}</p>
-
-      {onRetry ? (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-4 inline-flex rounded-lg border border-signal-risk/40 bg-signal-risk/10 px-3 py-1.5 text-sm font-semibold text-signal-risk transition hover:bg-signal-risk/20"
+export default function ErrorState({ title, message, nextStep, onRetry }: ErrorStateProps) {
+    return (
+        <div
+            style={{
+                background: "var(--aurora-crimson-surface)",
+                borderLeft: "3px solid var(--aurora-crimson)",
+                borderRadius: "10px",
+                padding: "24px",
+            }}
         >
-          Try Again
-        </button>
-      ) : null}
-    </div>
-  );
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--aurora-crimson)",
+                }}
+            >
+                ERROR
+            </p>
+            <h3
+                className="font-body"
+                style={{
+                    marginTop: "8px",
+                    fontSize: "var(--fs-h2)",
+                    fontWeight: 600,
+                    color: "var(--t1)",
+                }}
+            >
+                {title}
+            </h3>
+            <p
+                className="font-mono"
+                style={{
+                    marginTop: "8px",
+                    fontSize: "var(--fs-mono)",
+                    color: "var(--t2)",
+                }}
+            >
+                {message}
+            </p>
+            {nextStep && (
+                <p
+                    className="font-body"
+                    style={{
+                        marginTop: "8px",
+                        fontSize: "0.875rem",
+                        color: "var(--t2)",
+                    }}
+                >
+                    {nextStep}
+                </p>
+            )}
+            {onRetry && (
+                <button
+                    type="button"
+                    onClick={() => onRetry()}
+                    style={{
+                        marginTop: "24px",
+                        background: "var(--aurora-violet)",
+                        color: "#fff",
+                        padding: "13px 30px",
+                        borderRadius: "6px",
+                        border: "none",
+                        fontFamily: '"Plus Jakarta Sans", sans-serif',
+                        fontSize: "var(--fs-body)",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                    }}
+                >
+                    Retry
+                </button>
+            )}
+        </div>
+    );
 }

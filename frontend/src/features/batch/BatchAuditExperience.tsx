@@ -144,29 +144,29 @@ export default function BatchAuditExperience() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <SectionHeader
-                eyebrow="Batch Audit"
-                title="Run trust checks from CSV"
-                description="Upload many profiles, process sequential audits, and export trust outcomes."
+                overline="BATCH AUDIT"
+                title="Batch Processing"
+                subtitle="Upload profiles via CSV, run sequential trust checks, and export outcomes."
                 actions={
                     <button
                         type="button"
                         onClick={downloadTemplate}
-                        className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100"
+                        className="rounded-panel border border-rim bg-depth-3/60 px-3 py-2 font-mono text-micro uppercase tracking-wider text-txt-secondary transition hover:border-probe/30 hover:text-txt-primary"
                     >
-                        Download CSV Template
+                        Download Template
                     </button>
                 }
             />
 
-            <div className="grid gap-3 rounded-2xl border border-ink-600/70 bg-ink-800/70 p-4 sm:grid-cols-[220px_1fr] sm:items-end">
-                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-ink-200">
+            <div className="grid gap-4 rounded-panel border border-rim bg-depth-2/60 p-6 sm:grid-cols-[220px_1fr] sm:items-end">
+                <label className="flex flex-col gap-2 font-mono text-micro uppercase tracking-wider text-txt-ghost">
                     Domain
                     <select
                         value={domain}
                         onChange={(event) => setDomain(event.target.value as DomainType)}
-                        className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm normal-case text-ink-50"
+                        className="rounded-none border border-rim bg-depth-2 px-3 py-2 font-mono text-mono-base normal-case text-txt-primary outline-none focus:border-probe"
                     >
                         {DOMAIN_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -176,13 +176,13 @@ export default function BatchAuditExperience() {
                     </select>
                 </label>
 
-                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-ink-200">
+                <label className="flex flex-col gap-2 font-mono text-micro uppercase tracking-wider text-txt-ghost">
                     Upload CSV
                     <input
                         type="file"
                         accept=".csv,text/csv"
                         onChange={onFileChange}
-                        className="rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm normal-case text-ink-50"
+                        className="rounded-none border border-rim bg-depth-2 px-3 py-2 font-mono text-mono-base normal-case text-txt-primary file:mr-3 file:rounded-panel file:border file:border-probe/30 file:bg-probe/8 file:px-3 file:py-1 file:font-mono file:text-micro file:text-probe"
                     />
                 </label>
             </div>
@@ -191,34 +191,40 @@ export default function BatchAuditExperience() {
 
             {isRunning ? (
                 <LoadingState
-                    label="Running batch audit..."
+                    compact
+                    label="Running batch audit"
                     description={`Processed ${progress.processed} of ${progress.total} profiles.`}
                 />
             ) : null}
 
-            <div className="rounded-2xl border border-ink-600/70 bg-ink-800/70 p-4">
+            <div className="rounded-panel border border-rim bg-depth-2/60 p-4">
                 <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="text-sm text-ink-100">Progress</p>
-                    <p className="text-xs text-ink-200">{progress.processed}/{progress.total}</p>
+                    <p className="font-mono text-micro uppercase tracking-wider text-txt-ghost">Progress</p>
+                    <p className="font-mono text-micro text-txt-secondary">{progress.processed}/{progress.total}</p>
                 </div>
-                <progress max={Math.max(progress.total, 1)} value={progress.processed} className="h-2 w-full" />
+                <div className="h-[3px] w-full overflow-hidden rounded-full bg-depth-3">
+                    <div
+                        className="h-full rounded-full bg-probe transition-all duration-300"
+                        style={{ width: `${progress.total > 0 ? (progress.processed / progress.total) * 100 : 0}%` }}
+                    />
+                </div>
             </div>
 
             {previewRows.length > 0 ? (
-                <div className="overflow-x-auto rounded-2xl border border-ink-600/70">
-                    <table className="min-w-full divide-y divide-ink-600/70 text-sm">
-                        <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
+                <div className="overflow-x-auto rounded-panel border border-rim">
+                    <table className="min-w-full divide-y divide-rim text-sm">
+                        <thead className="bg-depth-3/60">
                             <tr>
                                 {Object.keys(previewRows[0]).map((header) => (
-                                    <th key={header} className="px-3 py-2">{header}</th>
+                                    <th key={header} className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">{header}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-ink-700/70 bg-ink-900/35">
+                        <tbody className="divide-y divide-rim/50">
                             {previewRows.map((row, index) => (
                                 <tr key={`preview-${index}`}>
                                     {Object.entries(row).map(([key, value]) => (
-                                        <td key={`${index}-${key}`} className="px-3 py-2 text-ink-100">{value}</td>
+                                        <td key={`${index}-${key}`} className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{value}</td>
                                     ))}
                                 </tr>
                             ))}
@@ -229,14 +235,14 @@ export default function BatchAuditExperience() {
                 <EmptyState title="No CSV preview" description="Upload a CSV file to preview first rows." />
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-3">
                 <button
                     type="button"
                     onClick={() => {
                         void runBatch();
                     }}
                     disabled={isRunning || rows.length === 0}
-                    className="rounded-lg border border-signal-info/45 bg-signal-infoSoft/35 px-3 py-2 text-xs font-semibold text-signal-info disabled:opacity-60"
+                    className="rounded-panel border border-probe/40 bg-probe px-4 py-2.5 font-mono text-micro uppercase tracking-widest text-depth-1 transition-all hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     Run Batch Audit
                 </button>
@@ -245,38 +251,38 @@ export default function BatchAuditExperience() {
                     type="button"
                     onClick={downloadResults}
                     disabled={exportRows.length === 0}
-                    className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 disabled:opacity-60"
+                    className="rounded-panel border border-rim bg-depth-3/60 px-4 py-2.5 font-mono text-micro uppercase tracking-wider text-txt-secondary transition hover:border-probe/30 hover:text-txt-primary disabled:opacity-40"
                 >
-                    Download Results as CSV
+                    Export Results CSV
                 </button>
             </div>
 
             {results.length > 0 ? (
-                <div className="overflow-x-auto rounded-2xl border border-ink-600/70">
-                    <table className="min-w-full divide-y divide-ink-600/70 text-sm">
-                        <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
+                <div className="overflow-x-auto rounded-panel border border-rim">
+                    <table className="min-w-full divide-y divide-rim text-sm">
+                        <thead className="bg-depth-3/60">
                             <tr>
-                                <th className="px-3 py-2">Row</th>
-                                <th className="px-3 py-2">Trust Verdict</th>
-                                <th className="px-3 py-2">Risk</th>
-                                <th className="px-3 py-2">Decision</th>
-                                <th className="px-3 py-2">Bias Detected</th>
+                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Row</th>
+                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Trust Verdict</th>
+                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Risk</th>
+                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Decision</th>
+                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Bias</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-ink-700/70 bg-ink-900/35">
+                        <tbody className="divide-y divide-rim/50">
                             {results.map((result) => (
                                 <tr key={`result-${result.index}`}>
-                                    <td className="px-3 py-2 text-ink-100">{result.index}</td>
-                                    <td className="px-3 py-2">
+                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.index}</td>
+                                    <td className="px-4 py-3">
                                         <Badge
                                             label={result.verdict}
                                             tone={result.verdict === "HIGH_RISK" ? "risk" : result.verdict === "UNSTABLE" ? "caution" : "stable"}
                                             dot
                                         />
                                     </td>
-                                    <td className="px-3 py-2 text-ink-100">{result.risk_level} ({Math.round(result.risk_score)})</td>
-                                    <td className="px-3 py-2 text-ink-100">{result.decision}</td>
-                                    <td className="px-3 py-2 text-ink-100">{result.bias_detected ? "Yes" : "No"}</td>
+                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.risk_level} ({Math.round(result.risk_score)})</td>
+                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.decision}</td>
+                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.bias_detected ? "Yes" : "No"}</td>
                                 </tr>
                             ))}
                         </tbody>

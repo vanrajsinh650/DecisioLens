@@ -1,6 +1,4 @@
-import VariationRow from "./VariationRow";
-import Badge from "@/components/shared/Badge";
-import Card from "@/components/shared/Card";
+import { formatVariationName, formatThreshold } from "@/lib/format";
 import { VariationResult } from "@/types/audit";
 
 interface VariationsComparisonCardProps {
@@ -10,53 +8,141 @@ interface VariationsComparisonCardProps {
 export default function VariationsComparisonCard({ variations }: VariationsComparisonCardProps) {
     const baselineRow =
         variations.find((row) => row.label === "baseline") ?? variations[0] ?? null;
-    const flippedCount =
-        baselineRow
-            ? variations.filter((row) => row.decision !== baselineRow.decision).length
-            : 0;
 
     if (!baselineRow) {
         return null;
     }
 
+    // Limit to 6 scenarios — 3×2 grid per spec
+    const displayVariations = variations.slice(0, 6);
+
     return (
-        <Card
-            title="Variations Comparison"
-            subtitle="Original vs modified profiles (gender/location/college) with score and outcome changes"
-            rightSlot={
-                <Badge
-                    label={flippedCount > 0 ? `Decision Flipped: ${flippedCount}` : "No Decision Flip"}
-                    tone={flippedCount > 0 ? "risk" : "stable"}
-                    dot
-                />
-            }
-        >
-            <p className="mb-3 text-xs text-ink-200">
-                Baseline decision: <span className="font-semibold text-ink-100">{baselineRow.decision}</span>
+        <div className="dl-reveal">
+            {/* Overline */}
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--t1)",
+                    marginBottom: "24px",
+                }}
+            >
+                PARALLEL SCENARIOS
             </p>
 
-            <div className="overflow-x-auto rounded-xl border border-ink-600/70">
-                <table className="min-w-full divide-y divide-ink-600/70 text-sm">
-                    <thead className="bg-ink-700/60 text-left text-xs uppercase tracking-wide text-ink-200">
-                        <tr>
-                            <th className="px-3 py-2">Profile Variation</th>
-                            <th className="px-3 py-2">Score</th>
-                            <th className="px-3 py-2">Decision</th>
-                            <th className="px-3 py-2">Outcome Change</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-ink-700/70">
-                        {variations.map((row) => (
-                            <VariationRow
-                                key={row.label}
-                                row={row}
-                                baselineScore={baselineRow.score}
-                                baselineDecision={baselineRow.decision}
-                            />
-                        ))}
-                    </tbody>
-                </table>
+            {/* 3×2 grid */}
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: "16px",
+                }}
+            >
+                {displayVariations.map((row) => {
+                    const isChanged = row.changed;
+                    const isBaseline = row.label === "baseline";
+
+                    // What changed text
+                    const changeText =
+                        row.profile && !isBaseline
+                            ? Object.entries(row.profile)
+                                  .filter(
+                                      ([key]) =>
+                                          key !== "name" &&
+                                          key !== "score" &&
+                                          key !== "experience"
+                                  )
+                                  .slice(0, 2)
+                                  .map(([key, val]) => `${key} → ${val}`)
+                                  .join(", ")
+                            : null;
+
+                    return (
+                        <div
+                            key={row.label}
+                            className="dl-card"
+                            style={{
+                                borderLeft: isChanged
+                                    ? "2px solid var(--aurora-crimson)"
+                                    : "1px solid var(--rim)",
+                                transition: "transform 0.15s ease, border-color 0.15s ease",
+                                cursor: "default",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "translateY(-3px)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "translateY(0)";
+                            }}
+                        >
+                            {/* Scenario name */}
+                            <p
+                                className="font-body"
+                                style={{
+                                    fontSize: "var(--fs-h2)",
+                                    fontWeight: 600,
+                                    color: "var(--t1)",
+                                }}
+                            >
+                                {formatVariationName(row.label)}
+                            </p>
+
+                            {/* What changed */}
+                            <div style={{ height: "20px", marginTop: "4px" }}>
+                                {changeText && (
+                                    <p
+                                        className="font-mono"
+                                        style={{
+                                            fontSize: "var(--fs-micro)",
+                                            color: "var(--t2)",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        {changeText}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Score */}
+                            <p
+                                className="font-mono"
+                                style={{
+                                    marginTop: "16px",
+                                    fontSize: "1.25rem",
+                                    fontWeight: 600,
+                                    color: "var(--t1)",
+                                }}
+                            >
+                                {formatThreshold(row.score)}
+                            </p>
+
+                            {/* Status badge */}
+                            <div style={{ marginTop: "12px" }}>
+                                <span
+                                    className="font-mono uppercase"
+                                    style={{
+                                        fontSize: "var(--fs-micro)",
+                                        letterSpacing: "0.05em",
+                                        padding: "4px 12px",
+                                        borderRadius: "100px",
+                                        border: "1px solid var(--rim)",
+                                        color: isChanged ? "var(--aurora-crimson)" : "var(--t3)",
+                                        background: isChanged
+                                            ? "var(--aurora-crimson-surface)"
+                                            : "transparent",
+                                    }}
+                                >
+                                    {isChanged ? "CHANGED" : "UNCHANGED"}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
-        </Card>
+        </div>
     );
 }

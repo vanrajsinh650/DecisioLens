@@ -1,4 +1,3 @@
-import Card from "@/components/shared/Card";
 import CopyButton from "@/components/shared/CopyButton";
 import { AuditSession } from "@/types/audit";
 
@@ -15,22 +14,106 @@ export default function RawAuditPayloadCard({ session }: RawAuditPayloadCardProp
     const responseJson = toPrettyJson(session.response);
 
     return (
-        <Card
-            title="Pass 1 — Functional (Raw Output)"
-            subtitle="This confirms form submit, API call, and response rendering work end-to-end."
-            rightSlot={<CopyButton value={responseJson} label="Copy Raw JSON" copiedLabel="JSON Copied" />}
+        <details
+            style={{
+                background: "var(--s1)",
+                border: "1px solid var(--rim)",
+                borderRadius: "10px",
+                overflow: "hidden",
+            }}
         >
-            <div className="grid gap-3 xl:grid-cols-2">
-                <div className="rounded-xl border border-ink-600/70 bg-ink-900/70 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">Request Payload</p>
-                    <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-xs text-ink-100">{requestJson}</pre>
+            <summary
+                className="font-mono uppercase"
+                style={{
+                    display: "flex",
+                    cursor: "pointer",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "16px 24px",
+                    fontSize: "var(--fs-micro)",
+                    letterSpacing: "0.08em",
+                    color: "var(--t3)",
+                    transition: "color 0.15s ease",
+                }}
+            >
+                <span>[ RAW PAYLOAD — CLICK TO EXPAND ]</span>
+                <CopyButton value={responseJson} label="Copy JSON →" copiedLabel="✓ Copied" />
+            </summary>
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: "16px",
+                    borderTop: "1px solid var(--rim)",
+                    padding: "24px",
+                }}
+                className="xl:[grid-template-columns:1fr_1fr]"
+            >
+                <div
+                    style={{
+                        background: "var(--s2)",
+                        border: "1px solid var(--rim)",
+                        borderRadius: "6px",
+                        padding: "16px",
+                    }}
+                >
+                    <p
+                        className="font-mono uppercase"
+                        style={{
+                            marginBottom: "8px",
+                            fontSize: "var(--fs-micro)",
+                            letterSpacing: "0.08em",
+                            color: "var(--t3)",
+                        }}
+                    >
+                        Request
+                    </p>
+                    <pre
+                        className="font-mono"
+                        style={{
+                            maxHeight: "256px",
+                            overflow: "auto",
+                            whiteSpace: "pre-wrap",
+                            fontSize: "0.75rem",
+                            color: "var(--t2)",
+                        }}
+                    >
+                        {requestJson}
+                    </pre>
                 </div>
-
-                <div className="rounded-xl border border-ink-600/70 bg-ink-900/70 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-ink-200">Response Payload</p>
-                    <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap text-xs text-ink-100">{responseJson}</pre>
+                <div
+                    style={{
+                        background: "var(--s2)",
+                        border: "1px solid var(--rim)",
+                        borderRadius: "6px",
+                        padding: "16px",
+                    }}
+                >
+                    <p
+                        className="font-mono uppercase"
+                        style={{
+                            marginBottom: "8px",
+                            fontSize: "var(--fs-micro)",
+                            letterSpacing: "0.08em",
+                            color: "var(--t3)",
+                        }}
+                    >
+                        Response
+                    </p>
+                    <pre
+                        className="font-mono"
+                        style={{
+                            maxHeight: "256px",
+                            overflow: "auto",
+                            whiteSpace: "pre-wrap",
+                            fontSize: "0.75rem",
+                            color: "var(--t2)",
+                        }}
+                    >
+                        {responseJson}
+                    </pre>
                 </div>
             </div>
-        </Card>
+        </details>
     );
 }

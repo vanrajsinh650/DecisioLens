@@ -8,31 +8,16 @@ interface VariationRowProps {
     baselineDecision: Decision;
 }
 
-function getVariationTone(
-    row: VariationResult,
-    baselineScore: number,
-    baselineDecision: Decision,
-): "stable" | "caution" | "risk" {
-    if (row.decision !== baselineDecision) return "risk";
-    if (Math.abs(row.score - baselineScore) >= 0.03) return "caution";
-    return "stable";
-}
-
 export default function VariationRow({
     row,
     baselineScore,
     baselineDecision,
 }: VariationRowProps) {
-    const tone = getVariationTone(row, baselineScore, baselineDecision);
     const isDecisionFlipped = row.changed || row.decision !== baselineDecision;
 
-    const changeLabel = isDecisionFlipped ? "Decision Flipped" : "No Decision Change";
-    const changeTone = isDecisionFlipped ? "risk" : "stable";
     const rowClassName = isDecisionFlipped
-        ? "bg-signal-riskSoft/30"
-        : tone === "caution"
-            ? "bg-signal-cautionSoft/20"
-            : "bg-ink-800/50";
+        ? "bg-signal-risk/5"
+        : "bg-transparent";
 
     const profileMeta = row.profile
         ? [
@@ -44,25 +29,18 @@ export default function VariationRow({
 
     return (
         <tr className={rowClassName}>
-            <td className="px-3 py-2 text-sm font-semibold text-ink-50">
+            <td className="px-4 py-3 font-mono text-mono-base text-txt-primary">
                 <p>{formatVariationName(row.label)}</p>
-                {profileMeta ? <p className="mt-1 text-xs font-normal text-ink-200">{profileMeta}</p> : null}
+                {profileMeta ? <p className="mt-1 text-xs font-normal text-txt-ghost">{profileMeta}</p> : null}
             </td>
-            <td className="px-3 py-2 text-ink-100">{`Score: ${formatThreshold(row.score)}`}</td>
-            <td className="px-3 py-2">
+            <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{formatThreshold(row.score)}</td>
+            <td className="px-4 py-3">
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
             </td>
-            <td className="px-3 py-2">
+            <td className="px-4 py-3">
                 <Badge
-                    label={changeLabel}
-                    tone={changeTone}
-                    className={
-                        tone === "risk"
-                            ? "font-bold"
-                            : tone === "caution"
-                                ? "border-signal-caution/40 bg-signal-cautionSoft/60 text-signal-caution"
-                                : ""
-                    }
+                    label={isDecisionFlipped ? "Flipped" : "Unchanged"}
+                    tone={isDecisionFlipped ? "risk" : "stable"}
                     dot
                 />
             </td>

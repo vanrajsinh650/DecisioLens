@@ -1,46 +1,53 @@
-import { DomainOption, DomainType } from "@/types/audit";
-import Badge from "@/components/shared/Badge";
+import { DomainType } from "@/types/audit";
 
-const CONTROL_CLASS_NAME =
-    "mt-2 w-full rounded-lg border border-ink-600 bg-ink-700/60 px-3 py-2 text-sm text-ink-50 outline-none transition focus:border-signal-info/60 focus:ring-2 focus:ring-signal-info/20";
+interface DomainOption {
+    value: string;
+    label: string;
+    description: string;
+}
 
 interface DomainSelectorProps {
-    value: DomainType;
     options: DomainOption[];
-    description: string;
+    value: DomainType;
     onChange: (value: DomainType) => void;
+    disabled?: boolean;
 }
 
 export default function DomainSelector({
-    value,
     options,
-    description,
+    value,
     onChange,
+    disabled = false,
 }: DomainSelectorProps) {
-    const activeOption = options.find((option) => option.value === value);
-
     return (
-        <div>
-            <div className="flex items-center justify-between gap-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-ink-200">Domain</label>
-                <Badge
-                    label="Active"
-                    tone="stable"
-                    dot
-                />
-            </div>
-            <select
-                value={value}
-                onChange={(event) => onChange(event.target.value as DomainType)}
-                className={CONTROL_CLASS_NAME}
-            >
-                {options.map((option) => (
-                    <option key={option.value} value={option.value}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {options.map((option) => {
+                const isSelected = value === option.value;
+                return (
+                    <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => onChange(option.value as DomainType)}
+                        disabled={disabled}
+                        className="font-mono"
+                        style={{
+                            fontSize: "var(--fs-mono)",
+                            padding: "8px 14px",
+                            borderRadius: "4px",
+                            border: isSelected
+                                ? "1px solid var(--aurora-violet)"
+                                : "1px solid var(--rim)",
+                            background: isSelected ? "var(--s2)" : "var(--s1)",
+                            color: isSelected ? "var(--t1)" : "var(--t2)",
+                            cursor: disabled ? "not-allowed" : "pointer",
+                            opacity: disabled ? 0.5 : 1,
+                            transition: "all 0.15s ease",
+                        }}
+                    >
                         {option.label}
-                    </option>
-                ))}
-            </select>
-            <p className="mt-2 text-xs text-ink-200">{description}</p>
+                    </button>
+                );
+            })}
         </div>
     );
 }

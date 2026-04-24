@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import AuditForm from "./components/AuditForm";
 import AuditPresetCard from "./components/AuditPresetCard";
 import SectionHeader from "@/components/layout/SectionHeader";
-import Card from "@/components/shared/Card";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
 import Walkthrough from "@/components/shared/Walkthrough";
@@ -100,6 +99,94 @@ function alignProfileWithDomain(domain: DomainType, profile: AuditProfile): Audi
         ...config.defaultProfile,
         ...profile,
     });
+}
+
+/** Risk Preview — reactive spectrum widget for sticky right panel */
+function RiskPreview({ threshold, score }: { threshold: number; score: number }) {
+    const thresholdPos = threshold * 100;
+    const scorePos = Math.min(100, Math.max(0, score));
+    const distance = scorePos - thresholdPos;
+
+    // Color based on proximity
+    const dotColor =
+        Math.abs(distance) < 10
+            ? "var(--aurora-teal)"
+            : distance > 0
+              ? "var(--aurora-green)"
+              : "var(--aurora-crimson)";
+
+    return (
+        <div className="dl-card" style={{ padding: "20px" }}>
+            <p
+                className="font-body uppercase"
+                style={{
+                    fontSize: "var(--fs-label)",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "var(--t2)",
+                    marginBottom: "16px",
+                }}
+            >
+                RISK PREVIEW
+            </p>
+
+            {/* Spectrum bar: 100% wide, 6px tall with gradient */}
+            <div style={{ position: "relative", height: "6px", width: "100%", borderRadius: "3px", overflow: "visible" }}>
+                <div
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        borderRadius: "3px",
+                        background: "linear-gradient(to right, var(--aurora-crimson) 0%, var(--aurora-teal) 45%, var(--aurora-teal) 55%, var(--aurora-green) 100%)",
+                    }}
+                />
+                {/* Threshold tick */}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "-4px",
+                        height: "14px",
+                        width: "1px",
+                        background: "var(--t3)",
+                        left: `${thresholdPos}%`,
+                        zIndex: 5,
+                    }}
+                />
+                {/* Score dot — 12px circle */}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        background: dotColor,
+                        left: `${scorePos}%`,
+                        transform: "translate(-50%, -50%)",
+                        zIndex: 10,
+                        transition: "left 0.15s ease, background 0.15s ease",
+                    }}
+                />
+            </div>
+
+            <div
+                className="font-mono"
+                style={{
+                    marginTop: "12px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: "var(--fs-micro)",
+                    color: "var(--t3)",
+                }}
+            >
+                <span>0</span>
+                <span style={{ color: dotColor }}>
+                    {distance > 0 ? "+" : ""}{distance.toFixed(0)} pts margin
+                </span>
+                <span>100</span>
+            </div>
+        </div>
+    );
 }
 
 export default function AuditWorkspace() {
@@ -269,36 +356,78 @@ export default function AuditWorkspace() {
         await runAudit(nextThreshold);
     };
 
+    // Derive score for the risk preview
+    const currentScore = Number(profile.score ?? profile.credit_score ?? 50);
+
+    // Analysis steps for the sticky right panel
+    const ANALYSIS_STEPS = [
+        "Parse candidate signal and extract decision features",
+        "Map threshold boundary across ±10% sensitivity range",
+        "Run 14 parallel scenario variants for demographic drift",
+        "Compile verdict with instability scoring and bias vectors",
+    ];
+
     return (
-        <div className="space-y-6">
+        <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
             <SectionHeader
-                eyebrow="Audit Workspace"
-                title="Run a clean input-to-audit flow"
-                description="Enter profile details, set threshold, and run a structured audit in one step."
+                overline="AUDIT CHAMBER"
+                title="Instrument Panel"
+                subtitle="Enter profile details, configure the decision boundary, and execute analysis."
                 actions={
-                    <div className="flex items-center gap-2">
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <button
                             type="button"
                             id="btn-compare-mode"
                             data-no-print
                             onClick={() => router.push(isCompareMode ? "/audit" : "/audit?mode=compare")}
-                            className="rounded-lg border border-signal-caution/45 bg-signal-cautionSoft/30 px-3 py-2 text-xs font-semibold text-signal-caution transition hover:opacity-90"
+                            className="font-mono uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                letterSpacing: "0.12em",
+                                color: "var(--aurora-teal)",
+                                background: "var(--aurora-teal-surface)",
+                                border: "1px solid hsl(172, 60%, 24%)",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                            }}
                         >
-                            ⚖️ {isCompareMode ? "Exit Compare Mode" : "Switch to Compare Mode"}
+                            {isCompareMode ? "Exit Compare" : "Compare Mode"}
                         </button>
                         <button
                             type="button"
                             onClick={resetDraft}
-                            className="rounded-lg border border-ink-500 bg-ink-700/60 px-3 py-2 text-xs font-semibold text-ink-100 transition hover:border-ink-300 hover:text-ink-50"
+                            className="font-mono uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                                background: "var(--s3)",
+                                border: "1px solid var(--rim)",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                            }}
                         >
-                            Reset Draft
+                            Reset
                         </button>
                     </div>
                 }
             />
 
-            <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-                <Card title="Input Form" subtitle="Domain + profile + threshold">
+            {/* 58/42 two-column split layout */}
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr",
+                    gap: "32px",
+                }}
+                className="xl:[grid-template-columns:58fr_42fr]"
+            >
+                {/* Left: Instrument Panel */}
+                <div>
                     <AuditForm
                         domain={domain}
                         domainOptions={DOMAIN_OPTIONS}
@@ -314,29 +443,90 @@ export default function AuditWorkspace() {
                         onThresholdChange={onThresholdChange}
                         onSubmit={runAudit}
                     />
-                </Card>
+                </div>
 
-                <div className="space-y-4">
+                {/* Right: Sticky mission briefing panel */}
+                <div
+                    style={{ display: "flex", flexDirection: "column", gap: "24px" }}
+                    className="xl:sticky xl:top-[88px] xl:self-start"
+                >
+                    {/* What We Analyze */}
+                    <div className="dl-card" style={{ padding: "20px" }}>
+                        <p
+                            className="font-body uppercase"
+                            style={{
+                                fontSize: "var(--fs-label)",
+                                fontWeight: 600,
+                                letterSpacing: "0.12em",
+                                color: "var(--t2)",
+                                marginBottom: "16px",
+                            }}
+                        >
+                            WHAT WE ANALYZE
+                        </p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                            {ANALYSIS_STEPS.map((step, idx) => (
+                                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                                    {/* 6px aurora-violet dot */}
+                                    <span
+                                        aria-hidden
+                                        style={{
+                                            marginTop: "7px",
+                                            flexShrink: 0,
+                                            width: "6px",
+                                            height: "6px",
+                                            borderRadius: "50%",
+                                            background: "var(--aurora-violet)",
+                                        }}
+                                    />
+                                    <p
+                                        className="font-body"
+                                        style={{
+                                            fontSize: "var(--fs-body)",
+                                            lineHeight: 1.8,
+                                            color: "var(--t2)",
+                                        }}
+                                    >
+                                        {step}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Reactive risk preview spectrum */}
+                    <RiskPreview threshold={threshold} score={currentScore} />
+
+                    {/* Pull-quote */}
+                    <div
+                        style={{
+                            borderLeft: "2px solid var(--aurora-violet)",
+                            paddingLeft: "20px",
+                        }}
+                    >
+                        <p
+                            className="font-body"
+                            style={{
+                                fontStyle: "italic",
+                                fontSize: "var(--fs-body)",
+                                lineHeight: 1.8,
+                                color: "var(--t2)",
+                            }}
+                        >
+                            &ldquo;Every AI decision sits on a threshold. DecisioLens shows you how close it is to the edge — and what happens when the edge moves.&rdquo;
+                        </p>
+                    </div>
+
                     <AuditPresetCard />
 
-                    <Card title="MVP Note" subtitle="Pitch-ready context for judges">
-                        <p className="text-sm text-ink-100">
-                            DecisioLens now supports hiring, lending, education, and custom domain schemas.
-                        </p>
-                    </Card>
-
                     {loading ? (
-                        <LoadingState
-                            compact
-                            label="Running audit..."
-                            description="Checking thresholds, variation shifts, and appeal signals."
-                        />
+                        <LoadingState compact />
                     ) : null}
                     {error ? (
                         <ErrorState
-                            title="Audit could not be completed"
-                            message={`What failed: ${error}`}
-                            nextStep="Please check the profile input and try again."
+                            title="Analysis Failed"
+                            message={error}
+                            nextStep="Please check profile and try again."
                             onRetry={runAudit}
                         />
                     ) : null}
@@ -344,11 +534,11 @@ export default function AuditWorkspace() {
             </div>
 
             {latestSession ? (
-                <div className="space-y-6">
+                <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
                     <SectionHeader
-                        eyebrow="Audit Results"
-                        title="Live result from your latest submission"
-                        description="Form submit triggers backend audit, stores the result in hook state, and renders all result cards below."
+                        overline="ANALYSIS RESULTS"
+                        title="Live Verdict"
+                        subtitle="Form submission triggers backend audit. Results render below as a scrollable narrative."
                     />
 
                     <RawAuditPayloadCard session={latestSession} />
