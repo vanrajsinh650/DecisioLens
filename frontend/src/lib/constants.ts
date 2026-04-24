@@ -64,5 +64,9 @@ export const REASON_TAG_LABELS: Record<string, string> = {
   score_instability: "Score Instability",
   employment_sensitive: "Employment Sensitive",
   category_sensitive: "Category Sensitive",
+  age_sensitive: "Age Sensitive",
+  condition_sensitive: "Condition Sensitive",
+  region_sensitive: "Region Sensitive",
+  income_sensitive: "Income Sensitive",
   bias_detected: "Bias Detected",
 };

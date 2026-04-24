@@ -1,6 +1,6 @@
 export type Decision = "ACCEPT" | "REJECT";
 
-export type DomainType = "hiring" | "lending" | "education" | "custom";
+export type DomainType = "hiring" | "lending" | "education" | "insurance" | "welfare" | "custom";
 
 export type TrustVerdict = "STABLE" | "UNSTABLE" | "HIGH_RISK";
 

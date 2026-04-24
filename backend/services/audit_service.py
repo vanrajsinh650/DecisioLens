@@ -147,10 +147,24 @@ class AuditService:
             confidence_zone=confidence_zone,
         )
 
+        auditor_verdict = (
+            f"bias detected ({bias_report.get('flag_count', 0)} flag(s))"
+            if bool(bias_report.get("has_bias_flags"))
+            else "no bias flags"
+        )
+
+        instability_data = instability_report if isinstance(instability_report, dict) else {}
+        challenger_verdict = "unstable" if instability_data.get("is_unstable") else "stable"
+
+        judge_verdict = (
+            f"{risk_assessment.get('level', 'unknown').lower()} risk"
+            f" (score={risk_assessment.get('score', 0)})"
+        )
+
         ai_jury_view = AIJuryView(
-            auditor="bias detected",
-            challenger="uncertain",
-            judge="moderate risk",
+            auditor=auditor_verdict,
+            challenger=challenger_verdict,
+            judge=judge_verdict,
         )
 
         # ── 8. Gemini calls (concurrent) ─────────────────────────────

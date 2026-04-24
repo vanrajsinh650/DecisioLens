@@ -20,7 +20,7 @@ export default function CTASection() {
                     marginBottom: "16px",
                 }}
             >
-                {">> READY TO SCAN"}
+                {">> SIMULATE NOW"}
             </p>
 
             <h2
@@ -32,7 +32,7 @@ export default function CTASection() {
                     marginBottom: "12px",
                 }}
             >
-                Test if an AI decision is fair and stable.
+                Simulate an AI decision. Find out if it was fair.
             </h2>
 
             <p
@@ -40,12 +40,12 @@ export default function CTASection() {
                 style={{
                     fontSize: "var(--fs-body)",
                     color: "var(--t2)",
-                    maxWidth: "480px",
+                    maxWidth: "520px",
                     margin: "0 auto 32px",
                     lineHeight: 1.75,
                 }}
             >
-                Enter a candidate profile, set a threshold, and get a full trust report in seconds.
+                Enter a realistic profile, pick a domain — hiring, lending, insurance, education, or welfare — and get a full counterfactual trust report in seconds.
             </p>
 
             <Link
@@ -53,7 +53,7 @@ export default function CTASection() {
                 className="dl-btn-primary dl-btn-hero"
                 style={{ textDecoration: "none" }}
             >
-                Analyze a Decision →
+                Simulate a Decision →
             </Link>
 
             {/* ASCII footer line */}

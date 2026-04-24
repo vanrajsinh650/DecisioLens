@@ -361,10 +361,10 @@ export default function AuditWorkspace() {
 
     // Analysis steps for the sticky right panel
     const ANALYSIS_STEPS = [
-        "Parse candidate signal and extract decision features",
-        "Map threshold boundary across ±10% sensitivity range",
-        "Run 14 parallel scenario variants for demographic drift",
-        "Compile verdict with instability scoring and bias vectors",
+        "Simulate decision using your profile across the scoring model",
+        "Test threshold boundary at 10 sensitivity points (±20% range)",
+        "Run counterfactual variations — gender, city, category, college",
+        "Compile verdict with instability score, bias flags, and risk band",
     ];
 
     return (
@@ -497,7 +497,7 @@ export default function AuditWorkspace() {
                                 color: "var(--t2)",
                             }}
                         >
-                            &ldquo;Every AI decision sits on a threshold. DecisioLens shows you how close it is to the edge — and what happens when the edge moves.&rdquo;
+                            &ldquo;Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation — so anyone can check if an AI was fair to them.&rdquo;
                         </p>
                     </div>
 

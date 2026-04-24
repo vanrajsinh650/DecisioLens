@@ -1,0 +1,84 @@
+import { DomainConfig } from "@/lib/domains";
+
+export const welfareDomain: DomainConfig = {
+    value: "welfare",
+    label: "Govt. Welfare",
+    description: "Government scheme eligibility and benefit disbursement simulation",
+    defaultThreshold: 0.48,
+    fields: [
+        { key: "name", label: "Applicant Name", type: "text", placeholder: "Lakshmi Devi" },
+        {
+            key: "category",
+            label: "Social Category",
+            type: "select",
+            options: ["General", "OBC", "SC", "ST", "EWS"],
+        },
+        {
+            key: "gender",
+            label: "Gender",
+            type: "select",
+            options: ["Female", "Male", "Other"],
+        },
+        {
+            key: "state_tier",
+            label: "State / Region",
+            type: "select",
+            options: ["Metro State", "Developed State", "Developing State", "Remote Region"],
+        },
+        { key: "annual_income", label: "Annual Income (₹L)", type: "number", min: 0, max: 15 },
+        { key: "land_holding", label: "Land Holding (acres)", type: "number", min: 0, max: 20 },
+        {
+            key: "aadhaar_linked",
+            label: "Aadhaar Linked",
+            type: "select",
+            options: ["Yes", "No"],
+        },
+    ],
+    defaultProfile: {
+        name: "Lakshmi Devi",
+        category: "OBC",
+        gender: "Female",
+        state_tier: "Developing State",
+        annual_income: 1.2,
+        land_holding: 2,
+        aadhaar_linked: "Yes",
+    },
+    variationLabels: {
+        baseline: "Original Applicant",
+        gender_swap: "Gender Changed",
+        location_change: "Region Changed",
+        category_change: "Category Changed",
+    },
+    presets: [
+        {
+            id: "rural-farmer-borderline",
+            title: "Rural Farmer — Borderline",
+            description: "Small farmer in a remote region near the eligibility boundary — tests regional and category bias.",
+            threshold: 0.48,
+            profile: {
+                name: "Mohan Patel",
+                category: "OBC",
+                gender: "Male",
+                state_tier: "Remote Region",
+                annual_income: 1.8,
+                land_holding: 3,
+                aadhaar_linked: "Yes",
+            },
+        },
+        {
+            id: "ews-urban-applicant",
+            title: "EWS Urban Applicant",
+            description: "Urban EWS applicant — tests whether algorithm treats urban poor fairly vs rural.",
+            threshold: 0.48,
+            profile: {
+                name: "Fatima Khan",
+                category: "EWS",
+                gender: "Female",
+                state_tier: "Metro State",
+                annual_income: 2.1,
+                land_holding: 0,
+                aadhaar_linked: "Yes",
+            },
+        },
+    ],
+};

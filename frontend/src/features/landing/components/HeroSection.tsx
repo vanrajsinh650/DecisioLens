@@ -50,23 +50,23 @@ function DocumentCheckIcon() {
 
 const FEATURES = [
     {
-        title: "Threshold Sensitivity",
+        title: "Threshold Simulation",
         description:
-            "Probe boundary pressure to reveal exactly where a small threshold shift flips acceptance into rejection.",
+            "Slide the decision boundary across 10 threshold points and see exactly where the outcome flips — no guesswork.",
         color: "var(--aurora-amber)",
         icon: <CrosshairIcon />,
     },
     {
-        title: "Scenario Drift",
+        title: "Counterfactual Drift",
         description:
-            "Run controlled profile variations in parallel and detect where outcomes diverge under demographic perturbations.",
+            "Swap gender, city, category, or college and observe if the simulated outcome changes — detecting demographic sensitivity.",
         color: "var(--aurora-crimson)",
         icon: <ConcentricRingsIcon />,
     },
     {
-        title: "Decoded Verdict",
+        title: "Appeal-Ready Report",
         description:
-            "Translate the final decision into a transparent narrative with risk signals, drivers, and response protocol.",
+            "Gemini AI translates every finding into plain language with a formal appeal letter you can copy and send.",
         color: "var(--aurora-green)",
         icon: <DocumentCheckIcon />,
     },
@@ -145,7 +145,7 @@ export default function HeroSection() {
                                 background: "var(--aurora-violet)",
                             }}
                         />
-                        DECISION SCANNER v2.0
+                        COUNTERFACTUAL SIMULATOR · 5 DOMAINS
                     </p>
 
                     {/* Main headline — Syne display */}
@@ -160,7 +160,7 @@ export default function HeroSection() {
                             color: "var(--t1)",
                         }}
                     >
-                        Can you trust <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>this AI decision?</em>
+                        Was this AI decision <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>fair to you?</em>
                     </h1>
 
                     {/* Body copy */}
@@ -177,9 +177,8 @@ export default function HeroSection() {
                             marginRight: "auto",
                         }}
                     >
-                        DecisioLens peers into the void where algorithmic decisions are made — exposing
-                        threshold fragility, hidden bias, and the invisible forces that determine who gets
-                        accepted and who gets left behind.
+                        DecisioLens simulates AI decision behavior using realistic profiles — revealing threshold fragility,
+                        demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
                     </p>
                 </div>
 
@@ -201,7 +200,7 @@ export default function HeroSection() {
                     {/* CTA */}
                     <div className="hero-stagger-4">
                         <Link href="/audit" className="dl-btn-primary dl-btn-hero">
-                            Analyze a Decision →
+                            Simulate a Decision →
                         </Link>
                     </div>
 
@@ -218,9 +217,11 @@ export default function HeroSection() {
                     >
                         <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER}</div>
                         <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", padding: "4px 0" }}>
-                            <span style={{ color: "var(--aurora-amber)" }}>◈ THRESHOLD</span>
-                            <span style={{ color: "var(--aurora-crimson)" }}>◈ DRIFT</span>
-                            <span style={{ color: "var(--aurora-green)" }}>◈ VERDICT</span>
+                            <span style={{ color: "var(--aurora-amber)" }}>◈ HIRING</span>
+                            <span style={{ color: "var(--aurora-crimson)" }}>◈ LENDING</span>
+                            <span style={{ color: "var(--aurora-green)" }}>◈ EDUCATION</span>
+                            <span style={{ color: "var(--aurora-teal)" }}>◈ INSURANCE</span>
+                            <span style={{ color: "var(--aurora-violet)" }}>◈ WELFARE</span>
                         </div>
                         <div style={{ color: "var(--t3)", opacity: 0.5 }}>{ASCII_BORDER_BOTTOM}</div>
                     </div>
@@ -293,9 +294,9 @@ export default function HeroSection() {
                                 letterSpacing: "0.03em",
                             }}
                         >
-                            {index === 0 && "[ ±0.01 threshold resolution ]"}
-                            {index === 1 && "[ 14 parallel scenarios ]"}
-                            {index === 2 && "[ appeal-ready output ]"}
+                            {index === 0 && "[ 10 threshold test points ]"}
+                            {index === 1 && "[ gender · city · category · college ]"}
+                            {index === 2 && "[ appeal letter auto-generated ]"}
                         </div>
                     </article>
                 ))}

@@ -3,18 +3,23 @@ import Card from "@/components/shared/Card";
 const FEATURES = [
     {
         title: "Is it stable?",
-        description: "Move the decision threshold and see exactly where the outcome flips from ACCEPT to REJECT.",
-        stat: "STABILITY_CHECK",
+        description: "Shift the decision threshold and see exactly where the outcome flips — tested across 10 sensitivity points.",
+        stat: "THRESHOLD_SIMULATION",
     },
     {
         title: "Is it fair?",
-        description: "Swap gender, location, or education and check if the decision changes it shouldn't.",
-        stat: "FAIRNESS_SCAN",
+        description: "Swap gender, city, category, or college and check if the simulated decision changes when it shouldn't.",
+        stat: "COUNTERFACTUAL_SCAN",
     },
     {
-        title: "Can you explain it?",
-        description: "Get a structured breakdown of why the AI decided this way, plus appeal-ready text you can copy.",
-        stat: "DECODE_VERDICT",
+        title: "Can you appeal it?",
+        description: "Get a plain-language breakdown of the decision and a formal appeal letter — ready to send to whoever made the call.",
+        stat: "APPEAL_GENERATOR",
+    },
+    {
+        title: "Why us?",
+        description: "Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation — anyone can use it.",
+        stat: "USER_LEVEL_SIMULATION",
     },
 ];
 
