@@ -110,7 +110,7 @@ export default function HeroSection() {
                         position: "relative",
                         zIndex: 2,
                         width: "100%",
-                        maxWidth: "740px",
+                        maxWidth: "900px",
                         textAlign: "center",
                         padding: "0 16px",
                     }}
@@ -158,7 +158,7 @@ export default function HeroSection() {
                     >
                         Can you trust
                         <br />
-                        <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>
+                        <em style={{ color: "var(--aurora-violet)", fontStyle: "normal", whiteSpace: "nowrap" }}>
                             this AI decision?
                         </em>
                     </h1>

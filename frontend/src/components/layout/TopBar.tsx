@@ -17,15 +17,13 @@ export default function TopBar() {
             style={{ height: "56px" }}
         >
             <div style={{
-                maxWidth: "1200px",
                 width: "100%",
                 height: "100%",
-                margin: "0 auto",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                paddingLeft: "clamp(16px, 4vw, 32px)",
-                paddingRight: "clamp(16px, 4vw, 32px)",
+                paddingLeft: "clamp(24px, 5vw, 48px)",
+                paddingRight: "clamp(24px, 5vw, 48px)",
             }}>
                 {/* Logo */}
                 <Link href="/" style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
@@ -43,7 +41,7 @@ export default function TopBar() {
                         className="font-display"
                         style={{
                             color: "var(--t1)",
-                            fontSize: "1rem",
+                            fontSize: "1.25rem",
                             fontWeight: 800,
                             letterSpacing: "0.02em",
                         }}
@@ -70,10 +68,10 @@ export default function TopBar() {
                                 className="font-mono uppercase dl-nav-link"
                                 data-active={isActive ? "true" : undefined}
                                 style={{
-                                    fontSize: "var(--fs-micro)",
+                                    fontSize: "0.85rem",
                                     letterSpacing: "0.08em",
                                     borderRadius: "4px",
-                                    padding: "7px 10px",
+                                    padding: "8px 14px",
                                     color: isActive ? "var(--t1)" : "var(--t2)",
                                     background: isActive ? "var(--s2)" : "transparent",
                                     border: isActive ? "1px solid var(--rim)" : "1px solid transparent",
