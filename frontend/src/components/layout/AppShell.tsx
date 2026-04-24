@@ -17,11 +17,17 @@ export default function AppShell({ children }: AppShellProps) {
     return (
         <div className="dl-shell text-t1">
             <ParticleCanvas />
-            <div aria-hidden className="dl-orbit-ring dl-orbit-ring--inner" />
-            <div aria-hidden className="dl-orbit-ring dl-orbit-ring--outer" />
-            <div aria-hidden className="dl-scan-line" />
             <TopBar />
-            <main className="dl-content mx-auto w-full max-w-[1200px] px-6 py-12 lg:px-8">
+            <main className="dl-content" style={{
+                maxWidth: "1200px",
+                width: "100%",
+                marginLeft: "auto",
+                marginRight: "auto",
+                paddingLeft: "clamp(16px, 4vw, 32px)",
+                paddingRight: "clamp(16px, 4vw, 32px)",
+                paddingTop: "48px",
+                paddingBottom: "48px",
+            }}>
                 {children}
             </main>
         </div>

@@ -9,6 +9,8 @@ const config: Config = {
         display: ['"Syne"', "sans-serif"],
         mono: ['"JetBrains Mono"', "monospace"],
         body: ['"Plus Jakarta Sans"', "sans-serif"],
+        pixel: ['"Press Start 2P"', "monospace"],
+        data: ['"VT323"', "monospace"],
       },
       colors: {
         s0: "#03030A",
