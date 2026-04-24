@@ -85,7 +85,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
     };
 
     return (
-        <div className="space-y-3">
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {fields.map((field, index) => (
                 <div
                     key={`${field.key}-${index}`}
@@ -93,12 +93,30 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                     onDragStart={() => setDraggingIndex(index)}
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={() => onDrop(index)}
-                    className="grid gap-2 rounded-inset border border-rim bg-s3 p-3 sm:grid-cols-12"
+                    style={{
+                        display: "grid",
+                        gap: "8px",
+                        gridTemplateColumns: "auto 1fr 1fr auto auto",
+                        alignItems: "center",
+                        background: "var(--s3)",
+                        border: "1px solid var(--rim)",
+                        borderRadius: "4px",
+                        padding: "12px",
+                    }}
                 >
                     <button
                         type="button"
                         disabled={disabled}
-                        className="sm:col-span-1 cursor-grab rounded-[4px] border border-rim bg-s2 px-2 py-1 text-xs text-t2"
+                        className="font-mono"
+                        style={{
+                            cursor: "grab",
+                            background: "var(--s2)",
+                            border: "1px solid var(--rim)",
+                            borderRadius: "4px",
+                            padding: "4px 8px",
+                            fontSize: "0.75rem",
+                            color: "var(--t2)",
+                        }}
                         aria-label="Drag field"
                     >
                         ☰
@@ -109,7 +127,8 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         onChange={(event) => updateField(index, { key: event.target.value.trim() })}
                         disabled={disabled}
                         placeholder="field_key"
-                        className="sm:col-span-3 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                        className="dl-input"
+                        style={{ fontSize: "0.75rem" }}
                     />
 
                     <input
@@ -117,7 +136,8 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         onChange={(event) => updateField(index, { label: event.target.value })}
                         disabled={disabled}
                         placeholder="Field Label"
-                        className="sm:col-span-3 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                        className="dl-input"
+                        style={{ fontSize: "0.75rem" }}
                     />
 
                     <select
@@ -128,7 +148,8 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                             })
                         }
                         disabled={disabled}
-                        className="sm:col-span-2 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                        className="dl-select"
+                        style={{ fontSize: "0.75rem", minWidth: "80px" }}
                     >
                         {FIELD_TYPES.map((type) => (
                             <option key={type} value={type}>
@@ -141,7 +162,17 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         type="button"
                         onClick={() => removeField(index)}
                         disabled={disabled}
-                        className="sm:col-span-1 rounded-[4px] border border-a-crimson/40 bg-a-crimson-surface px-2 py-1 font-mono text-xs text-a-crimson disabled:opacity-50"
+                        className="font-mono"
+                        style={{
+                            background: "var(--aurora-crimson-surface)",
+                            border: "1px solid hsl(350, 68%, 30%)",
+                            borderRadius: "4px",
+                            padding: "4px 8px",
+                            fontSize: "0.75rem",
+                            color: "var(--aurora-crimson)",
+                            cursor: "pointer",
+                            opacity: disabled ? 0.5 : 1,
+                        }}
                     >
                         Delete
                     </button>
@@ -154,7 +185,8 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                                 onChange={(event) => updateField(index, { min: Number(event.target.value) })}
                                 disabled={disabled}
                                 placeholder="Min"
-                                className="sm:col-span-2 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                                className="dl-input"
+                                style={{ fontSize: "0.75rem", gridColumn: "2 / 3" }}
                             />
                             <input
                                 type="number"
@@ -162,7 +194,8 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                                 onChange={(event) => updateField(index, { max: Number(event.target.value) })}
                                 disabled={disabled}
                                 placeholder="Max"
-                                className="sm:col-span-2 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                                className="dl-input"
+                                style={{ fontSize: "0.75rem", gridColumn: "3 / 4" }}
                             />
                         </>
                     ) : null}
@@ -177,24 +210,36 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                             }
                             disabled={disabled}
                             placeholder="Option A, Option B"
-                            className="sm:col-span-4 rounded-[4px] border border-rim bg-s2 px-3 py-2 font-mono text-xs text-t1 outline-none transition-fast focus:border-a-violet disabled:opacity-50"
+                            className="dl-input"
+                            style={{ fontSize: "0.75rem", gridColumn: "2 / 5" }}
                         />
                     ) : null}
                 </div>
             ))}
 
-            <div className="flex items-center justify-between gap-2">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
                 <button
                     type="button"
                     onClick={addField}
                     disabled={disabled}
-                    className="rounded-[4px] border border-a-violet/40 bg-a-violet-surface px-3 py-2 font-mono text-xs text-a-violet transition-fast hover:bg-a-violet/20 disabled:opacity-50"
+                    className="font-mono"
+                    style={{
+                        background: "var(--aurora-violet-surface)",
+                        border: "1px solid hsl(265, 65%, 30%)",
+                        borderRadius: "4px",
+                        padding: "8px 12px",
+                        fontSize: "0.75rem",
+                        color: "var(--aurora-violet)",
+                        cursor: "pointer",
+                        opacity: disabled ? 0.5 : 1,
+                        transition: "all 0.15s ease",
+                    }}
                 >
                     + Add Field
                 </button>
 
                 {hasDuplicateKeys ? (
-                    <p className="font-mono text-xs text-a-crimson">Field keys must be unique.</p>
+                    <p className="font-mono text-xs" style={{ color: "var(--aurora-crimson)" }}>Field keys must be unique.</p>
                 ) : (
                     <p className="font-body text-xs text-t2">Fields auto-save locally.</p>
                 )}

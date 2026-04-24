@@ -11,6 +11,7 @@ import { runAudit } from "@/lib/api";
 import { downloadCSV, parseCSV, recordsToCSV } from "@/lib/csv";
 import { DOMAIN_OPTIONS } from "@/lib/constants";
 import { getDomainConfig } from "@/lib/domains/registry";
+import { formatNumber } from "@/lib/format";
 import { AuditRequest, AuditResponse, DomainType, TrustVerdict } from "@/types/audit";
 
 interface BatchResultRow {
@@ -143,8 +144,10 @@ export default function BatchAuditExperience() {
         downloadCSV(`decisiolens-${domain}-batch-results.csv`, recordsToCSV(exportRows));
     };
 
+    const progressPercent = progress.total > 0 ? (progress.processed / progress.total) * 100 : 0;
+
     return (
-        <div className="space-y-8">
+        <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
             <SectionHeader
                 overline="BATCH AUDIT"
                 title="Batch Processing"
@@ -153,38 +156,59 @@ export default function BatchAuditExperience() {
                     <button
                         type="button"
                         onClick={downloadTemplate}
-                        className="rounded-panel border border-rim bg-depth-3/60 px-3 py-2 font-mono text-micro uppercase tracking-wider text-txt-secondary transition hover:border-probe/30 hover:text-txt-primary"
+                        className="dl-btn-ghost"
                     >
                         Download Template
                     </button>
                 }
             />
 
-            <div className="grid gap-4 rounded-panel border border-rim bg-depth-2/60 p-6 sm:grid-cols-[220px_1fr] sm:items-end">
-                <label className="flex flex-col gap-2 font-mono text-micro uppercase tracking-wider text-txt-ghost">
-                    Domain
-                    <select
-                        value={domain}
-                        onChange={(event) => setDomain(event.target.value as DomainType)}
-                        className="rounded-none border border-rim bg-depth-2 px-3 py-2 font-mono text-mono-base normal-case text-txt-primary outline-none focus:border-probe"
-                    >
-                        {DOMAIN_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+            <div
+                className="dl-card"
+                style={{
+                    display: "grid",
+                    gap: "16px",
+                    gridTemplateColumns: "1fr",
+                    padding: "24px",
+                }}
+            >
+                <div className="sm:[grid-template-columns:220px_1fr]" style={{ display: "grid", gap: "16px", alignItems: "end" }}>
+                    <label style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <span
+                            className="font-mono uppercase"
+                            style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                        >
+                            Domain
+                        </span>
+                        <select
+                            value={domain}
+                            onChange={(event) => setDomain(event.target.value as DomainType)}
+                            className="dl-select"
+                        >
+                            {DOMAIN_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
 
-                <label className="flex flex-col gap-2 font-mono text-micro uppercase tracking-wider text-txt-ghost">
-                    Upload CSV
-                    <input
-                        type="file"
-                        accept=".csv,text/csv"
-                        onChange={onFileChange}
-                        className="rounded-none border border-rim bg-depth-2 px-3 py-2 font-mono text-mono-base normal-case text-txt-primary file:mr-3 file:rounded-panel file:border file:border-probe/30 file:bg-probe/8 file:px-3 file:py-1 file:font-mono file:text-micro file:text-probe"
-                    />
-                </label>
+                    <label style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <span
+                            className="font-mono uppercase"
+                            style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                        >
+                            Upload CSV
+                        </span>
+                        <input
+                            type="file"
+                            accept=".csv,text/csv"
+                            onChange={onFileChange}
+                            className="dl-input"
+                            style={{ padding: "8px" }}
+                        />
+                    </label>
+                </div>
             </div>
 
             {error ? <ErrorState title="Batch processing error" message={error} /> : null}
@@ -197,34 +221,55 @@ export default function BatchAuditExperience() {
                 />
             ) : null}
 
-            <div className="rounded-panel border border-rim bg-depth-2/60 p-4">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="font-mono text-micro uppercase tracking-wider text-txt-ghost">Progress</p>
-                    <p className="font-mono text-micro text-txt-secondary">{progress.processed}/{progress.total}</p>
+            <div className="dl-card" style={{ padding: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
+                    <p
+                        className="font-mono uppercase"
+                        style={{ margin: 0, fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                    >
+                        Progress
+                    </p>
+                    <p
+                        className="font-mono"
+                        style={{ margin: 0, fontSize: "var(--fs-micro)", color: "var(--t2)" }}
+                    >
+                        {progress.processed}/{progress.total}
+                    </p>
                 </div>
-                <div className="h-[3px] w-full overflow-hidden rounded-full bg-depth-3">
+                <div style={{ height: "3px", width: "100%", overflow: "hidden", borderRadius: "2px", background: "var(--s3)" }}>
                     <div
-                        className="h-full rounded-full bg-probe transition-all duration-300"
-                        style={{ width: `${progress.total > 0 ? (progress.processed / progress.total) * 100 : 0}%` }}
+                        style={{
+                            height: "100%",
+                            borderRadius: "2px",
+                            background: "var(--aurora-violet)",
+                            transition: "width 0.3s ease",
+                            width: `${progressPercent}%`,
+                        }}
                     />
                 </div>
             </div>
 
             {previewRows.length > 0 ? (
-                <div className="overflow-x-auto rounded-panel border border-rim">
-                    <table className="min-w-full divide-y divide-rim text-sm">
-                        <thead className="bg-depth-3/60">
+                <div style={{ overflowX: "auto", border: "1px solid var(--rim)", borderRadius: "10px" }}>
+                    <table style={{ minWidth: "100%", fontSize: "0.875rem", borderCollapse: "collapse" }}>
+                        <thead style={{ background: "var(--s2)" }}>
                             <tr>
                                 {Object.keys(previewRows[0]).map((header) => (
-                                    <th key={header} className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">{header}</th>
+                                    <th
+                                        key={header}
+                                        className="font-mono uppercase"
+                                        style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
+                                    >
+                                        {header}
+                                    </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-rim/50">
+                        <tbody>
                             {previewRows.map((row, index) => (
-                                <tr key={`preview-${index}`}>
+                                <tr key={`preview-${index}`} style={{ borderTop: "1px solid var(--rim)" }}>
                                     {Object.entries(row).map(([key, value]) => (
-                                        <td key={`${index}-${key}`} className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{value}</td>
+                                        <td key={`${index}-${key}`} className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{value}</td>
                                     ))}
                                 </tr>
                             ))}
@@ -235,14 +280,14 @@ export default function BatchAuditExperience() {
                 <EmptyState title="No CSV preview" description="Upload a CSV file to preview first rows." />
             )}
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
                 <button
                     type="button"
                     onClick={() => {
                         void runBatch();
                     }}
                     disabled={isRunning || rows.length === 0}
-                    className="rounded-panel border border-probe/40 bg-probe px-4 py-2.5 font-mono text-micro uppercase tracking-widest text-depth-1 transition-all hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-40"
+                    className="dl-btn-primary"
                 >
                     Run Batch Audit
                 </button>
@@ -251,38 +296,39 @@ export default function BatchAuditExperience() {
                     type="button"
                     onClick={downloadResults}
                     disabled={exportRows.length === 0}
-                    className="rounded-panel border border-rim bg-depth-3/60 px-4 py-2.5 font-mono text-micro uppercase tracking-wider text-txt-secondary transition hover:border-probe/30 hover:text-txt-primary disabled:opacity-40"
+                    className="dl-btn-ghost"
+                    style={{ opacity: exportRows.length === 0 ? 0.4 : 1 }}
                 >
                     Export Results CSV
                 </button>
             </div>
 
             {results.length > 0 ? (
-                <div className="overflow-x-auto rounded-panel border border-rim">
-                    <table className="min-w-full divide-y divide-rim text-sm">
-                        <thead className="bg-depth-3/60">
+                <div style={{ overflowX: "auto", border: "1px solid var(--rim)", borderRadius: "10px" }}>
+                    <table style={{ minWidth: "100%", fontSize: "0.875rem", borderCollapse: "collapse" }}>
+                        <thead style={{ background: "var(--s2)" }}>
                             <tr>
-                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Row</th>
-                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Trust Verdict</th>
-                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Risk</th>
-                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Decision</th>
-                                <th className="px-4 py-3 text-left font-mono text-micro uppercase tracking-wider text-txt-ghost">Bias</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Row</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Trust Verdict</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Risk</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Decision</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Bias</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-rim/50">
+                        <tbody>
                             {results.map((result) => (
-                                <tr key={`result-${result.index}`}>
-                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.index}</td>
-                                    <td className="px-4 py-3">
+                                <tr key={`result-${result.index}`} style={{ borderTop: "1px solid var(--rim)" }}>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.index}</td>
+                                    <td style={{ padding: "12px 16px" }}>
                                         <Badge
                                             label={result.verdict}
                                             tone={result.verdict === "HIGH_RISK" ? "risk" : result.verdict === "UNSTABLE" ? "caution" : "stable"}
                                             dot
                                         />
                                     </td>
-                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.risk_level} ({Math.round(result.risk_score)})</td>
-                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.decision}</td>
-                                    <td className="px-4 py-3 font-mono text-mono-base text-txt-secondary">{result.bias_detected ? "Yes" : "No"}</td>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.risk_level} ({formatNumber(result.risk_score, 0)})</td>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.decision}</td>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.bias_detected ? "Yes" : "No"}</td>
                                 </tr>
                             ))}
                         </tbody>

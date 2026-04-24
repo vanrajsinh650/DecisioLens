@@ -124,24 +124,25 @@ export function Walkthrough({ steps, onComplete }: WalkthroughProps) {
 
             {rect ? (
                 <div
-                    className="pointer-events-none absolute rounded-inset border-2 border-a-violet shadow-[0_0_0_9999px_rgba(4,4,10,0.8)] transition-all duration-300"
+                    className="pointer-events-none absolute border-2 border-a-violet shadow-[0_0_0_9999px_rgba(4,4,10,0.8)] transition-all duration-300"
                     style={{
                         top: rect.top - 8,
                         left: rect.left - 8,
                         width: rect.width + 16,
                         height: rect.height + 16,
+                        borderRadius: "4px",
                     }}
                 />
             ) : null}
 
             <div
-                className="absolute w-[320px] max-w-[calc(100vw-2rem)] rounded-card border border-rim bg-s2 p-6"
-                style={tooltipStyle}
+                className="absolute w-[320px] max-w-[calc(100vw-2rem)] border border-rim bg-s2 p-6"
+                style={{ ...tooltipStyle, borderRadius: "10px" }}
                 role="dialog"
                 aria-modal="true"
                 aria-label={step.title}
             >
-                <p className="font-mono text-label text-a-violet">
+                <p className="font-mono text-label text-a-violet uppercase">
                     STEP {stepIndex + 1} OF {steps.length}
                 </p>
                 <h3 className="mt-3 font-display text-h2 text-t1">{step.title}</h3>
@@ -152,7 +153,7 @@ export function Walkthrough({ steps, onComplete }: WalkthroughProps) {
                         type="button"
                         onClick={() => setStepIndex((current) => Math.max(0, current - 1))}
                         disabled={stepIndex === 0}
-                        className="rounded-inset border border-rim bg-s3 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-t2 disabled:opacity-50 transition-fast hover:bg-s2 hover:text-t1"
+                        className="dl-btn-ghost disabled:opacity-50"
                     >
                         Previous
                     </button>
@@ -161,7 +162,8 @@ export function Walkthrough({ steps, onComplete }: WalkthroughProps) {
                         <button
                             type="button"
                             onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))}
-                            className="rounded-inset bg-a-violet px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-s0 transition-fast hover:bg-a-violet/90"
+                            className="dl-btn-primary"
+                            style={{ padding: "7px 14px", fontSize: "var(--fs-micro)" }}
                         >
                             Next
                         </button>
@@ -169,7 +171,12 @@ export function Walkthrough({ steps, onComplete }: WalkthroughProps) {
                         <button
                             type="button"
                             onClick={onComplete}
-                            className="rounded-inset bg-a-green px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-s0 transition-fast hover:bg-a-green/90"
+                            className="dl-btn-primary"
+                            style={{
+                                padding: "7px 14px",
+                                fontSize: "var(--fs-micro)",
+                                background: "var(--aurora-green)",
+                            }}
                         >
                             Finish
                         </button>
