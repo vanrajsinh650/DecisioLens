@@ -6,10 +6,12 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import AppealCard from "./components/AppealCard";
 import ExplanationCard from "./components/ExplanationCard";
 import HumanReviewCard from "./components/HumanReviewCard";
+import ImpactAnalysisCard from "./components/ImpactAnalysisCard";
 import JuryPanel from "./components/JuryPanel";
 import RecourseCard from "./components/RecourseCard";
 import ResultHeroCard from "./components/ResultHeroCard";
 import RiskInsightCard from "./components/RiskInsightCard";
+import StabilityZoneCard from "./components/StabilityZoneCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "./components/VariationsComparisonCard";
 import SectionHeader from "@/components/layout/SectionHeader";
@@ -225,7 +227,21 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 2 — Signal Analysis */}
+            {/* Section 2 — Decision Stability Zone */}
+            {session.response.stability_zone && (
+                <div className="print-section">
+                    <StabilityZoneCard stabilityZone={session.response.stability_zone} />
+                </div>
+            )}
+
+            {/* Section 3 — Impact Analysis */}
+            {session.response.impact_analysis && session.response.impact_analysis.length > 0 && (
+                <div className="print-section">
+                    <ImpactAnalysisCard impacts={session.response.impact_analysis} />
+                </div>
+            )}
+
+            {/* Section 4 — Threshold Sensitivity */}
             <div className="print-section">
                 <ThresholdSensitivityCard
                     rows={session.response.threshold_analysis}
@@ -235,7 +251,7 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 3 — Scenario Drift */}
+            {/* Section 5 — What happens if we change small details? */}
             <div className="print-section">
                 <VariationsComparisonCard variations={session.response.variations} />
             </div>

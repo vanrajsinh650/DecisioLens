@@ -136,6 +136,40 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     reason_tags: reasonTags,
   };
 
+  // ── New: stability zone ──────────────────────────────────────────
+  const stabilityRaw = isRecord(payload.stability_zone) ? payload.stability_zone : null;
+  const stabilityZone = stabilityRaw
+    ? {
+      zones: Array.isArray(stabilityRaw.zones)
+        ? stabilityRaw.zones.filter(isRecord).map((z) => ({
+          start: toNumber(z.start),
+          end: toNumber(z.end),
+          label: toString(z.label, "ACCEPT"),
+        }))
+        : [],
+      summary: toString(stabilityRaw.summary),
+    }
+    : undefined;
+
+  // ── New: impact analysis ─────────────────────────────────────────
+  const impactAnalysis = Array.isArray(payload.impact_analysis)
+    ? payload.impact_analysis.filter(isRecord).map((item) => ({
+      variable: toString(item.variable),
+      delta: toNumber(item.delta),
+      direction: toString(item.direction, "none") as "positive" | "negative" | "none",
+      decision_changed: Boolean(item.decision_changed),
+    }))
+    : undefined;
+
+  // ── New: structured risk ─────────────────────────────────────────
+  const risk = isRecord(payload.risk)
+    ? {
+      score: toNumber(payload.risk.score),
+      level: toString(payload.risk.level, "SAFE") as "SAFE" | "BORDERLINE" | "HIGH_RISK",
+      reasons: toStringArray(payload.risk.reasons),
+    }
+    : undefined;
+
   const juryRaw = isRecord(payload.ai_jury_view) ? payload.ai_jury_view : null;
   const aiJuryView = juryRaw
     ? {
@@ -145,7 +179,7 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     }
     : undefined;
 
-  // Normalize new governance fields
+  // Normalize governance fields
   const explanationRequest = typeof payload.explanation_request === "string"
     ? payload.explanation_request
     : undefined;
@@ -174,6 +208,9 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     },
     threshold_analysis: thresholdAnalysis,
     variations,
+    ...(stabilityZone ? { stability_zone: stabilityZone } : {}),
+    ...(impactAnalysis && impactAnalysis.length > 0 ? { impact_analysis: impactAnalysis } : {}),
+    ...(risk ? { risk } : {}),
     insights,
     explanation: toString(payload.explanation),
     appeal: toString(payload.appeal),

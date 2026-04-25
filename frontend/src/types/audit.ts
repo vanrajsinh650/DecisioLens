@@ -34,6 +34,36 @@ export interface VariationResult {
   profile?: Partial<AuditProfile>;
 }
 
+// ── New: Decision Stability Zone ────────────────────────────────────
+
+export interface StabilityZoneBand {
+  start: number;
+  end: number;
+  label: string;
+}
+
+export interface StabilityZone {
+  zones: StabilityZoneBand[];
+  summary: string;
+}
+
+// ── New: Impact Analysis ────────────────────────────────────────────
+
+export interface ImpactItem {
+  variable: string;
+  delta: number;
+  direction: "positive" | "negative" | "none";
+  decision_changed: boolean;
+}
+
+// ── Risk Assessment (updated with reasons) ──────────────────────────
+
+export interface RiskAssessment {
+  score: number;
+  level: "SAFE" | "BORDERLINE" | "HIGH_RISK";
+  reasons: string[];
+}
+
 export interface AIJuryView {
   auditor: string;
   challenger: string;
@@ -62,6 +92,9 @@ export interface AuditResult {
   original: OriginalDecision;
   threshold_analysis: ThresholdAnalysisItem[];
   variations: VariationResult[];
+  stability_zone?: StabilityZone;
+  impact_analysis?: ImpactItem[];
+  risk?: RiskAssessment;
   insights: Insights;
   explanation: string;
   appeal: string;
