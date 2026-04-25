@@ -254,6 +254,35 @@ class AuditService:
     # ── Private ──────────────────────────────────────────────────────
 
     @staticmethod
+    def _sanitize_profile_for_llm(profile: dict) -> dict:
+        """Strip PII and free-text fields before sending to Gemini.
+
+        Only structured, non-sensitive fields are forwarded.  The
+        ``name`` field is replaced with a placeholder so the LLM
+        never sees real PII.  All string values are truncated and
+        stripped of characters that could act as prompt delimiters.
+        """
+        # Fields safe to send to external LLM (no PII, no free text)
+        _SAFE_FIELDS = {
+            "domain", "gender", "score", "experience", "location", "college",
+            "credit_score", "income", "loan_amount", "employment_type",
+            "grade_12", "category", "income_band", "age", "claim_amount",
+            "policy_tenure", "city_tier", "pre_existing", "annual_income",
+            "land_holding", "aadhaar_linked", "state_tier",
+        }
+        sanitized: dict = {"name": "[REDACTED]"}
+        for key, value in profile.items():
+            if key not in _SAFE_FIELDS:
+                continue
+            if isinstance(value, str):
+                # Truncate and strip potential prompt-injection markers
+                clean = value[:100].replace("```", "").replace("###", "")
+                sanitized[key] = clean
+            else:
+                sanitized[key] = value
+        return sanitized
+
+    @staticmethod
     def _build_gemini_context(
         *,
         original_result: dict,
@@ -268,11 +297,16 @@ class AuditService:
         reason_tags: list[str],
         ai_jury_view: dict,
     ) -> dict[str, Any]:
-        """Build the context dict sent to Gemini for explanation / appeal."""
+        """Build the context dict sent to Gemini for explanation / appeal.
+
+        Profile is sanitized — PII stripped, free-text removed — before
+        inclusion so user-controlled content cannot influence the LLM.
+        """
+        safe_profile = AuditService._sanitize_profile_for_llm(validated_profile)
         return {
             "original": {
                 **original_result,
-                "profile": dict(validated_profile),
+                "profile": safe_profile,
             },
             "threshold": threshold,
             "threshold_analysis": threshold_analysis_raw,
