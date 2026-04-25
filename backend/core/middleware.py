@@ -51,6 +51,18 @@ async def generic_error_handler(_request: Request, exc: Exception) -> JSONRespon
     return _error_response(500, "Internal Server Error", "An unexpected error occurred.")
 
 
+async def overflow_error_handler(_request: Request, exc: OverflowError) -> JSONResponse:
+    """Handle math overflow from extreme numeric inputs → 400."""
+    logger.warning("Overflow error: %s", str(exc))
+    return _error_response(400, "Validation Error", "Numeric value caused overflow — check input ranges.")
+
+
+async def key_error_handler(_request: Request, exc: KeyError) -> JSONResponse:
+    """Handle missing domain scorers or similar lookup failures → 400."""
+    logger.warning("Key error: %s", str(exc))
+    return _error_response(400, "Validation Error", str(exc))
+
+
 # ── Request timing middleware ────────────────────────────────────────
 
 async def request_timing_middleware(request: Request, call_next):
@@ -84,6 +96,8 @@ def register_middleware(app: FastAPI) -> None:
     """Attach all middleware and exception handlers to the application."""
 
     # Exception handlers (most specific first).
+    app.add_exception_handler(OverflowError, overflow_error_handler)
+    app.add_exception_handler(KeyError, key_error_handler)
     app.add_exception_handler(ValueError, value_error_handler)
     app.add_exception_handler(TypeError, type_error_handler)
     app.add_exception_handler(Exception, generic_error_handler)
