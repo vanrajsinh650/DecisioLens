@@ -6,6 +6,8 @@ Provides ``GeminiService``, a singleton class that:
 - Exposes ``async`` methods for explanation and appeal generation
 - Wraps the synchronous SDK via ``asyncio.to_thread`` to avoid blocking
 - Falls back to deterministic templates when the API is unreachable
+- Enforces a hard context-size budget to prevent prompt-size DoS
+- Uses a bounded semaphore to limit concurrent Gemini calls
 """
 
 from __future__ import annotations
@@ -28,6 +30,14 @@ logger = get_logger("gemini")
 
 _EXPLANATION_REQUIRED_SECTIONS = ("Summary:", "Key Reason:", "Risk:", "Recommendation:")
 
+# Hard cap on serialized context sent to Gemini (characters).  ~8 KB
+# prevents runaway token costs from oversized payloads that slip
+# through the request-level size guard.
+_MAX_CONTEXT_CHARS = 8_192
+
+# Maximum concurrent Gemini API calls across all requests.
+_GEMINI_CONCURRENCY_LIMIT = 10
+
 
 # ── GeminiService ────────────────────────────────────────────────────
 
@@ -40,6 +50,9 @@ class GeminiService:
         self._model = settings.GEMINI_MODEL
         api_key = settings.gemini_api_key_resolved
         self._client: genai.Client | None = None
+        # Bounded semaphore limits concurrent Gemini calls across all
+        # in-flight requests, preventing threadpool saturation.
+        self._semaphore = asyncio.Semaphore(_GEMINI_CONCURRENCY_LIMIT)
         if api_key:
             try:
                 self._client = genai.Client(api_key=api_key)
@@ -140,25 +153,30 @@ class GeminiService:
         max_output_tokens: int,
         temperature: float,
     ) -> str | None:
-        """Make a single Gemini generation call on a background thread."""
+        """Make a single Gemini generation call on a background thread.
+
+        Acquires a bounded semaphore first to cap global concurrency and
+        prevent threadpool exhaustion under burst traffic.
+        """
         if self._client is None:
             return None
 
-        try:
-            response = await asyncio.to_thread(
-                self._client.models.generate_content,
-                model=self._model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    systemInstruction=system_instruction,
-                    temperature=temperature,
-                    maxOutputTokens=max_output_tokens,
-                ),
-            )
-        except Exception as exc:
-            # Log a clean one-liner, not the full traceback
-            logger.warning("Gemini API call failed — using fallback: %s", exc)
-            return None
+        async with self._semaphore:
+            try:
+                response = await asyncio.to_thread(
+                    self._client.models.generate_content,
+                    model=self._model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        systemInstruction=system_instruction,
+                        temperature=temperature,
+                        maxOutputTokens=max_output_tokens,
+                    ),
+                )
+            except Exception as exc:
+                # Log a clean one-liner, not the full traceback
+                logger.warning("Gemini API call failed — using fallback: %s", exc)
+                return None
 
         text = getattr(response, "text", None)
         if not isinstance(text, str):
@@ -171,7 +189,10 @@ class GeminiService:
 # ── Module-level helpers (preserved from original) ───────────────────
 
 def _context_to_json(context: Mapping[str, Any]) -> str:
-    return json.dumps(context, ensure_ascii=True, sort_keys=True, default=str, indent=2)
+    serialized = json.dumps(context, ensure_ascii=True, sort_keys=True, default=str, indent=2)
+    if len(serialized) > _MAX_CONTEXT_CHARS:
+        serialized = serialized[:_MAX_CONTEXT_CHARS] + "\n... [TRUNCATED — context exceeded budget]"
+    return serialized
 
 
 def _looks_structured_explanation(text: str) -> bool:

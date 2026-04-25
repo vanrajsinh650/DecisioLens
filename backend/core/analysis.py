@@ -189,17 +189,28 @@ def detect_bias_patterns(
     }
 
 
-def classify_confidence(score: Any) -> str:
+def classify_confidence(score: Any, threshold: float = 0.5) -> str:
     """
-    Classify confidence zone from score distance to the neutral midpoint (0.5).
+    Classify confidence zone from score distance to the active decision
+    threshold (not the neutral midpoint).
+
+    Parameters
+    ----------
+    score : numeric
+        The raw probability score in [0, 1].
+    threshold : float
+        The decision boundary actually used for ACCEPT/REJECT.
     """
 
     normalized_score = _normalize_score(score, "score")
-    distance_to_midpoint = abs(normalized_score - 0.5)
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError("threshold must be between 0 and 1")
 
-    if distance_to_midpoint >= HIGH_CONFIDENCE_DISTANCE:
+    distance_to_boundary = abs(normalized_score - threshold)
+
+    if distance_to_boundary >= HIGH_CONFIDENCE_DISTANCE:
         return "High confidence"
-    if distance_to_midpoint >= BORDERLINE_DISTANCE:
+    if distance_to_boundary >= BORDERLINE_DISTANCE:
         return "Borderline"
     return "Unstable"
 

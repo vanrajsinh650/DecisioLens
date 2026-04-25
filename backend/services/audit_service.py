@@ -101,7 +101,7 @@ class AuditService:
         original_result = {"score": original_score, "decision": original_decision}
 
         # ── 4. Threshold sensitivity (reuses baseline score) ─────────
-        threshold_results = analyze_threshold_sensitivity(original_score)
+        threshold_results = analyze_threshold_sensitivity(original_score, user_threshold=threshold)
         threshold_analysis = [
             ThresholdAnalysisItem(threshold=tv, decision=d)
             for tv, d in threshold_results.items()
@@ -140,7 +140,7 @@ class AuditService:
         )
 
         # ── 7. Confidence / risk / reason tags ───────────────────────
-        confidence_zone = classify_confidence(original_score)
+        confidence_zone = classify_confidence(original_score, threshold)
         risk_assessment = compute_risk_score(
             instability=instability_report,
             bias_detected=bool(bias_report.get("has_bias_flags")),

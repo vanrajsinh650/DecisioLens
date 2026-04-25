@@ -230,10 +230,13 @@ def compute_score_from_validated(profile: Mapping[str, Any]) -> float:
     """
     Dispatch to the correct domain scorer.
 
-    Falls back to the hiring scorer for unknown domains.
+    Raises ``KeyError`` for unknown domains — validation should have
+    rejected them before this point.
     """
     domain = str(profile.get("domain") or "hiring").lower()
-    scorer = _DOMAIN_SCORERS.get(domain, _score_hiring)
+    scorer = _DOMAIN_SCORERS.get(domain)
+    if scorer is None:
+        raise KeyError(f"No scorer registered for domain '{domain}'")
     return scorer(profile)
 
 

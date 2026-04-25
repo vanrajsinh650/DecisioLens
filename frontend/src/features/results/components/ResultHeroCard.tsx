@@ -65,6 +65,44 @@ export default function ResultHeroCard({
         >
             {/* Left side */}
             <div style={{ flex: "1 1 400px" }}>
+                {/* Domain + profile context */}
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        flexWrap: "wrap",
+                        marginBottom: "8px",
+                    }}
+                >
+                    <span
+                        className="font-mono uppercase"
+                        style={{
+                            fontSize: "var(--fs-micro)",
+                            fontWeight: 600,
+                            letterSpacing: "0.08em",
+                            color: "var(--aurora-teal)",
+                            background: "var(--aurora-teal-surface)",
+                            border: "1px solid hsl(172 33% 20%)",
+                            borderRadius: "4px",
+                            padding: "4px 10px",
+                        }}
+                    >
+                        {request.domain?.toUpperCase() ?? "UNKNOWN"}
+                    </span>
+                    {request.profile?.name && (
+                        <span
+                            className="font-body"
+                            style={{
+                                fontSize: "var(--fs-micro)",
+                                color: "var(--t2)",
+                            }}
+                        >
+                            Profile: {String(request.profile.name)}
+                        </span>
+                    )}
+                </div>
+
                 {/* Overline with timestamp */}
                 <p
                     className="font-mono"

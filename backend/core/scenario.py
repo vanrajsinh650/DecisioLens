@@ -148,7 +148,9 @@ def generate_variations(profile: Mapping[str, Any]) -> list[dict[str, Any]]:
     """
     base = validate_profile(profile)
     domain = str(base.get("domain") or "hiring").lower()
-    generator = _DOMAIN_VARIATION_GENERATORS.get(domain, _variations_hiring)
+    generator = _DOMAIN_VARIATION_GENERATORS.get(domain)
+    if generator is None:
+        raise KeyError(f"No variation generator for domain '{domain}'")
     return generator(base)
 
 

@@ -191,9 +191,9 @@ export default function ResultsExperience() {
     return (
         <div ref={revealContainerRef} style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
             <SectionHeader
-                overline="VERDICT CHAMBER"
+                overline={`${session.domain?.toUpperCase() ?? "AUDIT"} · VERDICT CHAMBER`}
                 title="Decision Trust Report"
-                subtitle="Scrollable narrative. Each section is a chapter. Understand the verdict before reading details."
+                subtitle={`${session.domain?.charAt(0).toUpperCase()}${session.domain?.slice(1) ?? "Audit"} domain audit report. Each section is a chapter. Understand the verdict before reading details.`}
                 actions={
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
                         <button

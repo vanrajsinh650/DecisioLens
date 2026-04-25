@@ -4,7 +4,7 @@ from typing import Literal
 
 
 Decision = Literal["ACCEPT", "REJECT"]
-SENSITIVITY_THRESHOLDS: tuple[float, ...] = (
+_BASE_SENSITIVITY_THRESHOLDS: tuple[float, ...] = (
     0.1,
     0.2,
     0.3,
@@ -34,17 +34,33 @@ def make_decision(score: float, threshold: float) -> Decision:
     return "ACCEPT" if score >= threshold else "REJECT"
 
 
-def analyze_threshold_sensitivity(score: float) -> dict[float, Decision]:
+def analyze_threshold_sensitivity(
+    score: float,
+    user_threshold: float | None = None,
+) -> dict[float, Decision]:
     """
     Evaluate how one score behaves across multiple threshold cutoffs.
 
-    Returns a deterministic threshold -> decision map.
+    Always includes 0.0 and 1.0 endpoints.  When *user_threshold* is
+    provided it is added to the sweep so configurations near the
+    extremes (e.g. 0.95) are never missed.
+
+    Returns a deterministic threshold → decision map sorted by threshold.
     """
 
     if not 0.0 <= score <= 1.0:
         raise ValueError("score must be between 0 and 1")
 
+    # Build a unique, sorted set of thresholds
+    thresholds: set[float] = {0.0, 1.0}
+    thresholds.update(_BASE_SENSITIVITY_THRESHOLDS)
+    if user_threshold is not None:
+        if not 0.0 <= user_threshold <= 1.0:
+            raise ValueError("user_threshold must be between 0 and 1")
+        thresholds.add(round(user_threshold, 6))
+
     return {
         threshold: make_decision(score=score, threshold=threshold)
-        for threshold in SENSITIVITY_THRESHOLDS
+        for threshold in sorted(thresholds)
     }
+
