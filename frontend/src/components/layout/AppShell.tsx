@@ -1,13 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { ReactNode } from "react";
 import TopBar from "@/components/layout/TopBar";
-
-const ParticleCanvas = dynamic(
-    () => import("@/components/shared/ParticleCanvas"),
-    { ssr: false }
-);
 
 interface AppShellProps {
     children: ReactNode;
@@ -16,7 +10,6 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
     return (
         <div className="dl-shell text-t1">
-            <ParticleCanvas />
             <TopBar />
             <main className="dl-content" style={{
                 maxWidth: "1200px",

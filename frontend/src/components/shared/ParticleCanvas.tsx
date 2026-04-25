@@ -13,7 +13,7 @@ import * as THREE from "three";
  * Hidden below 768px viewport width (handled via CSS).
  */
 
-const PARTICLE_COUNT = 800;
+const PARTICLE_COUNT = 400;
 const PARALLAX_RANGE = 18; // ±18px max shift
 const LERP_SPEED = 0.04;
 
@@ -174,11 +174,19 @@ export default function ParticleCanvas() {
         };
         window.addEventListener("mousemove", handleMouseMove);
 
+        // Throttle to ~30fps to reduce GPU/CPU load
+        let lastFrameTime = 0;
+        const FRAME_INTERVAL = 1000 / 30;
+
         const startAnimation = () => {
             if (rafId.current !== 0) return;
 
-            const animate = () => {
-                // Lerp interpolation gravitational, slow
+            const animate = (now: number) => {
+                rafId.current = requestAnimationFrame(animate);
+
+                if (now - lastFrameTime < FRAME_INTERVAL) return;
+                lastFrameTime = now;
+
                 mouseCurrent.current.x = lerp(mouseCurrent.current.x, mouseTarget.current.x, LERP_SPEED);
                 mouseCurrent.current.y = lerp(mouseCurrent.current.y, mouseTarget.current.y, LERP_SPEED);
 
@@ -186,7 +194,6 @@ export default function ParticleCanvas() {
                 group.position.y = mouseCurrent.current.y;
 
                 renderer.render(scene, camera);
-                rafId.current = requestAnimationFrame(animate);
             };
 
             rafId.current = requestAnimationFrame(animate);

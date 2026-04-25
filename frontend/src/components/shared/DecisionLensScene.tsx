@@ -211,10 +211,17 @@ export default function DecisionLensScene() {
         };
         window.addEventListener("mousemove", handleMouseMove);
 
-        // ─── Animation loop ───
+        // ─── Animation loop (throttled to 30fps) ───
         let frameCount = 0;
+        let lastFrameTime = 0;
+        const FRAME_INTERVAL = 1000 / 30;
 
-        const animate = () => {
+        const animate = (now: number) => {
+            rafId.current = requestAnimationFrame(animate);
+
+            if (now - lastFrameTime < FRAME_INTERVAL) return;
+            lastFrameTime = now;
+
             frameCount++;
 
             // Mouse parallax
@@ -245,7 +252,6 @@ export default function DecisionLensScene() {
             scene.rotation.x = mouseCurrent.current.y * 0.003;
 
             renderer.render(scene, camera);
-            rafId.current = requestAnimationFrame(animate);
         };
 
         if (!document.hidden) {
