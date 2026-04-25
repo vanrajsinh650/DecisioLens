@@ -61,16 +61,19 @@ export const formatRiskLabel = (level: string): string => {
 
   const numericLevel = Number(normalized);
   if (Number.isFinite(numericLevel)) {
-    if (numericLevel <= 30) return "Low Risk";
-    if (numericLevel <= 70) return "Medium Risk";
-    return "High Risk";
+    if (numericLevel <= 30) return "🟢 Safe";
+    if (numericLevel <= 60) return "🟡 Borderline";
+    return "🔴 High Risk";
   }
 
-  const titleCase = normalized
-    .toLowerCase()
-    .replace(/\b\w/g, (character) => character.toUpperCase());
+  const lower = normalized.toLowerCase();
+  if (lower === "safe") return "🟢 Safe";
+  if (lower === "borderline") return "🟡 Borderline";
+  if (lower === "high_risk" || lower === "high") return "🔴 High Risk";
+  if (lower === "low") return "🟢 Safe";
+  if (lower === "medium") return "🟡 Borderline";
 
-  return titleCase.includes("Risk") ? titleCase : `${titleCase} Risk`;
+  return normalized;
 };
 
 export const formatRiskScore = (score: number): string => {
@@ -100,7 +103,7 @@ export const normalizeDecisionTone = (
 export const normalizeRiskTone = (level: string | number): SignalTone => {
   if (typeof level === "number" && Number.isFinite(level)) {
     if (level <= 30) return "safe";
-    if (level <= 70) return "warn";
+    if (level <= 60) return "warn";
     return "risk";
   }
 
@@ -109,12 +112,12 @@ export const normalizeRiskTone = (level: string | number): SignalTone => {
 
   if (Number.isFinite(numericLevel)) {
     if (numericLevel <= 30) return "safe";
-    if (numericLevel <= 70) return "warn";
+    if (numericLevel <= 60) return "warn";
     return "risk";
   }
 
-  if (normalized === "low") return "safe";
-  if (normalized === "high") return "risk";
+  if (normalized === "low" || normalized === "safe") return "safe";
+  if (normalized === "high" || normalized === "high_risk") return "risk";
   return "warn";
 };
 

@@ -12,10 +12,12 @@ import Walkthrough from "@/components/shared/Walkthrough";
 import AppealCard from "@/features/results/components/AppealCard";
 import DecisionSummaryCard from "@/features/results/components/DecisionSummaryCard";
 import ExplanationCard from "@/features/results/components/ExplanationCard";
+import ImpactAnalysisCard from "@/features/results/components/ImpactAnalysisCard";
 import JuryPanel from "@/features/results/components/JuryPanel";
 import RawAuditPayloadCard from "@/features/results/components/RawAuditPayloadCard";
 import ResultHeroCard from "@/features/results/components/ResultHeroCard";
 import RiskInsightCard from "@/features/results/components/RiskInsightCard";
+import StabilityZoneCard from "@/features/results/components/StabilityZoneCard";
 import ThresholdSensitivityCard from "@/features/results/components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "@/features/results/components/VariationsComparisonCard";
 import { useAudit } from "@/hooks/useAudit";
@@ -53,11 +55,11 @@ function clampThreshold(value: number): number {
 }
 
 function deriveTrustVerdict(riskScore: number): TrustVerdict {
-    if (riskScore >= 70) {
+    if (riskScore > 60) {
         return "HIGH_RISK";
     }
 
-    if (riskScore >= 35) {
+    if (riskScore > 30) {
         return "UNSTABLE";
     }
 
@@ -545,6 +547,19 @@ export default function AuditWorkspace() {
                             confidenceZone={latestSession.response.original.confidence_zone ?? "Unknown"}
                         />
                     </div>
+
+                    {latestSession.response.stability_zone && (
+                        <div className="print-section">
+                            <StabilityZoneCard stabilityZone={latestSession.response.stability_zone} />
+                        </div>
+                    )}
+
+                    {latestSession.response.impact_analysis && latestSession.response.impact_analysis.length > 0 && (
+                        <div className="print-section">
+                            <ImpactAnalysisCard impacts={latestSession.response.impact_analysis} />
+                        </div>
+                    )}
+
                     <div className="print-section">
                         <VariationsComparisonCard variations={latestSession.response.variations} />
                     </div>
