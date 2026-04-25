@@ -65,6 +65,8 @@ def _normalize_gender(value: Any) -> str | None:
 
 
 def _coerce_number(value: Any, field: str) -> float:
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be numeric, got bool")
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
