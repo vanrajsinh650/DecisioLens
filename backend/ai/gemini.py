@@ -318,7 +318,7 @@ def _fallback_explanation(context: Mapping[str, Any]) -> str:
 
     return (
         f"Summary: {summary}\n\n"
-        "Key Drivers:\n"
+        "Key Reason:\n"
         f"{reason_lines}\n\n"
         f"Risk: {risk_level.title()} ({risk_score}/100)\n\n"
         "Recommendation:\n"
