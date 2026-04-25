@@ -38,6 +38,10 @@ _MAX_CONTEXT_CHARS = 8_192
 # Maximum concurrent Gemini API calls across all requests.
 _GEMINI_CONCURRENCY_LIMIT = 10
 
+# Per-call timeout in seconds. If Gemini doesn't respond in time,
+# the call returns None and the service uses the fallback template.
+_GEMINI_CALL_TIMEOUT_SECONDS = 15
+
 
 # ── GeminiService ────────────────────────────────────────────────────
 
@@ -163,18 +167,23 @@ class GeminiService:
 
         async with self._semaphore:
             try:
-                response = await asyncio.to_thread(
-                    self._client.models.generate_content,
-                    model=self._model,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        systemInstruction=system_instruction,
-                        temperature=temperature,
-                        maxOutputTokens=max_output_tokens,
+                response = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self._client.models.generate_content,
+                        model=self._model,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            systemInstruction=system_instruction,
+                            temperature=temperature,
+                            maxOutputTokens=max_output_tokens,
+                        ),
                     ),
+                    timeout=_GEMINI_CALL_TIMEOUT_SECONDS,
                 )
+            except asyncio.TimeoutError:
+                logger.warning("Gemini call timed out after %ds — using fallback", _GEMINI_CALL_TIMEOUT_SECONDS)
+                return None
             except Exception as exc:
-                # Log a clean one-liner, not the full traceback
                 logger.warning("Gemini API call failed — using fallback: %s", exc)
                 return None
 
