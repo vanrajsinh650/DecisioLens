@@ -57,7 +57,7 @@ export const VARIATION_LABELS: Record<string, string> = getAllStaticDomains().re
 
 export const REASON_TAG_LABELS: Record<string, string> = {
   threshold_sensitive: "Result Changes If Strictness Changes",
-  profile_instability: "Profile Is Fragile",
+  profile_instability: "Result Is Easy To Change",
   location_sensitive: "Location Matters",
   demographic_sensitive: "Demographics Matter",
   education_sensitive: "Education Matters",
@@ -68,5 +68,5 @@ export const REASON_TAG_LABELS: Record<string, string> = {
   condition_sensitive: "Health Condition Matters",
   region_sensitive: "Region Matters",
   income_sensitive: "Income Matters",
-  bias_detected: "Bias Detected",
+  bias_detected: "Unfairness Detected",
 };

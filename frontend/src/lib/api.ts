@@ -49,7 +49,7 @@ const toProfilePatch = (value: unknown): AuditResponse["variations"][number]["pr
 /**
  * Build the backend payload from the frontend AuditRequest.
  *
- * The backend now accepts domain-specific profiles directly —
+ * The backend now accepts domain-specific profiles directly  
  * no field remapping needed. We just inject the domain into the
  * profile so the backend scoring engine can dispatch correctly.
  */

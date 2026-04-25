@@ -72,7 +72,7 @@ export default function AuditForm({
             </div>
 
             {/* Divider */}
-            <div style={{ height: "1px", background: "var(--rim)" }} />
+            <div style={{ height: "1px", background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%)" }} />
 
             {/* Custom field builder for custom domain */}
             {domain === "custom" && (
@@ -91,11 +91,11 @@ export default function AuditForm({
                         </label>
                         <CustomFieldBuilder onChange={onCustomFieldsChange} disabled={isLoading} />
                     </div>
-                    <div style={{ height: "1px", background: "var(--rim)" }} />
+                    <div style={{ height: "1px", background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%)" }} />
                 </>
             )}
 
-            {/* Candidate Profile — section overline */}
+            {/* Candidate Profile section overline */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <p
                     className="font-body uppercase"
@@ -110,7 +110,7 @@ export default function AuditForm({
                 </p>
 
                 {/* Full-width rule under overline */}
-                <div style={{ height: "1px", background: "var(--rim)" }} />
+                <div style={{ height: "1px", background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%)" }} />
 
                 <ProfileFields
                     fields={profileFields}
@@ -121,7 +121,7 @@ export default function AuditForm({
             </div>
 
             {/* Divider */}
-            <div style={{ height: "1px", background: "var(--rim)" }} />
+            <div style={{ height: "1px", background: "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%)" }} />
 
             {/* Decision Threshold section */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

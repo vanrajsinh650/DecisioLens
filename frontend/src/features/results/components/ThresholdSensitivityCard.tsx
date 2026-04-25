@@ -153,22 +153,18 @@ export default function ThresholdSensitivityCard({
                     <thead>
                         <tr style={{ background: "var(--s2)" }}>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Strictness Level
+                                If Passing Score Was
                             </th>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Score Needed To Pass
-                            </th>
-                            <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Result
+                                Your Result
                             </th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map((row, index) => {
-                            const isFlipped = originalDecision
-                                ? row.decision !== originalDecision
-                                : false;
-                            const bgColor = index % 2 === 0 ? "var(--s1)" : "var(--s2)";
+                            const isBaseline = Math.abs(row.threshold - baselineThreshold) < 0.001;
+                            const isAccept = row.decision === "ACCEPT";
+                            const bgColor = isBaseline ? "var(--aurora-amber-surface)" : index % 2 === 0 ? "var(--s1)" : "var(--s2)";
 
                             return (
                                 <tr
@@ -183,38 +179,13 @@ export default function ThresholdSensitivityCard({
                                         style={{
                                             padding: "10px 16px",
                                             fontSize: "var(--fs-mono)",
-                                            color: "var(--t1)",
+                                            color: isBaseline ? "var(--t1)" : "var(--t2)",
                                         }}
                                     >
                                         {formatThreshold(row.threshold * 100)}
                                     </td>
-                                    <td
-                                        className="font-mono"
-                                        style={{
-                                            padding: "10px 16px",
-                                            fontSize: "var(--fs-mono)",
-                                            color: "var(--t2)",
-                                        }}
-                                    >
-                                        {formatThreshold(row.threshold * 100)}
-                                    </td>
-                                    <td style={{ padding: "10px 16px" }}>
-                                        {isFlipped ? (
-                                            <span
-                                                className="font-mono uppercase"
-                                                style={{
-                                                    fontSize: "var(--fs-micro)",
-                                                    letterSpacing: "0.05em",
-                                                    color: "var(--aurora-amber)",
-                                                    padding: "3px 10px",
-                                                    background: "var(--aurora-amber-surface)",
-                                                    border: "1px solid hsl(35, 70%, 24%)",
-                                                    borderRadius: "100px",
-                                                }}
-                                            >
-                                                ⚡ Would Fail Here
-                                            </span>
-                                        ) : row.decision === "ACCEPT" ? (
+                                    <td style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                                        {isAccept ? (
                                             <span
                                                 className="font-mono uppercase"
                                                 style={{
@@ -227,7 +198,7 @@ export default function ThresholdSensitivityCard({
                                                     borderRadius: "100px",
                                                 }}
                                             >
-                                                ✅ Passes
+                                                APPROVED
                                             </span>
                                         ) : (
                                             <span
@@ -242,7 +213,12 @@ export default function ThresholdSensitivityCard({
                                                     borderRadius: "100px",
                                                 }}
                                             >
-                                                ❌ Fails
+                                                REJECTED
+                                            </span>
+                                        )}
+                                        {isBaseline && (
+                                            <span className="font-mono uppercase" style={{ fontSize: "10px", color: "var(--aurora-amber)", fontWeight: 600, letterSpacing: "0.05em" }}>
+                                                ( ACTUAL SETTING )
                                             </span>
                                         )}
                                     </td>
@@ -266,9 +242,9 @@ export default function ThresholdSensitivityCard({
                     }}
                 >
                     <p className="font-body" style={{ fontSize: "var(--fs-body)", color: "var(--t1)" }}>
-                        The outcome flipped at {flipPoints} out of {rows.length} threshold levels we tested.
-                        This profile sits in the <strong>{confidenceZone.toLowerCase()}</strong> zone.
-                        A small policy change could flip this decision.
+                        The AI changes its mind at {flipPoints} out of {rows.length} strictness levels we tested.
+                        This profile sits in the <strong>{confidenceZone.toLowerCase().replace("borderline", "close call").replace("fragile", "easy to change")}</strong> zone.
+                        A small policy change could easily change this decision.
                     </p>
                 </div>
             )}

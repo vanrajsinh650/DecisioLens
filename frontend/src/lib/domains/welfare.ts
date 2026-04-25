@@ -52,7 +52,7 @@ export const welfareDomain: DomainConfig = {
     presets: [
         {
             id: "rural-farmer-borderline",
-            title: "Rural Farmer — Borderline",
+            title: "Rural Farmer Borderline",
             description: "A small farmer in a remote region sitting right at the eligibility cutoff. Tests whether region and category affect the final decision.",
             threshold: 0.48,
             profile: {

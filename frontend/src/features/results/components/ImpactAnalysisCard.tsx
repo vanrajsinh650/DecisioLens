@@ -3,109 +3,127 @@ import React from "react";
 import type { ImpactItem } from "@/types/audit";
 
 interface ImpactAnalysisCardProps {
-  impacts: ImpactItem[];
+    impacts: ImpactItem[];
 }
 
 export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps) {
-  if (!impacts || impacts.length === 0) return null;
+    if (!impacts || impacts.length === 0) return null;
 
-  const maxDelta = Math.max(...impacts.map((i) => Math.abs(i.delta)), 0.01);
+    // Anchor maxDelta at 0.15 so small 3% changes don't look massive
+    const maxDelta = Math.max(...impacts.map((i) => Math.abs(i.delta)), 0.15);
 
-  return (
-    <section className="result-card" id="impact-analysis-card">
-      <h3 className="result-card__title">
-        🔍 What Affected The Score?
-      </h3>
-
-      <div className="impact-list">
-        {impacts.map((item, i) => {
-          const barWidth = Math.min((Math.abs(item.delta) / maxDelta) * 100, 100);
-          const isPositive = item.direction === "positive";
-          const pct = (item.delta * 100).toFixed(1);
-          const sign = isPositive ? "+" : "";
-
-          return (
-            <div
-              key={i}
-              className={`impact-row ${item.decision_changed ? "impact-row--flipped" : ""}`}
-            >
-              <span className="impact-row__label">{item.variable}</span>
-              <div className="impact-row__bar-track">
-                <div
-                  className={`impact-row__bar ${isPositive ? "impact-row__bar--positive" : "impact-row__bar--negative"}`}
-                  style={{ width: `${barWidth}%` }}
-                />
-              </div>
-              <span className={`impact-row__delta ${isPositive ? "impact-row__delta--positive" : "impact-row__delta--negative"}`}>
-                {sign}{pct}%
-              </span>
-              {item.decision_changed && (
-                <span className="impact-row__flip" title="This change flipped the decision">
-                  ⚡
-                </span>
-              )}
+    return (
+        <div className="dl-reveal dl-card">
+            {/* Header */}
+            <div style={{ marginBottom: "24px" }}>
+                <p
+                    className="font-body uppercase"
+                    style={{
+                        fontSize: "var(--fs-label)",
+                        fontWeight: 600,
+                        letterSpacing: "0.12em",
+                        color: "var(--t1)",
+                    }}
+                >
+                    WHAT AFFECTED THE SCORE?
+                </p>
+                <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
+                    The impact of individual variables on the final AI decision score.
+                </p>
             </div>
-          );
-        })}
-      </div>
 
-      <style jsx>{`
-        .impact-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          margin-top: 12px;
-        }
-        .impact-row {
-          display: grid;
-          grid-template-columns: 140px 1fr 60px 24px;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 0;
-        }
-        .impact-row--flipped {
-          background: rgba(250, 204, 21, 0.05);
-          border-radius: 4px;
-          padding: 6px 8px;
-        }
-        .impact-row__label {
-          font-size: 13px;
-          color: var(--text-secondary, rgba(255,255,255,0.7));
-          font-family: var(--font-mono, monospace);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .impact-row__bar-track {
-          height: 8px;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 4px;
-          overflow: hidden;
-        }
-        .impact-row__bar {
-          height: 100%;
-          border-radius: 4px;
-          transition: width 0.5s ease;
-        }
-        .impact-row__bar--positive {
-          background: linear-gradient(90deg, rgba(34, 197, 94, 0.6), rgba(34, 197, 94, 0.9));
-        }
-        .impact-row__bar--negative {
-          background: linear-gradient(90deg, rgba(239, 68, 68, 0.6), rgba(239, 68, 68, 0.9));
-        }
-        .impact-row__delta {
-          font-size: 12px;
-          font-weight: 600;
-          font-family: var(--font-mono, monospace);
-          text-align: right;
-        }
-        .impact-row__delta--positive { color: #22c55e; }
-        .impact-row__delta--negative { color: #ef4444; }
-        .impact-row__flip {
-          font-size: 14px;
-          cursor: help;
-        }
-      `}</style>
-    </section>
-  );
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
+                {impacts.map((item, i) => {
+                    const barWidth = Math.min((Math.abs(item.delta) / maxDelta) * 100, 100);
+                    const isPositive = item.direction === "positive";
+                    const pct = (item.delta * 100).toFixed(1);
+                    const sign = isPositive ? "+" : "";
+
+                    return (
+                        <div
+                            key={i}
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "140px 1fr 60px 50px",
+                                alignItems: "center",
+                                gap: "16px",
+                                padding: "8px 12px",
+                                background: item.decision_changed ? "var(--aurora-amber-surface)" : "transparent",
+                                border: item.decision_changed ? "1px solid hsl(38, 82%, 24%)" : "1px solid transparent",
+                                borderRadius: "4px",
+                            }}
+                        >
+                            {/* Label */}
+                            <span
+                                className="font-mono"
+                                style={{
+                                    fontSize: "var(--fs-mono)",
+                                    color: "var(--t1)",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                }}
+                            >
+                                {item.variable}
+                            </span>
+
+                            {/* Bar Track */}
+                            <div
+                                style={{
+                                    height: "6px",
+                                    background: "var(--s2)",
+                                    borderRadius: "3px",
+                                    overflow: "hidden",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        height: "100%",
+                                        width: `${barWidth}%`,
+                                        background: isPositive ? "var(--aurora-green)" : "var(--aurora-crimson)",
+                                        borderRadius: "3px",
+                                        transition: "width 0.5s ease",
+                                    }}
+                                />
+                            </div>
+
+                            {/* Value */}
+                            <span
+                                className="font-mono"
+                                style={{
+                                    fontSize: "var(--fs-mono)",
+                                    fontWeight: 600,
+                                    color: isPositive ? "var(--aurora-green)" : "var(--aurora-crimson)",
+                                    textAlign: "right",
+                                }}
+                            >
+                                {sign}{pct}%
+                            </span>
+
+                            {/* Flip indicator */}
+                            <div style={{ textAlign: "right" }}>
+                                {item.decision_changed && (
+                                    <span
+                                        className="font-mono"
+                                        title="This change flipped the decision"
+                                        style={{
+                                            fontSize: "0.65rem",
+                                            fontWeight: 600,
+                                            padding: "2px 6px",
+                                            background: "var(--aurora-amber)",
+                                            color: "#000",
+                                            borderRadius: "2px",
+                                            letterSpacing: "0.05em",
+                                        }}
+                                    >
+                                        FLIP
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 }

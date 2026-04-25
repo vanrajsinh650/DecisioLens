@@ -35,6 +35,11 @@ export default function StatPill({
                 border: "1px solid var(--rim)",
                 position: "relative",
                 overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                minHeight: "100%",
+                paddingBottom: (typeof gaugeValue === "number" || emphasize) ? "24px" : "16px",
             }}
         >
             <p
@@ -52,9 +57,13 @@ export default function StatPill({
                 className="font-mono"
                 style={{
                     marginTop: "8px",
-                    fontSize: "1.25rem",
+                    fontSize: value.length > 15 ? "1.1rem" : "1.25rem",
                     fontWeight: 600,
-                    color: palette.colorVar,
+                    color: "var(--t1)",
+                    lineHeight: "1.4",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                 }}
             >
                 {value}

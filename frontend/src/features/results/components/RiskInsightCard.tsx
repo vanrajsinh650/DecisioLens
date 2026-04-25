@@ -53,14 +53,14 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     gaugeValue={insights.risk_score}
                 />
                 <StatPill
-                    label="DECISION STABILITY"
-                    value={instabilityDetected ? "⚠️ Decision is Fragile" : "STABLE"}
+                    label="DECISION RELIABILITY"
+                    value={instabilityDetected ? "EASY TO CHANGE" : "SOLID"}
                     tone={instabilityDetected ? "warn" : "safe"}
                     gaugeValue={instabilityDetected ? 75 : 15}
                 />
                 <StatPill
-                    label="GENDER & LOCATION BIAS CHECK"
-                    value={biasDetected ? "DETECTED" : "✅ No Bias Found"}
+                    label="UNFAIRNESS CHECK"
+                    value={biasDetected ? "DETECTED" : "FAIR"}
                     tone={biasDetected ? "risk" : "safe"}
                     gaugeValue={biasDetected ? 85 : 10}
                 />

@@ -15,11 +15,8 @@ import StabilityZoneCard from "./components/StabilityZoneCard";
 import ThresholdSensitivityCard from "./components/ThresholdSensitivityCard";
 import VariationsComparisonCard from "./components/VariationsComparisonCard";
 import SectionHeader from "@/components/layout/SectionHeader";
-import CopyButton from "@/components/shared/CopyButton";
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
-import { printAuditReport } from "@/lib/export";
-import { decodeSession, encodeSession } from "@/lib/share";
 import { clearAuditSession, readAuditSession, saveAuditDraft } from "@/lib/session";
 import {
     clearSelectedHistoryAuditId,
@@ -43,26 +40,8 @@ export default function ResultsExperience() {
     const revealContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const encoded = searchParams.get("data");
         const historyId = searchParams.get("id") ?? getSelectedHistoryAuditId();
-
-        if (encoded) {
-            const decodedSession = decodeSession(encoded);
-            if (!decodedSession) {
-                setError("Shared link is invalid or corrupted.");
-                setSession(null);
-                setReadOnly(true);
-                setIsSessionReady(true);
-                return;
-            }
-
-            setSession(decodedSession);
-            setError(null);
-            setReadOnly(true);
-            setIsSessionReady(true);
-            return;
-        }
-
+        
         if (historyId) {
             const fromHistory = getAuditHistoryItem(historyId)
                 ?? getAuditHistory().find((item) => item.id === historyId)
@@ -137,14 +116,6 @@ export default function ResultsExperience() {
         return () => clearTimeout(timer);
     }, [session]);
 
-    const shareUrl = useMemo(() => {
-        if (!session || typeof window === "undefined") {
-            return "";
-        }
-
-        return `${window.location.origin}/results?data=${encodeSession(session)}`;
-    }, [session]);
-
     if (!isSessionReady) {
         return (
             <LoadingState
@@ -169,7 +140,7 @@ export default function ResultsExperience() {
         return (
             <EmptyState
                 title="No results yet"
-                description="Scan an AI decision first to see where it could be wrong — and why."
+                description="Scan an AI decision first to see where it could be wrong and why."
                 ctaLabel="Scan a Decision"
                 ctaHref="/audit"
             />
@@ -196,28 +167,9 @@ export default function ResultsExperience() {
                 overline={`${session.domain?.toUpperCase() ?? "ANALYSIS"} · YOUR RESULT`}
                 title="Decision Trust Report"
                 subtitle="This report shows if the AI decision about you was fair, stable, and trustworthy."
-                actions={
-                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
-                        <button
-                            id="btn-download-report"
-                            data-no-print
-                            type="button"
-                            onClick={() => printAuditReport(String(session.request.profile.name ?? "Audit Report"))}
-                            className="dl-btn-ghost"
-                        >
-                            Download My Report
-                        </button>
-                        <CopyButton
-                            id="btn-share-result"
-                            value={shareUrl}
-                            label="Share This Result →"
-                            copiedLabel="✓ Copied"
-                        />
-                    </div>
-                }
             />
 
-            {/* Section 1 — Verdict Hero */}
+            {/* Section 1 Verdict Hero */}
             <div className="print-section">
                 <ResultHeroCard
                     session={session}
@@ -227,21 +179,21 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 2 — Decision Stability Zone */}
+            {/* Section 2 Decision Stability Zone */}
             {session.response.stability_zone && (
                 <div className="print-section">
                     <StabilityZoneCard stabilityZone={session.response.stability_zone} />
                 </div>
             )}
 
-            {/* Section 3 — Impact Analysis */}
+            {/* Section 3 Impact Analysis */}
             {session.response.impact_analysis && session.response.impact_analysis.length > 0 && (
                 <div className="print-section">
                     <ImpactAnalysisCard impacts={session.response.impact_analysis} />
                 </div>
             )}
 
-            {/* Section 4 — Threshold Sensitivity */}
+            {/* Section 4 Threshold Sensitivity */}
             <div className="print-section">
                 <ThresholdSensitivityCard
                     rows={session.response.threshold_analysis}
@@ -251,12 +203,12 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 5 — What happens if we change small details? */}
+            {/* Section 5 What happens if we change small details? */}
             <div className="print-section">
                 <VariationsComparisonCard variations={session.response.variations} />
             </div>
 
-            {/* Section 4 — Risk Summary */}
+            {/* Section 4 Risk Summary */}
             <div className="print-section">
                 <RiskInsightCard
                     insights={session.response.insights}
@@ -264,19 +216,19 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 4a — Request Human Review */}
+            {/* Section 4a Request Human Review */}
             {session.response.human_review && (
                 <div className="print-section">
                     <HumanReviewCard humanReview={session.response.human_review} />
                 </div>
             )}
 
-            {/* Section 5 — What This Means For You */}
+            {/* Section 5 What This Means For You */}
             <div className="print-section">
                 <ExplanationCard explanation={session.response.explanation} />
             </div>
 
-            {/* Section 5a — How To Improve Your Chances */}
+            {/* Section 5a How To Improve Your Chances */}
             {session.response.recourse && session.response.recourse.length > 0 && (
                 <div className="print-section">
                     <RecourseCard
@@ -286,7 +238,7 @@ export default function ResultsExperience() {
                 </div>
             )}
 
-            {/* Section 6 — What You Can Do Next */}
+            {/* Section 6 What You Can Do Next */}
             <div className="print-section">
                 <AppealCard
                     appeal={session.response.appeal}
@@ -294,7 +246,7 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 7 — What Our System Says */}
+            {/* Section 7 What Our System Says */}
             {session.response.ai_jury_view ? (
                 <div className="print-section">
                     <JuryPanel jury={session.response.ai_jury_view} />

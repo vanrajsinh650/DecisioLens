@@ -13,7 +13,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
         return null;
     }
 
-    // Limit to 6 scenarios — 3×2 grid per spec
+    // Limit to 6 scenarios 3×2 grid per spec
     const displayVariations = variations.slice(0, 6);
 
     return (

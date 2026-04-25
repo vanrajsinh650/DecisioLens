@@ -36,7 +36,7 @@ export default function RawAuditPayloadCard({ session }: RawAuditPayloadCardProp
                     transition: "color 0.15s ease",
                 }}
             >
-                <span>[ RAW PAYLOAD — CLICK TO EXPAND ]</span>
+                <span>[ RAW PAYLOAD CLICK TO EXPAND ]</span>
                 <CopyButton value={responseJson} label="Copy JSON →" copiedLabel="✓ Copied" />
             </summary>
             <div

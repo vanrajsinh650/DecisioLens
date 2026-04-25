@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
- * DecisionLensScene — A rotating wireframe torus ("the lens") with orbiting 
+ * DecisionLensScene A rotating wireframe torus ("the lens") with orbiting 
  * data nodes and ambient particle dust. Inspired by AgentScope's planetary ring
- * but themed for decision auditing — a scanning instrument peering into the void.
+ * but themed for decision auditing a scanning instrument peering into the void.
  * 
  * Renders behind the hero text, responds to mouse parallax, and fades in on load.
  */
@@ -50,7 +50,7 @@ export default function DecisionLensScene() {
         // Orbit is perfectly centered vertically
         scene.position.y = 0;
 
-        // Camera — perspective for depth
+        // Camera perspective for depth
         const camera = new THREE.PerspectiveCamera(50, width / height, 1, 2000);
         camera.position.set(0, 100, 480);
         camera.lookAt(0, 0, 0);
@@ -68,10 +68,10 @@ export default function DecisionLensScene() {
         // ─── Main wireframe torus (the "lens") ───
         const torusGeom = new THREE.TorusGeometry(TORUS_RADIUS, TORUS_TUBE, 24, 64);
         const torusMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("hsl(265, 65%, 32%)"),
+            color: new THREE.Color("#FF4500"),
             wireframe: true,
             transparent: true,
-            opacity: 0.18,
+            opacity: 0.15,
         });
         const torus = new THREE.Mesh(torusGeom, torusMat);
         torus.rotation.x = Math.PI * 0.5;
@@ -80,7 +80,7 @@ export default function DecisionLensScene() {
         // ─── Inner ring (scanning band) ───
         const innerRingGeom = new THREE.TorusGeometry(TORUS_RADIUS * 0.55, 2, 8, 80);
         const innerRingMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("hsl(172, 60%, 38%)"),
+            color: new THREE.Color("#9E9E9E"),
             wireframe: true,
             transparent: true,
             opacity: 0.25,
@@ -92,10 +92,10 @@ export default function DecisionLensScene() {
         // ─── Outer ring (boundary) ───
         const outerRingGeom = new THREE.TorusGeometry(TORUS_RADIUS * 1.4, 1.5, 6, 100);
         const outerRingMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("hsl(265, 40%, 20%)"),
+            color: new THREE.Color("#FF4500"),
             wireframe: true,
             transparent: true,
-            opacity: 0.1,
+            opacity: 0.08,
         });
         const outerRing = new THREE.Mesh(outerRingGeom, outerRingMat);
         outerRing.rotation.x = Math.PI * 0.55;
@@ -109,10 +109,10 @@ export default function DecisionLensScene() {
         const nodeGeom = new THREE.SphereGeometry(2, 6, 6);
 
         const nodeColors = [
-            new THREE.Color("hsl(145, 65%, 44%)"), // green
-            new THREE.Color("hsl(350, 68%, 50%)"), // crimson
-            new THREE.Color("hsl(38, 82%, 52%)"),  // amber
-            new THREE.Color("hsl(172, 60%, 48%)"), // teal
+            new THREE.Color("#2E7D32"), // green
+            new THREE.Color("#D32F2F"), // crimson
+            new THREE.Color("#F57C00"), // amber
+            new THREE.Color("#FFFFFF"), // white
         ];
 
         for (let i = 0; i < NODE_COUNT; i++) {
@@ -155,7 +155,7 @@ export default function DecisionLensScene() {
         dustGeom.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
 
         const dustMat = new THREE.PointsMaterial({
-            color: new THREE.Color("hsl(230, 10%, 55%)"),
+            color: new THREE.Color("#9E9E9E"),
             size: 1.5,
             transparent: true,
             opacity: 0.15,
@@ -190,7 +190,7 @@ export default function DecisionLensScene() {
                         const points = [nodes[i].position.clone(), nodes[j].position.clone()];
                         const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
                         const lineMat = new THREE.LineBasicMaterial({
-                            color: new THREE.Color("hsl(265, 40%, 30%)"),
+                            color: new THREE.Color("#FF4500"),
                             transparent: true,
                             opacity: 0.08,
                         });

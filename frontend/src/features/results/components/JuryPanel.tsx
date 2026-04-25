@@ -79,7 +79,7 @@ export default function JuryPanel({ jury }: JuryPanelProps) {
                             }}
                         />
 
-                        {/* Perspective text — structured, NOT dialogue */}
+                        {/* Perspective text structured, NOT dialogue */}
                         <p
                             className="font-body"
                             style={{

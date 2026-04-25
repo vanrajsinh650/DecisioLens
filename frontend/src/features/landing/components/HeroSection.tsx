@@ -50,25 +50,22 @@ function DocumentCheckIcon() {
 
 const FEATURES = [
     {
-        title: "Threshold Simulation",
-        description:
-            "We shift the decision boundary across 10 points and show you exactly where the outcome flips. No guesswork.",
-        color: "var(--aurora-amber)",
+        title: "Find Hidden Mistakes",
+        description: "We test the AI to find exactly where it starts making unfair mistakes or changing its mind about you.",
         icon: <CrosshairIcon />,
+        color: "var(--aurora-amber)",
     },
     {
-        title: "Alternative Scenario",
-        description:
-            "We swap gender, city, category, or college and check if the simulated result changes when it has no good reason to.",
-        color: "var(--aurora-crimson)",
+        title: "Check for Fairness",
+        description: "We see if the AI treats you differently just because of your age, location, or background.",
         icon: <ConcentricRingsIcon />,
+        color: "var(--aurora-crimson)",
     },
     {
-        title: "Appeal-Ready Report",
-        description:
-            "Gemini AI reads the findings and writes a plain-language explanation plus a formal appeal letter you can copy and send.",
-        color: "var(--aurora-green)",
+        title: "Write an Appeal",
+        description: "We help you write a strong, clear letter to challenge the AI's decision if you were unfairly rejected.",
         icon: <DocumentCheckIcon />,
+        color: "var(--aurora-green)",
     },
 ];
 
@@ -108,7 +105,7 @@ export default function HeroSection() {
                 {/* 3D Decision Lens scene */}
                 <DecisionLensScene />
 
-                {/* TOP: Text content — sits on top of 3D */}
+                {/* TOP: Text content sits on top of 3D */}
                 <div
                     style={{
                         position: "relative",
@@ -154,36 +151,42 @@ export default function HeroSection() {
                         style={{
                             marginTop: "28px",
                             marginBottom: 0,
-                            fontSize: "var(--fs-hero)",
-                            fontWeight: 700,
-                            lineHeight: 1.12,
+                            fontSize: "clamp(2rem, 5vw, 4.5rem)",
+                            fontWeight: 800,
+                            letterSpacing: "-0.04em",
+                            lineHeight: 1.05,
                             color: "var(--t1)",
                             whiteSpace: "nowrap",
                         }}
                     >
-                        Was this AI decision <em style={{ color: "var(--aurora-violet)", fontStyle: "normal" }}>fair to you?</em>
+                        Was this AI decision <em style={{ 
+                            fontStyle: "italic",
+                            color: "var(--primary-accent)", 
+                        }}>
+                            fair to you?
+                        </em>
                     </h1>
 
-                    {/* Body copy — 2 lines */}
+                    {/* Body copy */}
                     <p
                         className="hero-stagger-3 font-body"
                         style={{
-                            marginTop: "24px",
+                            marginTop: "32px",
                             marginBottom: 0,
-                            fontSize: "var(--fs-body)",
+                            fontSize: "clamp(1rem, 1.5vw, 1.15rem)",
                             color: "var(--t2)",
-                            lineHeight: 1.75,
-                            maxWidth: "820px",
+                            lineHeight: 1.6,
+                            maxWidth: "1000px",
                             marginLeft: "auto",
                             marginRight: "auto",
+                            letterSpacing: "-0.01em",
+                            padding: "0 16px",
                         }}
                     >
-                        DecisioLens simulates AI decision behavior using realistic profiles.
-                        <br />
-                        It reveals threshold fragility, demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
+                        DecisioLens simulates AI decision behavior using realistic profiles. It reveals threshold fragility, demographic bias, and hidden instability across hiring, lending, education, insurance, and government welfare.
                     </p>
 
-                    {/* CTA — directly below body text */}
+                    {/* CTA directly below body text */}
                     <div className="hero-stagger-4" style={{ marginTop: "28px" }}>
                         <Link href="/audit" className="dl-btn-primary dl-btn-hero">
                             Simulate a Decision →
@@ -194,7 +197,7 @@ export default function HeroSection() {
 
             </div>
 
-            {/* MIDDLE: Domain pills — sits between orbit and cards */}
+            {/* MIDDLE: Domain pills sits between orbit and cards */}
             <div
                 style={{
                     width: "100%",
@@ -242,61 +245,76 @@ export default function HeroSection() {
                         className="dl-reveal-card dl-feature-card"
                         data-stagger-delay={String(index * 0.1)}
                         style={{
-                            padding: "28px 24px",
-                            background: "var(--s1)",
-                            border: "1px solid var(--rim)",
-                            borderRadius: "10px",
-                            borderLeft: `2px solid ${feature.color}`,
-                            borderTopLeftRadius: 0,
-                            borderBottomLeftRadius: 0,
+                            position: "relative",
+                            overflow: "hidden",
+                            padding: "32px 28px",
                             cursor: "default",
                         }}
                     >
-                        <div style={{ color: feature.color, marginBottom: "16px" }}>{feature.icon}</div>
-
-                        {/* Card title */}
-                        <p
-                            className="font-mono uppercase"
-                            style={{
-                                margin: 0,
-                                fontSize: "0.75rem",
-                                letterSpacing: "0.08em",
-                                lineHeight: 1.6,
-                                color: feature.color,
-                                fontWeight: 600,
-                            }}
-                        >
-                            {feature.title}
-                        </p>
-
-                        {/* Description */}
-                        <p
-                            className="font-body"
-                            style={{
-                                marginTop: "14px",
-                                marginBottom: 0,
-                                fontSize: "0.875rem",
-                                color: "var(--t2)",
-                                lineHeight: 1.7,
-                            }}
-                        >
-                            {feature.description}
-                        </p>
-
+                        {/* Premium subtle glow at the top-left */}
                         <div
-                            className="font-mono"
                             style={{
-                                marginTop: "16px",
-                                paddingTop: "12px",
-                                borderTop: "1px solid var(--rim)",
-                                fontSize: "0.75rem",
-                                color: "var(--t3)",
-                                letterSpacing: "0.03em",
+                                position: "absolute",
+                                top: "-40%",
+                                left: "-20%",
+                                width: "150px",
+                                height: "150px",
+                                background: feature.color,
+                                filter: "blur(70px)",
+                                opacity: 0.15,
+                                pointerEvents: "none",
+                                zIndex: 0,
                             }}
-                        >
-                            {index === 0 && "[ 10 threshold test points ]"}
-                            {index === 1 && "[ gender · city · category · college ]"}
-                            {index === 2 && "[ appeal letter auto-generated ]"}
+                        />
+
+                        <div style={{ position: "relative", zIndex: 1 }}>
+                            <div style={{ color: feature.color, marginBottom: "20px" }}>{feature.icon}</div>
+
+                            {/* Card title */}
+                            <p
+                                className="font-mono uppercase"
+                                style={{
+                                    margin: 0,
+                                    fontSize: "0.85rem",
+                                    letterSpacing: "0.1em",
+                                    lineHeight: 1.6,
+                                    color: feature.color,
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {feature.title}
+                            </p>
+
+                            {/* Description */}
+                            <p
+                                className="font-body"
+                                style={{
+                                    marginTop: "12px",
+                                    marginBottom: 0,
+                                    fontSize: "0.95rem",
+                                    color: "var(--t1)",
+                                    opacity: 0.85,
+                                    lineHeight: 1.6,
+                                }}
+                            >
+                                {feature.description}
+                            </p>
+
+                            <div
+                                className="font-mono"
+                                style={{
+                                    marginTop: "24px",
+                                    paddingTop: "16px",
+                                    borderTop: "1px solid rgba(255,255,255,0.06)",
+                                    fontSize: "0.75rem",
+                                    color: "var(--t3)",
+                                    letterSpacing: "0.03em",
+                                }}
+                            >
+                                {index === 0 && "[ tested on 10 different strictness levels ]"}
+                                {index === 1 && "[ tests age · location · gender · background ]"}
+                                {index === 2 && "[ auto-generated challenge letter ]"}
+                            </div>
                         </div>
                     </article>
                 ))}

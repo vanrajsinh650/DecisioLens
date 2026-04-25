@@ -105,7 +105,7 @@ function alignProfileWithDomain(domain: DomainType, profile: AuditProfile): Audi
     });
 }
 
-/** Risk Preview — reactive spectrum widget for sticky right panel */
+/** Risk Preview reactive spectrum widget for sticky right panel */
 function RiskPreview({ threshold, score }: { threshold: number; score: number }) {
     const thresholdPos = threshold * 100;
     const scorePos = Math.min(100, Math.max(0, score));
@@ -499,7 +499,7 @@ export default function AuditWorkspace() {
                                 color: "var(--t2)",
                             }}
                         >
-                            &ldquo;Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation — so anyone can check if an AI was fair to them.&rdquo;
+                            &ldquo;Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation so anyone can check if an AI was fair to them.&rdquo;
                         </p>
                     </div>
 

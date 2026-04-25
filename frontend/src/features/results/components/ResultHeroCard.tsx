@@ -115,7 +115,7 @@ export default function ResultHeroCard({
                     YOUR RESULT · {timestamp}
                 </p>
 
-                {/* Verdict text — Syne 800 */}
+                {/* Verdict text Syne 800 */}
                 <h2
                     className="font-display"
                     style={{
@@ -170,7 +170,7 @@ export default function ResultHeroCard({
                 )}
             </div>
 
-            {/* Right side — three StatPill-style elements */}
+            {/* Right side three StatPill-style elements */}
             <div
                 style={{
                     display: "flex",

@@ -55,7 +55,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                     WHAT YOU CAN DO NEXT
                 </p>
 
-                {/* Tab switcher — only show if both exist */}
+                {/* Tab switcher only show if both exist */}
                 {appeal && explanationRequest && (
                     <div
                         style={{

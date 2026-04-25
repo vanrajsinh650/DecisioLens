@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
- * DecisioLens — Living Ambient Dust Field
+ * DecisioLens Living Ambient Dust Field
  * 
  * 800 static dust particles rendered via Three.js WebGL.
  * Parallax shift on mouse-move using lerp interpolation at 0.04 speed.
@@ -178,7 +178,7 @@ export default function ParticleCanvas() {
             if (rafId.current !== 0) return;
 
             const animate = () => {
-                // Lerp interpolation — gravitational, slow
+                // Lerp interpolation gravitational, slow
                 mouseCurrent.current.x = lerp(mouseCurrent.current.x, mouseTarget.current.x, LERP_SPEED);
                 mouseCurrent.current.y = lerp(mouseCurrent.current.y, mouseTarget.current.y, LERP_SPEED);
 

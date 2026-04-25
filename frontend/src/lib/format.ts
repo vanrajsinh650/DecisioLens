@@ -61,17 +61,17 @@ export const formatRiskLabel = (level: string): string => {
 
   const numericLevel = Number(normalized);
   if (Number.isFinite(numericLevel)) {
-    if (numericLevel <= 30) return "🟢 All Clear";
-    if (numericLevel <= 60) return "🟡 Too Close To Call";
-    return "🔴 High Risk";
+    if (numericLevel <= 30) return "All Clear";
+    if (numericLevel <= 60) return "Too Close To Call";
+    return "High Risk";
   }
 
   const lower = normalized.toLowerCase();
-  if (lower === "safe") return "🟢 All Clear";
-  if (lower === "borderline") return "🟡 Too Close To Call";
-  if (lower === "high_risk" || lower === "high") return "🔴 High Risk";
-  if (lower === "low") return "🟢 All Clear";
-  if (lower === "medium") return "🟡 Too Close To Call";
+  if (lower === "safe") return "All Clear";
+  if (lower === "borderline") return "Too Close To Call";
+  if (lower === "high_risk" || lower === "high") return "High Risk";
+  if (lower === "low") return "All Clear";
+  if (lower === "medium") return "Too Close To Call";
 
   return normalized;
 };
