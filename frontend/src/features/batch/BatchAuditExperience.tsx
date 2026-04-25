@@ -202,7 +202,7 @@ export default function BatchAuditExperience() {
                         </span>
                         <input
                             type="file"
-                            accept=".csv,text/csv"
+                            accept=".csv,text/csv,.txt,.pdf,.doc,.docx"
                             onChange={onFileChange}
                             className="dl-input"
                             style={{ padding: "8px" }}
