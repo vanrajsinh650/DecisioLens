@@ -193,9 +193,9 @@ export default function ResultsExperience() {
     return (
         <div ref={revealContainerRef} style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
             <SectionHeader
-                overline={`${session.domain?.toUpperCase() ?? "AUDIT"} · VERDICT CHAMBER`}
+                overline={`${session.domain?.toUpperCase() ?? "ANALYSIS"} · YOUR RESULT`}
                 title="Decision Trust Report"
-                subtitle={`${session.domain?.charAt(0).toUpperCase()}${session.domain?.slice(1) ?? "Audit"} domain audit report. Each section is a chapter. Understand the verdict before reading details.`}
+                subtitle="This report shows if the AI decision about you was fair, stable, and trustworthy."
                 actions={
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
                         <button
@@ -205,12 +205,12 @@ export default function ResultsExperience() {
                             onClick={() => printAuditReport(String(session.request.profile.name ?? "Audit Report"))}
                             className="dl-btn-ghost"
                         >
-                            Download Report
+                            Download My Report
                         </button>
                         <CopyButton
                             id="btn-share-result"
                             value={shareUrl}
-                            label="Share Link →"
+                            label="Share This Result →"
                             copiedLabel="✓ Copied"
                         />
                     </div>
@@ -256,7 +256,7 @@ export default function ResultsExperience() {
                 <VariationsComparisonCard variations={session.response.variations} />
             </div>
 
-            {/* Section 4 — Risk Intelligence */}
+            {/* Section 4 — Risk Summary */}
             <div className="print-section">
                 <RiskInsightCard
                     insights={session.response.insights}
@@ -264,19 +264,19 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 4a — Human Review Recommendation */}
+            {/* Section 4a — Request Human Review */}
             {session.response.human_review && (
                 <div className="print-section">
                     <HumanReviewCard humanReview={session.response.human_review} />
                 </div>
             )}
 
-            {/* Section 5 — Decoded Insight */}
+            {/* Section 5 — What This Means For You */}
             <div className="print-section">
                 <ExplanationCard explanation={session.response.explanation} />
             </div>
 
-            {/* Section 5a — Actionable Recourse */}
+            {/* Section 5a — How To Improve Your Chances */}
             {session.response.recourse && session.response.recourse.length > 0 && (
                 <div className="print-section">
                     <RecourseCard
@@ -286,7 +286,7 @@ export default function ResultsExperience() {
                 </div>
             )}
 
-            {/* Section 6 — Response Protocol (Appeal + Explanation Request tabs) */}
+            {/* Section 6 — What You Can Do Next */}
             <div className="print-section">
                 <AppealCard
                     appeal={session.response.appeal}
@@ -294,7 +294,7 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 7 — Jury Panel */}
+            {/* Section 7 — What Our System Says */}
             {session.response.ai_jury_view ? (
                 <div className="print-section">
                     <JuryPanel jury={session.response.ai_jury_view} />

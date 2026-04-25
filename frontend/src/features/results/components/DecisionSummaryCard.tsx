@@ -79,11 +79,11 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         className="font-body uppercase"
                         style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
                     >
-                        Instability
+                        Decision Stability
                     </p>
                     <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={instabilityDetected ? "Detected" : "Stable"}
+                            label={instabilityDetected ? "⚠️ Fragile" : "Stable"}
                             tone={instabilityDetected ? "caution" : "stable"}
                             dot
                         />
@@ -99,7 +99,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                     </p>
                     <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={biasDetected ? "Detected" : "Clear"}
+                            label={biasDetected ? "Detected" : "✅ No Bias"}
                             tone={biasDetected ? "risk" : "stable"}
                             dot
                         />
@@ -116,7 +116,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 }}
             >
                 <StatPill
-                    label="Threshold"
+                    label="Strictness Level"
                     value={formatThreshold(request.threshold)}
                     tone="warn"
                 />
@@ -138,7 +138,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         padding: "16px",
                     }}
                 >
-                    <Badge label="Human Review Recommended" tone="warn" dot />
+                    <Badge label="Request Human Review" tone="warn" dot />
                     <p
                         className="font-body"
                         style={{
@@ -147,7 +147,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                             color: "var(--t1)",
                         }}
                     >
-                        Sensitive risk signals were detected. Manual review recommended before finalizing.
+                        Sensitive risk signals were detected. A human should review this before making a final decision.
                     </p>
                 </div>
             )}
@@ -166,9 +166,9 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
             >
                 <span>{formatDateTime(session.submittedAt)}</span>
                 <span>·</span>
-                <span>Domain: {session.domain}</span>
+                <span>Decision Type: {session.domain}</span>
                 <span>·</span>
-                <span>Threshold: {formatThreshold(request.threshold)}</span>
+                <span>Strictness Level: {formatThreshold(request.threshold)}</span>
             </div>
         </div>
     );

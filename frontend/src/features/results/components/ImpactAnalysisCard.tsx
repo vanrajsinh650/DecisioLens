@@ -14,7 +14,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
   return (
     <section className="result-card" id="impact-analysis-card">
       <h3 className="result-card__title">
-        🔍 How does each variable affect the score?
+        🔍 What Affected The Score?
       </h3>
 
       <div className="impact-list">

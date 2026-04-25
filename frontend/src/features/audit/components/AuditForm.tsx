@@ -58,7 +58,7 @@ export default function AuditForm({
                         color: "var(--t2)",
                     }}
                 >
-                    SELECT AUDIT DOMAIN
+                    SELECT DECISION TYPE
                 </label>
                 <DomainSelector
                     options={domainOptions}
@@ -106,7 +106,7 @@ export default function AuditForm({
                         color: "var(--t1)",
                     }}
                 >
-                    CANDIDATE PROFILE
+                    PROFILE DETAILS
                 </p>
 
                 {/* Full-width rule under overline */}
@@ -134,10 +134,10 @@ export default function AuditForm({
                         color: "var(--t1)",
                     }}
                 >
-                    DECISION THRESHOLD
+                    SET STRICTNESS LEVEL
                 </p>
                 <p className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)" }}>
-                    Set the strictness of the decision boundary. Scores below the threshold are rejected.
+                    People who score below this number will not pass. Drag to make it stricter or easier.
                 </p>
 
                 <ThresholdControl

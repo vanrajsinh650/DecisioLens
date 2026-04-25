@@ -19,7 +19,7 @@ export default function SubmitAuditButton({ isLoading, disabled }: SubmitAuditBu
                 opacity: inactive ? 0.5 : 1,
             }}
         >
-            {isLoading ? "Running Scan..." : "Analyze a Decision →"}
+            {isLoading ? "Analyzing..." : "Analyze This Decision →"}
         </button>
     );
 }

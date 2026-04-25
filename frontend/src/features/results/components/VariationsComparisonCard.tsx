@@ -29,7 +29,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                     marginBottom: "24px",
                 }}
             >
-                PARALLEL SCENARIOS
+                WHAT IF SOMETHING CHANGED?
             </p>
 
             {/* 3×2 grid */}
@@ -129,7 +129,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                                             : "transparent",
                                     }}
                                 >
-                                    {isChanged ? "CHANGED" : "UNCHANGED"}
+                                    {isChanged ? "⚡ Result Changed" : "Same Result"}
                                 </span>
                             </div>
                         </div>

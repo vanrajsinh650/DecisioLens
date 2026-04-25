@@ -3,7 +3,7 @@ import { WalkthroughStep } from "@/components/shared/Walkthrough";
 export const AUDIT_WALKTHROUGH_STEPS: WalkthroughStep[] = [
     {
         targetId: "domain-selector",
-        title: "Step 1: Choose a Domain",
+        title: "Step 1: Choose a Decision Type",
         body: "Pick the type of AI decision you want to test: Hiring, Lending, Education, Insurance, Welfare, or your own custom setup.",
         position: "bottom",
     },
@@ -15,8 +15,8 @@ export const AUDIT_WALKTHROUGH_STEPS: WalkthroughStep[] = [
     },
     {
         targetId: "threshold-control",
-        title: "Step 3: Set the Threshold",
-        body: "The threshold decides how strict the AI is. Lower means easier to pass. Try 0.50 if you're not sure.",
+        title: "Step 3: Set the Strictness Level",
+        body: "The strictness level decides how strict the AI is. Lower means easier to pass. Try 0.50 if you're not sure.",
         position: "top",
     },
     {

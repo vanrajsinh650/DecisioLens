@@ -7,17 +7,17 @@ interface JuryPanelProps {
 const JURY_ROLES = [
     {
         key: "auditor" as const,
-        role: "AUDITOR",
+        role: "Bias Check",
         accentColor: "var(--aurora-violet)",
     },
     {
         key: "challenger" as const,
-        role: "CHALLENGER",
+        role: "Stability Check",
         accentColor: "var(--aurora-teal)",
     },
     {
         key: "judge" as const,
-        role: "JUDGE",
+        role: "Final Assessment",
         accentColor: "var(--aurora-amber)",
     },
 ];
@@ -36,7 +36,7 @@ export default function JuryPanel({ jury }: JuryPanelProps) {
                     marginBottom: "24px",
                 }}
             >
-                REVIEW BOARD
+                WHAT OUR SYSTEM SAYS
             </p>
 
             {/* Three cards side by side */}

@@ -35,7 +35,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                     marginBottom: "24px",
                 }}
             >
-                DECODED INSIGHT
+                WHAT THIS MEANS FOR YOU
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -76,7 +76,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t2)",
                         }}
                     >
-                        KEY DRIVERS
+                        MAIN REASONS
                     </p>
                     <ul style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px", listStyle: "none", padding: 0, margin: 0 }}>
                         {drivers.length > 0 ? (

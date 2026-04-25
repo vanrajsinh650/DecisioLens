@@ -30,7 +30,7 @@ export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardPr
                 title={`${zone.start.toFixed(2)} – ${zone.end.toFixed(2)}: ${zone.label}`}
               >
                 <span className="stability-bar__label">
-                  {zone.label}
+                  {zone.label === "ACCEPT" ? "✅ Passes" : zone.label === "REJECT" ? "❌ Fails" : zone.label}
                 </span>
                 <span className="stability-bar__range">
                   {zone.start.toFixed(2)} – {zone.end.toFixed(2)}

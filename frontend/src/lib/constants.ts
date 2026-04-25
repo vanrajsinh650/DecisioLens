@@ -8,7 +8,7 @@ export const NAV_LINKS: Array<{ href: string; label: string }> = [
   { href: "/audit", label: "Test" },
   { href: "/results", label: "Report" },
   { href: "/history", label: "History" },
-  { href: "/batch", label: "Batch Audit" },
+  { href: "/batch", label: "Batch Analysis" },
 ];
 
 export const DOMAIN_OPTIONS: DomainOption[] = getDomainOptions();
@@ -56,17 +56,17 @@ export const VARIATION_LABELS: Record<string, string> = getAllStaticDomains().re
 );
 
 export const REASON_TAG_LABELS: Record<string, string> = {
-  threshold_sensitive: "Threshold Sensitive",
-  profile_instability: "Profile Instability",
-  location_sensitive: "Location Sensitive",
-  demographic_sensitive: "Demographic Sensitive",
-  education_sensitive: "Education Sensitive",
-  score_instability: "Score Instability",
-  employment_sensitive: "Employment Sensitive",
-  category_sensitive: "Category Sensitive",
-  age_sensitive: "Age Sensitive",
-  condition_sensitive: "Condition Sensitive",
-  region_sensitive: "Region Sensitive",
-  income_sensitive: "Income Sensitive",
+  threshold_sensitive: "Result Changes If Strictness Changes",
+  profile_instability: "Profile Is Fragile",
+  location_sensitive: "Location Matters",
+  demographic_sensitive: "Demographics Matter",
+  education_sensitive: "Education Matters",
+  score_instability: "Score Is Too Close To The Line",
+  employment_sensitive: "Employment Matters",
+  category_sensitive: "Category Matters",
+  age_sensitive: "Age Matters",
+  condition_sensitive: "Health Condition Matters",
+  region_sensitive: "Region Matters",
+  income_sensitive: "Income Matters",
   bias_detected: "Bias Detected",
 };

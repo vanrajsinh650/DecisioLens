@@ -55,8 +55,8 @@ export default function ThresholdControl({
                     value={value}
                     onChange={(e) => onChange(Number(e.target.value))}
                     disabled={disabled}
-                    title="Decision Threshold"
-                    aria-label="Decision threshold"
+                    title="Set Strictness Level"
+                    aria-label="Set strictness level"
                     aria-valuemin={0}
                     aria-valuemax={1}
                     aria-valuenow={value}

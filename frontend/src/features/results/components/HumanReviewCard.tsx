@@ -6,21 +6,21 @@ interface HumanReviewCardProps {
 
 const CONFIG = {
     REQUIRED: {
-        label: "HUMAN REVIEW REQUIRED",
+        label: "🚨 A Human Should Check This",
         color: "var(--aurora-crimson)",
         surface: "var(--aurora-crimson-surface)",
         border: "hsl(350, 68%, 24%)",
         icon: "⚠",
     },
     RECOMMENDED: {
-        label: "HUMAN REVIEW RECOMMENDED",
+        label: "Request Human Review Suggested",
         color: "var(--aurora-amber)",
         surface: "var(--aurora-amber-surface)",
         border: "hsl(35, 70%, 24%)",
         icon: "◆",
     },
     NOT_REQUIRED: {
-        label: "HUMAN REVIEW NOT REQUIRED",
+        label: "✅ No Human Review Needed",
         color: "var(--aurora-green)",
         surface: "var(--aurora-green-surface)",
         border: "hsl(145, 65%, 24%)",

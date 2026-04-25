@@ -308,7 +308,7 @@ export default function ComparisonExperience() {
                     />
                 </Card>
 
-                <Card title="Slot B Input" subtitle="Counterfactual profile">
+                <Card title="Slot B Input" subtitle="Alternative scenario profile">
                     <AuditForm
                         domain={formB.domain}
                         domainOptions={DOMAIN_OPTIONS}

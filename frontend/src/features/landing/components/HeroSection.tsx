@@ -57,7 +57,7 @@ const FEATURES = [
         icon: <CrosshairIcon />,
     },
     {
-        title: "Counterfactual Drift",
+        title: "Alternative Scenario",
         description:
             "We swap gender, city, category, or college and check if the simulated result changes when it has no good reason to.",
         color: "var(--aurora-crimson)",

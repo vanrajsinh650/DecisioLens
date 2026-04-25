@@ -11,7 +11,7 @@ export default function AuditPresetCard() {
                     marginBottom: "16px",
                 }}
             >
-                ANALYSIS PIPELINE
+                HOW WE ANALYZE THIS
             </p>
             <ol style={{ display: "flex", flexDirection: "column", gap: "16px", listStyle: "none", padding: 0, margin: 0 }}>
                 {[

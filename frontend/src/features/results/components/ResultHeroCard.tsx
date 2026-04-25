@@ -15,20 +15,20 @@ function getStabilityVerdict(riskScore: number): {
 } {
     if (riskScore >= 70)
         return {
-            label: "Decision is UNSTABLE",
+            label: "Decision is Not Confident",
             tone: "risk",
-            pillLabels: ["BORDERLINE", "REVIEW REQUIRED", "HIGH FLIP RISK"],
+            pillLabels: ["Too Close To Call", "🚨 A Human Should Check This", "High Risk"],
         };
     if (riskScore >= 35)
         return {
-            label: "Decision is BORDERLINE",
+            label: "Decision is Too Close To Call",
             tone: "warn",
-            pillLabels: ["BORDERLINE", "CAUTION", "MODERATE RISK"],
+            pillLabels: ["Too Close To Call", "Caution", "Moderate Risk"],
         };
     return {
-        label: "Decision is STABLE",
+        label: "Decision is All Clear",
         tone: "safe",
-        pillLabels: ["STABLE", "CLEAR", "LOW RISK"],
+        pillLabels: ["All Clear", "No Issues Found", "Low Risk"],
     };
 }
 
@@ -112,7 +112,7 @@ export default function ResultHeroCard({
                         letterSpacing: "0.05em",
                     }}
                 >
-                    DECISION VERDICT · {timestamp}
+                    YOUR RESULT · {timestamp}
                 </p>
 
                 {/* Verdict text — Syne 800 */}
@@ -139,7 +139,7 @@ export default function ResultHeroCard({
                         color: "var(--t2)",
                     }}
                 >
-                    Score: {formatThreshold(originalScore)} · Threshold:{" "}
+                    Score: {formatThreshold(originalScore)} · Strictness Level:{" "}
                     {formatThreshold(threshold * 100)} · Margin: {formatSignedNumber(distance, 0, "pts")}
                 </p>
 
@@ -157,7 +157,7 @@ export default function ResultHeroCard({
                             onClick={onRerun}
                             className="dl-btn-ghost"
                         >
-                            RE-RUN AUDIT
+                            ANALYZE AGAIN
                         </button>
                         <button
                             type="button"

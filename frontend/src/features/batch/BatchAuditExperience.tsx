@@ -149,9 +149,9 @@ export default function BatchAuditExperience() {
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
             <SectionHeader
-                overline="BATCH AUDIT"
+                overline="BATCH ANALYSIS"
                 title="Batch Processing"
-                subtitle="Upload profiles via CSV, run sequential trust checks, and export outcomes."
+                subtitle="Upload profiles via CSV, run sequential checks, and export outcomes."
                 actions={
                     <button
                         type="button"
@@ -178,7 +178,7 @@ export default function BatchAuditExperience() {
                             className="font-mono uppercase"
                             style={{ fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}
                         >
-                            Domain
+                            Decision Type
                         </span>
                         <select
                             value={domain}
@@ -289,7 +289,7 @@ export default function BatchAuditExperience() {
                     disabled={isRunning || rows.length === 0}
                     className="dl-btn-primary"
                 >
-                    Run Batch Audit
+                    Analyze All Profiles
                 </button>
 
                 <button

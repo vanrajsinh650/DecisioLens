@@ -52,7 +52,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                         color: "var(--t1)",
                     }}
                 >
-                    RESPONSE PROTOCOL
+                    WHAT YOU CAN DO NEXT
                 </p>
 
                 {/* Tab switcher — only show if both exist */}
@@ -73,7 +73,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                             style={tabStyle("appeal")}
                             onClick={() => setActiveTab("appeal")}
                         >
-                            Appeal Letter
+                            Write An Appeal Letter
                         </button>
                         <button
                             type="button"
@@ -81,7 +81,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                             style={tabStyle("explanation")}
                             onClick={() => setActiveTab("explanation")}
                         >
-                            Explanation Request
+                            Ask For An Explanation
                         </button>
                     </div>
                 )}

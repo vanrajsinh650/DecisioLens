@@ -41,10 +41,10 @@ export default function ThresholdSensitivityCard({
                             color: "var(--t1)",
                         }}
                     >
-                        SIGNAL ANALYSIS
+                        WHAT HAPPENS IF THE BAR IS RAISED?
                     </p>
                     <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
-                        How does the outcome change when the strictness level shifts?
+                        We tested what happens if the passing bar was higher or lower. Here is what changed.
                     </p>
                 </div>
             </div>
@@ -65,7 +65,7 @@ export default function ThresholdSensitivityCard({
                             textTransform: "uppercase",
                         }}
                     >
-                        FLIP ZONE
+                        DECISION BREAKS HERE
                     </span>
                 </div>
 
@@ -153,13 +153,13 @@ export default function ThresholdSensitivityCard({
                     <thead>
                         <tr style={{ background: "var(--s2)" }}>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Threshold
+                                Strictness Level
                             </th>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Required Score
+                                Score Needed To Pass
                             </th>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                Outcome
+                                Result
                             </th>
                         </tr>
                     </thead>
@@ -212,7 +212,7 @@ export default function ThresholdSensitivityCard({
                                                     borderRadius: "100px",
                                                 }}
                                             >
-                                                ⚡ FLIPPED
+                                                ⚡ Would Fail Here
                                             </span>
                                         ) : row.decision === "ACCEPT" ? (
                                             <span
@@ -227,7 +227,7 @@ export default function ThresholdSensitivityCard({
                                                     borderRadius: "100px",
                                                 }}
                                             >
-                                                ACCEPTED
+                                                ✅ Passes
                                             </span>
                                         ) : (
                                             <span
@@ -242,7 +242,7 @@ export default function ThresholdSensitivityCard({
                                                     borderRadius: "100px",
                                                 }}
                                             >
-                                                REJECTED
+                                                ❌ Fails
                                             </span>
                                         )}
                                     </td>

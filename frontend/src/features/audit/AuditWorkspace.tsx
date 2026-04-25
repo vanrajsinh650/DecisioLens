@@ -131,7 +131,7 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
                     marginBottom: "16px",
                 }}
             >
-                RISK PREVIEW
+                SCORE PREVIEW
             </p>
 
             <div style={{ position: "relative", height: "6px", width: "100%", borderRadius: "3px", overflow: "visible" }}>
@@ -363,18 +363,18 @@ export default function AuditWorkspace() {
 
     // Analysis steps for the sticky right panel
     const ANALYSIS_STEPS = [
-        "Scoring your profile using the domain-specific formula",
-        "Testing the threshold at 9 different strictness levels",
-        "Swapping gender, city, category, and other variables",
-        "Building the verdict: risk level, bias flags, reason tags",
+        "Scoring your profile using a formula for this decision type",
+        "Testing 9 different strictness levels to find where the result flips",
+        "Swapping gender, city, category, and other details to check for bias",
+        "Building the verdict: risk level, bias flags, and reasons",
     ];
 
     return (
         <div ref={revealRef} style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
             <SectionHeader
-                overline="AUDIT CHAMBER"
-                title="Instrument Panel"
-                subtitle="Enter profile details, configure the decision boundary, and execute analysis."
+                overline="ANALYSIS CHAMBER"
+                title="Set Up Your Test"
+                subtitle="Enter profile details, set the strictness level, and run the analysis."
                 actions={
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <button
@@ -447,7 +447,7 @@ export default function AuditWorkspace() {
                                 marginBottom: "16px",
                             }}
                         >
-                            WHAT WE ANALYZE
+                            WHAT THIS TOOL CHECKS
                         </p>
                         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                             {ANALYSIS_STEPS.map((step, idx) => (
@@ -522,8 +522,8 @@ export default function AuditWorkspace() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
                     <SectionHeader
                         overline="ANALYSIS RESULTS"
-                        title="Live Verdict"
-                        subtitle="Form submission triggers backend audit. Results render below as a scrollable narrative."
+                        title="Live Results"
+                        subtitle="Your analysis results appear below. Scroll to see each section."
                     />
 
                     <RawAuditPayloadCard session={latestSession} />

@@ -34,7 +34,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     marginBottom: "24px",
                 }}
             >
-                RISK INTELLIGENCE
+                RISK SUMMARY
             </p>
 
             {/* Four StatPill blocks in a row with fuel gauge bars */}
@@ -46,26 +46,26 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                 }}
             >
                 <StatPill
-                    label="COMPOSITE RISK"
+                    label="RISK SCORE"
                     value={formatRiskScore(insights.risk_score)}
                     tone={riskTone}
                     emphasize
                     gaugeValue={insights.risk_score}
                 />
                 <StatPill
-                    label="INSTABILITY"
-                    value={instabilityDetected ? "DETECTED" : "STABLE"}
+                    label="DECISION STABILITY"
+                    value={instabilityDetected ? "⚠️ Decision is Fragile" : "STABLE"}
                     tone={instabilityDetected ? "warn" : "safe"}
                     gaugeValue={instabilityDetected ? 75 : 15}
                 />
                 <StatPill
-                    label="DEMOGRAPHIC BIAS"
-                    value={biasDetected ? "DETECTED" : "CLEAR"}
+                    label="GENDER & LOCATION BIAS CHECK"
+                    value={biasDetected ? "DETECTED" : "✅ No Bias Found"}
                     tone={biasDetected ? "risk" : "safe"}
                     gaugeValue={biasDetected ? 85 : 10}
                 />
                 <StatPill
-                    label="CONFIDENCE"
+                    label="HOW CERTAIN ARE WE?"
                     value={insights.risk_level ?? "MODERATE"}
                     tone="neutral"
                     gaugeValue={50}
