@@ -30,8 +30,10 @@ from core.analysis import (
     build_reason_tags,
     classify_confidence,
     compute_human_review_recommendation,
+    compute_impact_analysis,
     compute_recourse_suggestions,
     compute_risk_score,
+    compute_stability_zone,
     detect_bias_patterns,
     detect_instability,
 )
@@ -45,10 +47,13 @@ from schemas.response import (
     AIJuryView,
     AuditResponse,
     HumanReview,
+    ImpactItem,
     Insights,
     OriginalDecision,
     RecourseItem,
     RiskAssessment,
+    StabilityZone,
+    StabilityZoneResult,
     ThresholdAnalysisItem,
     VariationResult,
 )
@@ -156,6 +161,16 @@ class AuditService:
             confidence_zone=confidence_zone,
         )
 
+        # ── 7b. Stability zone + impact analysis ─────────────────────
+        stability_zone_data = compute_stability_zone(
+            score=original_score,
+            threshold_results=threshold_results,
+        )
+        impact_analysis_data = compute_impact_analysis(
+            original_score=original_score,
+            variation_outcomes=all_variation_results,
+        )
+
         auditor_verdict = (
             f"bias detected ({bias_report.get('flag_count', 0)} flag(s))"
             if bool(bias_report.get("has_bias_flags"))
@@ -232,6 +247,11 @@ class AuditService:
             original=OriginalDecision(score=original_score, decision=original_decision),
             threshold_analysis=threshold_analysis,
             variations=variation_output,
+            stability_zone=StabilityZoneResult(
+                zones=[StabilityZone(**z) for z in stability_zone_data["zones"]],
+                summary=stability_zone_data["summary"],
+            ),
+            impact_analysis=[ImpactItem(**item) for item in impact_analysis_data],
             confidence_zone=confidence_zone,
             risk=RiskAssessment(**risk_assessment),
             reason_tags=reason_tags,

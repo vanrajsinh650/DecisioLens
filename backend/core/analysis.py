@@ -217,12 +217,14 @@ def classify_confidence(score: Any, threshold: float = 0.5) -> str:
 
 def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
     """
-    Compute a normalized 0-100 risk score with judge-friendly band labels.
+    Compute a normalized 0-100 risk score with 3-tier lab labels.
 
     Bands:
-    - 0-30: Low
-    - 30-70: Medium
-    - 70-100: High
+    - 0–30:  SAFE      🟢
+    - 31–60: BORDERLINE 🟡
+    - 61–100: HIGH_RISK  🔴
+
+    Also emits a ``reasons`` list so the UI can show *why*.
     """
 
     instability_report: Mapping[str, Any]
@@ -251,13 +253,163 @@ def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
     score = max(0, min(instability_points + structural_points + bias_points, 100))
 
     if score <= 30:
-        level = "Low"
-    elif score <= 70:
-        level = "Medium"
+        level = "SAFE"
+    elif score <= 60:
+        level = "BORDERLINE"
     else:
-        level = "High"
+        level = "HIGH_RISK"
 
-    return {"score": score, "level": level}
+    # Build human-readable reasons
+    reasons: list[str] = []
+    if bias_detected:
+        flag_count = int(instability_report.get("variation_flip_count", 0))
+        reasons.append("decision changes with demographic or profile variations")
+    if threshold_switch_count > 0:
+        reasons.append("result flips at nearby decision levels")
+    if variation_flip_count > 0:
+        reasons.append("small profile changes can flip the outcome")
+    if sensitivity == "HIGH":
+        reasons.append("high overall sensitivity detected")
+    if not reasons:
+        reasons.append("no significant risk factors detected")
+
+    return {"score": score, "level": level, "reasons": reasons}
+
+
+# ── Stability zone (Feature #1) ─────────────────────────────────────
+
+def compute_stability_zone(
+    score: float,
+    threshold_results: Mapping[float, str],
+) -> dict[str, Any]:
+    """
+    Convert threshold-sweep results into labelled ACCEPT / UNSTABLE / REJECT
+    range bands.
+
+    The *unstable zone* is the range of thresholds around the transition
+    point where the decision switches.  If there is no switch point (score
+    is always ACCEPT or always REJECT), the unstable zone is empty.
+
+    Returns
+    -------
+    dict with keys:
+        zones   – list of {start, end, label} range bands
+        summary – one-line human-readable sentence
+    """
+    sorted_items = sorted(threshold_results.items(), key=lambda kv: kv[0])
+
+    if not sorted_items:
+        return {
+            "zones": [],
+            "summary": "No threshold data available.",
+        }
+
+    # Detect transition boundaries
+    zones: list[dict[str, Any]] = []
+    current_label = sorted_items[0][1]
+    current_start = sorted_items[0][0]
+
+    for threshold, decision in sorted_items[1:]:
+        if decision != current_label:
+            zones.append({
+                "start": round(current_start, 4),
+                "end": round(threshold, 4),
+                "label": current_label,
+            })
+            current_start = threshold
+            current_label = decision
+
+    # Close the last zone
+    zones.append({
+        "start": round(current_start, 4),
+        "end": round(sorted_items[-1][0], 4),
+        "label": current_label,
+    })
+
+    # Build summary
+    accept_zones = [z for z in zones if z["label"] == "ACCEPT"]
+    reject_zones = [z for z in zones if z["label"] == "REJECT"]
+
+    if not reject_zones:
+        summary = "Result stays ACCEPT across all decision levels — very stable."
+    elif not accept_zones:
+        summary = "Result stays REJECT across all decision levels — very stable."
+    else:
+        flip_point = reject_zones[0]["start"]
+        summary = (
+            f"Result is ACCEPT below {flip_point:.2f} and REJECT at or above — "
+            f"the decision flips near {flip_point:.2f}."
+        )
+
+    return {"zones": zones, "summary": summary}
+
+
+# ── Impact analysis (Feature #4) ────────────────────────────────────
+
+def compute_impact_analysis(
+    original_score: float,
+    variation_outcomes: Mapping[str, Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Calculate per-variable score deltas sorted by highest absolute impact.
+
+    Each entry shows how much the score changed when a single variable
+    was modified (counterfactual test).
+
+    Returns
+    -------
+    list of {variable, delta, direction, decision_changed}
+    """
+    impacts: list[dict[str, Any]] = []
+
+    _LABEL_MAP = {
+        "gender_swap": "Gender",
+        "location_change": "Location",
+        "college_change": "College / Education tier",
+        "employment_change": "Employment type",
+        "category_change": "Social category",
+        "age_change": "Age group",
+        "income_change": "Income level",
+        "score_bump": "Qualification score",
+    }
+
+    for name, outcome in variation_outcomes.items():
+        if name == "baseline":
+            continue
+
+        variation_score = float(outcome.get("score", original_score))
+        delta = round(variation_score - original_score, 6)
+
+        if delta == 0.0:
+            continue
+
+        original_decision = "ACCEPT" if original_score >= 0.5 else "REJECT"
+        variation_decision = outcome.get("decision", original_decision)
+        decision_changed = variation_decision != outcome.get(
+            "original_decision", original_decision
+        )
+
+        impacts.append({
+            "variable": _LABEL_MAP.get(name, name.replace("_", " ").title()),
+            "delta": delta,
+            "direction": "positive" if delta > 0 else "negative",
+            "decision_changed": str(variation_decision) != str(
+                variation_outcomes.get("baseline", {}).get("decision", "")
+            ),
+        })
+
+    # Sort by absolute impact, largest first
+    impacts.sort(key=lambda x: abs(x["delta"]), reverse=True)
+
+    if not impacts:
+        impacts.append({
+            "variable": "All tested variables",
+            "delta": 0.0,
+            "direction": "none",
+            "decision_changed": False,
+        })
+
+    return impacts
 
 
 def build_reason_tags(

@@ -38,11 +38,36 @@ class VariationResult(BaseModel):
     decision: Decision
 
 
+class StabilityZone(BaseModel):
+    """One range band in the decision stability map."""
+
+    start: float
+    end: float
+    label: str = Field(description="ACCEPT or REJECT")
+
+
+class StabilityZoneResult(BaseModel):
+    """Full stability zone output — range bands + human summary."""
+
+    zones: list[StabilityZone]
+    summary: str
+
+
+class ImpactItem(BaseModel):
+    """Score impact from a single counterfactual variable change."""
+
+    variable: str
+    delta: float
+    direction: str = Field(description="positive, negative, or none")
+    decision_changed: bool
+
+
 class RiskAssessment(BaseModel):
-    """Normalized risk score with human-readable band label."""
+    """Normalized risk score with 3-tier lab label and reasons."""
 
     score: int = Field(ge=0, le=100)
-    level: str = Field(description="Low / Medium / High")
+    level: str = Field(description="SAFE / BORDERLINE / HIGH_RISK")
+    reasons: list[str] = Field(default_factory=list)
 
 
 class Insights(BaseModel):
@@ -82,13 +107,14 @@ class AuditResponse(BaseModel):
     """
     Complete audit result returned by ``POST /audit/run``.
 
-    Shape matches the frontend ``AuditResult`` TypeScript interface so
-    no client-side changes are required.
+    Shape matches the frontend ``AuditResult`` TypeScript interface.
     """
 
     original: OriginalDecision
     threshold_analysis: list[ThresholdAnalysisItem]
     variations: list[VariationResult]
+    stability_zone: StabilityZoneResult
+    impact_analysis: list[ImpactItem]
     confidence_zone: str
     risk: RiskAssessment
     reason_tags: list[str]
@@ -99,4 +125,3 @@ class AuditResponse(BaseModel):
     explanation_request: str
     recourse: list[RecourseItem]
     human_review: HumanReview
-
