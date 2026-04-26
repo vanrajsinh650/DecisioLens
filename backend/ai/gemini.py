@@ -1,13 +1,14 @@
 """
-Gemini AI integration — async service layer.
+Gemini & Groq AI integration — async service layer.
 
-Provides ``GeminiService``, a singleton class that:
-- Builds the Gemini client **once** at construction (not per call)
+Provides ``AIService``, a singleton class that:
+- Builds the AI client **once** at construction (not per call)
+- Supports **Gemini** and **Groq** as interchangeable providers
 - Exposes ``async`` methods for explanation and appeal generation
 - Wraps the synchronous SDK via ``asyncio.to_thread`` to avoid blocking
 - Falls back to deterministic templates when the API is unreachable
 - Enforces a hard context-size budget to prevent prompt-size DoS
-- Uses a bounded semaphore to limit concurrent Gemini calls
+- Uses a bounded semaphore to limit concurrent AI calls
 """
 
 from __future__ import annotations
@@ -16,9 +17,6 @@ import asyncio
 import json
 from functools import lru_cache
 from typing import Any, Mapping
-
-from google import genai
-from google.genai import types
 
 from core.config import Settings, get_settings
 from core.logging import get_logger
@@ -30,41 +28,78 @@ logger = get_logger("gemini")
 
 _EXPLANATION_REQUIRED_SECTIONS = ("Summary:", "Key Reason:", "Risk:", "Recommendation:")
 
-# Hard cap on serialized context sent to Gemini (characters).  ~8 KB
+# Hard cap on serialized context sent to AI (characters).  ~8 KB
 # prevents runaway token costs from oversized payloads that slip
 # through the request-level size guard.
 _MAX_CONTEXT_CHARS = 8_192
 
-# Maximum concurrent Gemini API calls across all requests.
-_GEMINI_CONCURRENCY_LIMIT = 10
+# Issue #5 fix: Increased to 30 (supports 10 full audit requests × 3 calls)
+# Each audit fans out 3 AI calls — the old limit of 10 meant only ~3
+# concurrent requests before queueing collapse.
+_AI_CONCURRENCY_LIMIT = 30
 
-# Per-call timeout in seconds. If Gemini doesn't respond in time,
-# the call returns None and the service uses the fallback template.
-_GEMINI_CALL_TIMEOUT_SECONDS = 15
+# Per-call timeout in seconds.  Reduced from 15 → 10 for faster fallback.
+_AI_CALL_TIMEOUT_SECONDS = 10
+
+# Circuit breaker: after this many consecutive failures, skip API
+# calls entirely for _CIRCUIT_BREAKER_COOLDOWN_S seconds.
+_CIRCUIT_BREAKER_THRESHOLD = 5
+_CIRCUIT_BREAKER_COOLDOWN_S = 60
 
 
-# ── GeminiService ────────────────────────────────────────────────────
+# ── AIService ────────────────────────────────────────────────────────
 
 class GeminiService:
-    """Singleton wrapper around the Google Generative AI SDK."""
+    """Singleton wrapper around the Google Generative AI SDK or Groq SDK."""
 
     _instance: GeminiService | None = None
 
     def __init__(self, settings: Settings) -> None:
-        self._model = settings.GEMINI_MODEL
+        self._provider = settings.AI_PROVIDER.lower()
+        self._semaphore = asyncio.Semaphore(_AI_CONCURRENCY_LIMIT)
+
+        # Circuit breaker state (Issue #5)
+        self._consecutive_failures = 0
+        self._circuit_open_until: float = 0.0
+
+        # Gemini client
+        self._gemini_client = None
+        self._gemini_model = settings.GEMINI_MODEL
+
+        # Groq client
+        self._groq_client = None
+        self._groq_model = settings.GROQ_MODEL
+
+        if self._provider == "groq":
+            self._init_groq(settings)
+        else:
+            self._init_gemini(settings)
+
+    def _init_gemini(self, settings: Settings) -> None:
+        """Initialize the Gemini client."""
+        from google import genai
         api_key = settings.gemini_api_key_resolved
-        self._client: genai.Client | None = None
-        # Bounded semaphore limits concurrent Gemini calls across all
-        # in-flight requests, preventing threadpool saturation.
-        self._semaphore = asyncio.Semaphore(_GEMINI_CONCURRENCY_LIMIT)
         if api_key:
             try:
-                self._client = genai.Client(api_key=api_key)
-                logger.info("Gemini client initialized (model=%s)", self._model)
+                self._gemini_client = genai.Client(api_key=api_key)
+                logger.info("Gemini client initialized (model=%s)", self._gemini_model)
             except Exception:
                 logger.warning("Failed to initialize Gemini client — fallback mode active")
         else:
             logger.warning("No Gemini API key configured — fallback mode active")
+
+    def _init_groq(self, settings: Settings) -> None:
+        """Initialize the Groq client."""
+        from groq import Groq
+        api_key = settings.GROQ_API_KEY
+        if api_key:
+            try:
+                self._groq_client = Groq(api_key=api_key)
+                logger.info("Groq client initialized (model=%s)", self._groq_model)
+            except Exception:
+                logger.warning("Failed to initialize Groq client — fallback mode active")
+        else:
+            logger.warning("No Groq API key configured — fallback mode active")
 
     @classmethod
     def instance(cls) -> GeminiService:
@@ -76,7 +111,7 @@ class GeminiService:
     # ── Public async API ─────────────────────────────────────────────
 
     async def generate_explanation(self, context: Mapping[str, Any]) -> str:
-        """Generate a structured explanation (one Gemini call + fallback)."""
+        """Generate a structured explanation (one AI call + fallback)."""
         prompt = (
             "You are an AI audit assistant. Return a structured explanation for judges.\n"
             "Use plain text and follow this exact format:\n"
@@ -108,7 +143,7 @@ class GeminiService:
         return _fallback_explanation(context)
 
     async def generate_appeal(self, context: Mapping[str, Any]) -> str:
-        """Generate a formal appeal draft (one Gemini call + fallback)."""
+        """Generate a formal appeal draft (one AI call + fallback)."""
         prompt = (
             "Draft a formal appeal letter requesting manual review of an automated decision.\n"
             "Include: decision outcome, score, confidence zone, risk score, threshold sensitivity, instability/bias indicators, reason tags, "
@@ -166,20 +201,69 @@ class GeminiService:
         max_output_tokens: int,
         temperature: float,
     ) -> str | None:
-        """Make a single Gemini generation call on a background thread.
+        """Make a single AI generation call on a background thread.
 
-        Acquires a bounded semaphore first to cap global concurrency and
-        prevent threadpool exhaustion under burst traffic.
+        Routes to Gemini or Groq based on the configured provider.
+        Acquires a bounded semaphore first to cap global concurrency.
+        Implements a circuit breaker (Issue #5) to prevent queueing
+        collapse when the upstream API is persistently failing.
         """
-        if self._client is None:
+        import time
+
+        # Circuit breaker check
+        now = time.monotonic()
+        if self._consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
+            if now < self._circuit_open_until:
+                logger.debug("Circuit breaker open — skipping AI call")
+                return None
+            # Cooldown expired — allow a probe
+            logger.info("Circuit breaker half-open — probing AI call")
+
+        call_fn = self._call_groq if self._provider == "groq" else self._call_gemini
+        result = await call_fn(
+            system_instruction=system_instruction,
+            prompt=prompt,
+            max_output_tokens=max_output_tokens,
+            temperature=temperature,
+        )
+
+        # Update circuit breaker state
+        if result is None:
+            self._consecutive_failures += 1
+            if self._consecutive_failures >= _CIRCUIT_BREAKER_THRESHOLD:
+                self._circuit_open_until = time.monotonic() + _CIRCUIT_BREAKER_COOLDOWN_S
+                logger.warning(
+                    "Circuit breaker OPEN — %d consecutive failures, cooling down %ds",
+                    self._consecutive_failures,
+                    _CIRCUIT_BREAKER_COOLDOWN_S,
+                )
+        else:
+            if self._consecutive_failures > 0:
+                logger.info("Circuit breaker RESET — AI call succeeded")
+            self._consecutive_failures = 0
+
+        return result
+
+    async def _call_gemini(
+        self,
+        *,
+        system_instruction: str,
+        prompt: str,
+        max_output_tokens: int,
+        temperature: float,
+    ) -> str | None:
+        """Make a single Gemini generation call."""
+        from google.genai import types
+
+        if self._gemini_client is None:
             return None
 
         async with self._semaphore:
             try:
                 response = await asyncio.wait_for(
                     asyncio.to_thread(
-                        self._client.models.generate_content,
-                        model=self._model,
+                        self._gemini_client.models.generate_content,
+                        model=self._gemini_model,
                         contents=prompt,
                         config=types.GenerateContentConfig(
                             systemInstruction=system_instruction,
@@ -187,16 +271,57 @@ class GeminiService:
                             maxOutputTokens=max_output_tokens,
                         ),
                     ),
-                    timeout=_GEMINI_CALL_TIMEOUT_SECONDS,
+                    timeout=_AI_CALL_TIMEOUT_SECONDS,
                 )
             except asyncio.TimeoutError:
-                logger.warning("Gemini call timed out after %ds — using fallback", _GEMINI_CALL_TIMEOUT_SECONDS)
+                logger.warning("Gemini call timed out after %ds — using fallback", _AI_CALL_TIMEOUT_SECONDS)
                 return None
             except Exception as exc:
                 logger.warning("Gemini API call failed — using fallback: %s", exc)
                 return None
 
         text = getattr(response, "text", None)
+        if not isinstance(text, str):
+            return None
+
+        cleaned = text.strip()
+        return cleaned or None
+
+    async def _call_groq(
+        self,
+        *,
+        system_instruction: str,
+        prompt: str,
+        max_output_tokens: int,
+        temperature: float,
+    ) -> str | None:
+        """Make a single Groq generation call."""
+        if self._groq_client is None:
+            return None
+
+        async with self._semaphore:
+            try:
+                response = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self._groq_client.chat.completions.create,
+                        model=self._groq_model,
+                        messages=[
+                            {"role": "system", "content": system_instruction},
+                            {"role": "user", "content": prompt},
+                        ],
+                        temperature=temperature,
+                        max_tokens=max_output_tokens,
+                    ),
+                    timeout=_AI_CALL_TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError:
+                logger.warning("Groq call timed out after %ds — using fallback", _AI_CALL_TIMEOUT_SECONDS)
+                return None
+            except Exception as exc:
+                logger.warning("Groq API call failed — using fallback: %s", exc)
+                return None
+
+        text = getattr(response.choices[0].message, "content", None) if response.choices else None
         if not isinstance(text, str):
             return None
 
@@ -410,4 +535,3 @@ def _fallback_explanation_request(context: Mapping[str, Any]) -> str:
         f"Applicant: {name}\n\n"
         "Thank you for your attention to this matter.\n"
     )
-

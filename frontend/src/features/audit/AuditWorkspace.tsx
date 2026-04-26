@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import AuditForm from "./components/AuditForm";
-import AuditPresetCard from "./components/AuditPresetCard";
+
 import SectionHeader from "@/components/layout/SectionHeader";
 import ErrorState from "@/components/shared/ErrorState";
 import LoadingState from "@/components/shared/LoadingState";
@@ -361,13 +361,7 @@ export default function AuditWorkspace() {
     // Derive score for the risk preview
     const currentScore = Number(profile.score ?? profile.credit_score ?? 50);
 
-    // Analysis steps for the sticky right panel
-    const ANALYSIS_STEPS = [
-        "Scoring your profile using a formula for this decision type",
-        "Testing 9 different strictness levels to find where the result flips",
-        "Swapping gender, city, category, and other details to check for bias",
-        "Building the verdict: risk level, bias flags, and reasons",
-    ];
+
 
     return (
         <div ref={revealRef} style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
@@ -402,16 +396,8 @@ export default function AuditWorkspace() {
                 }
             />
 
-            {/* 58/42 two-column split layout */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr",
-                    gap: "32px",
-                }}
-                className="xl:[grid-template-columns:58fr_42fr]"
-            >
-                {/* Left: Instrument Panel */}
+            {/* Single-column instrument panel */}
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
                 <div className="dl-card">
                     <AuditForm
                         domain={domain}
@@ -430,92 +416,17 @@ export default function AuditWorkspace() {
                     />
                 </div>
 
-                {/* Right: Sticky mission briefing panel */}
-                <div
-                    style={{ display: "flex", flexDirection: "column", gap: "24px" }}
-                    className="xl:sticky xl:top-[88px] xl:self-start"
-                >
-                    {/* What We Analyze */}
-                    <div className="dl-card dl-reveal" style={{ padding: "20px" }}>
-                        <p
-                            className="font-body uppercase"
-                            style={{
-                                fontSize: "var(--fs-label)",
-                                fontWeight: 600,
-                                letterSpacing: "0.12em",
-                                color: "var(--t2)",
-                                marginBottom: "16px",
-                            }}
-                        >
-                            WHAT THIS TOOL CHECKS
-                        </p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                            {ANALYSIS_STEPS.map((step, idx) => (
-                                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-                                    {/* 6px aurora-violet dot */}
-                                    <span
-                                        aria-hidden
-                                        style={{
-                                            marginTop: "7px",
-                                            flexShrink: 0,
-                                            width: "6px",
-                                            height: "6px",
-                                            borderRadius: "50%",
-                                            background: "var(--aurora-violet)",
-                                        }}
-                                    />
-                                    <p
-                                        className="font-body"
-                                        style={{
-                                            fontSize: "var(--fs-body)",
-                                            lineHeight: 1.8,
-                                            color: "var(--t2)",
-                                        }}
-                                    >
-                                        {step}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                {/* Score Preview — compact inline */}
+                <RiskPreview threshold={threshold} score={currentScore} />
 
-                    {/* Reactive risk preview spectrum */}
-                    <RiskPreview threshold={threshold} score={currentScore} />
-
-                    {/* Pull-quote */}
-                    <div
-                        className="dl-reveal"
-                        style={{
-                            borderLeft: "2px solid var(--aurora-violet)",
-                            paddingLeft: "20px",
-                        }}
-                    >
-                        <p
-                            className="font-body"
-                            style={{
-                                fontStyle: "italic",
-                                fontSize: "var(--fs-body)",
-                                lineHeight: 1.8,
-                                color: "var(--t2)",
-                            }}
-                        >
-                            &ldquo;Unlike tools that analyze datasets, DecisioLens tests individual decision behavior through profile-level simulation so anyone can check if an AI was fair to them.&rdquo;
-                        </p>
-                    </div>
-
-                    <div className="dl-reveal">
-                        <AuditPresetCard />
-                    </div>
-
-                    {error ? (
-                        <ErrorState
-                            title="Analysis Failed"
-                            message={error}
-                            nextStep="Please check profile and try again."
-                            onRetry={runAudit}
-                        />
-                    ) : null}
-                </div>
+                {error ? (
+                    <ErrorState
+                        title="Analysis Failed"
+                        message={error}
+                        nextStep="Please check profile and try again."
+                        onRetry={runAudit}
+                    />
+                ) : null}
             </div>
 
             {latestSession ? (

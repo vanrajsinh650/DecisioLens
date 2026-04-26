@@ -11,6 +11,7 @@ to prevent malformed or malicious inputs from propagating.
 
 from __future__ import annotations
 
+import math
 from typing import Any, Mapping
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -24,13 +25,34 @@ _MAX_STRING_FIELD_LENGTH = 500
 # Maximum total serialized payload size (bytes) — ~64 KB
 _MAX_PAYLOAD_SIZE = 65_536
 
-# Per-domain allowlists of accepted profile fields
+# Per-domain allowlists of accepted profile fields.
+# IMPORTANT: Every field consumed by a domain scorer in core/model.py
+# MUST appear here — otherwise it is silently stripped before scoring.
 _DOMAIN_ALLOWED_FIELDS: dict[str, set[str]] = {
-    "hiring": {"name", "domain", "gender", "score", "experience", "location", "college"},
-    "lending": {"name", "domain", "gender", "credit_score", "income", "loan_amount", "employment_type", "location"},
-    "education": {"name", "domain", "gender", "score", "grade_12", "category", "income_band", "location"},
-    "insurance": {"name", "domain", "gender", "claim_amount", "policy_tenure", "age", "city_tier", "pre_existing"},
-    "welfare": {"name", "domain", "gender", "annual_income", "land_holding", "aadhaar_linked", "state_tier", "category"},
+    "hiring": {
+        "name", "domain", "gender", "score", "experience", "location", "college",
+        "education", "interview_score",  # consumed by _score_hiring
+    },
+    "lending": {
+        "name", "domain", "gender", "credit_score", "income", "loan_amount",
+        "employment_type", "location",
+        "employment_years",  # consumed by _score_lending
+    },
+    "education": {
+        "name", "domain", "gender", "score", "grade_12", "category",
+        "income_band", "location",
+        "extracurricular", "college",  # consumed by _score_education
+    },
+    "insurance": {
+        "name", "domain", "gender", "claim_amount", "policy_tenure", "age",
+        "city_tier", "pre_existing",
+        "coverage_amount",  # consumed by _score_insurance
+    },
+    "welfare": {
+        "name", "domain", "gender", "annual_income", "land_holding",
+        "aadhaar_linked", "state_tier", "category",
+        "family_size", "employment_status", "housing_status",  # consumed by _score_welfare
+    },
 }
 # Union of all allowed fields for initial acceptance before domain is resolved
 _ALL_ALLOWED_FIELDS = set().union(*_DOMAIN_ALLOWED_FIELDS.values())
@@ -68,13 +90,19 @@ def _coerce_number(value: Any, field: str) -> float:
     if isinstance(value, bool):
         raise ValueError(f"{field} must be numeric, got bool")
     if isinstance(value, (int, float)):
-        return float(value)
-    if isinstance(value, str):
+        result = float(value)
+    elif isinstance(value, str):
         stripped = value.strip()
         if not stripped:
             raise ValueError(f"{field} cannot be empty")
-        return float(stripped)
-    raise ValueError(f"{field} must be numeric, got {type(value).__name__}")
+        result = float(stripped)
+    else:
+        raise ValueError(f"{field} must be numeric, got {type(value).__name__}")
+
+    # Issue #4 fix: reject NaN, Inf, -Inf
+    if not math.isfinite(result):
+        raise ValueError(f"{field} must be a finite number, got {result}")
+    return result
 
 
 def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
@@ -115,6 +143,9 @@ def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
         "score", "experience", "income", "credit_score", "loan_amount",
         "grade_12", "age", "claim_amount", "policy_tenure",
         "annual_income", "land_holding",
+        # Fields added for scorer consistency (Issue #1)
+        "interview_score", "employment_years", "extracurricular",
+        "coverage_amount", "family_size",
     ]
     for field in _NUMERIC_FIELDS:
         if field in normalized and normalized[field] is not None:
@@ -133,6 +164,12 @@ def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
         "policy_tenure": (0, 100),
         "annual_income": (0, 1e12),
         "land_holding": (0, 1e6),
+        # Added for scorer consistency (Issue #1)
+        "interview_score": (0, 100),
+        "employment_years": (0, 80),
+        "extracurricular": (0, 10),
+        "coverage_amount": (0, 1e12),
+        "family_size": (0, 50),
     }
     for field, (lo, hi) in _RANGE_RULES.items():
         if field in normalized and normalized[field] is not None:

@@ -129,20 +129,41 @@ class AuditService:
             **counterfactual_results,
         }
 
-        variation_output = [
-            VariationResult(
-                variation=v["variation"],
-                score=all_variation_results[v["variation"]]["score"],
-                decision=all_variation_results[v["variation"]]["decision"],
+        # Issue #7 fix: human-readable label mapping
+        _VARIATION_LABELS = {
+            "baseline": "Baseline (original)",
+            "gender_swap": "Gender swap",
+            "location_change": "Location change",
+            "college_change": "College / Education tier",
+            "employment_change": "Employment type change",
+            "category_change": "Social category change",
+            "age_change": "Age group change",
+            "income_change": "Income level change",
+            "score_bump": "Qualification score bump",
+        }
+
+        variation_output = []
+        for v in generated_variations:
+            vname = v["variation"]
+            vdata = all_variation_results[vname]
+            vdecision = vdata["decision"]
+            variation_output.append(
+                VariationResult(
+                    variation=vname,
+                    label=_VARIATION_LABELS.get(vname, vname.replace("_", " ").title()),
+                    score=vdata["score"],
+                    decision=vdecision,
+                    changed=vdecision != original_decision,
+                    profile=v.get("profile"),
+                )
             )
-            for v in generated_variations
-        ]
 
         # ── 6. Instability & bias detection ──────────────────────────
         instability_report = detect_instability(
             original=all_variation_results["baseline"],
             variations=all_variation_results,
             threshold_results=threshold_results,
+            user_threshold=threshold,  # Issue #2 fix: local neighborhood only
         )
         bias_report = detect_bias_patterns(
             original=all_variation_results["baseline"],
@@ -169,6 +190,8 @@ class AuditService:
         impact_analysis_data = compute_impact_analysis(
             original_score=original_score,
             variation_outcomes=all_variation_results,
+            threshold=threshold,  # Issue #3 fix: use actual threshold
+            original_decision=original_decision,  # Issue #3 fix: use actual decision
         )
 
         auditor_verdict = (
@@ -280,8 +303,11 @@ class AuditService:
         Only structured, non-sensitive fields are forwarded.  The
         ``name`` field is replaced with a placeholder so the LLM
         never sees real PII.  All string values are truncated and
-        stripped of characters that could act as prompt delimiters.
+        stripped of characters that could act as prompt delimiters
+        or injection vectors (Issue #6 hardening).
         """
+        import re
+
         # Fields safe to send to external LLM (no PII, no free text)
         _SAFE_FIELDS = {
             "domain", "gender", "score", "experience", "location", "college",
@@ -289,16 +315,25 @@ class AuditService:
             "grade_12", "category", "income_band", "age", "claim_amount",
             "policy_tenure", "city_tier", "pre_existing", "annual_income",
             "land_holding", "aadhaar_linked", "state_tier",
+            "education", "interview_score", "employment_years",
+            "extracurricular", "coverage_amount", "family_size",
+            "employment_status", "housing_status",
         }
+        # Issue #6: aggressive character stripping regex
+        # Only allow alphanumeric, spaces, hyphens, periods, commas
+        _SAFE_CHARS = re.compile(r"[^a-zA-Z0-9\s.,\-]")
+
         sanitized: dict = {"name": "[REDACTED]"}
         for key, value in profile.items():
             if key not in _SAFE_FIELDS:
                 continue
             if isinstance(value, str):
-                # Truncate and strip potential prompt-injection markers
-                clean = value[:100].replace("```", "").replace("###", "")
-                sanitized[key] = clean
-            else:
+                # Truncate, strip injection markers, and allow only safe chars
+                clean = value[:80]
+                clean = _SAFE_CHARS.sub("", clean).strip()
+                if clean:
+                    sanitized[key] = clean
+            elif isinstance(value, (int, float)):
                 sanitized[key] = value
         return sanitized
 

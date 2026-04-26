@@ -18,10 +18,17 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application-wide configuration."""
 
+    # ── AI Provider ──────────────────────────────────────────────────
+    AI_PROVIDER: str = Field(default="gemini")  # "gemini" or "groq"
+
     # ── Gemini AI ────────────────────────────────────────────────────
     GEMINI_API_KEY: str = Field(default="", alias="GEMINI_API_KEY")
     GOOGLE_API_KEY: str = Field(default="", alias="GOOGLE_API_KEY")
     GEMINI_MODEL: str = Field(default="gemini-2.0-flash")
+
+    # ── Groq AI ──────────────────────────────────────────────────────
+    GROQ_API_KEY: str = Field(default="")
+    GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
 
     # ── Server / CORS ───────────────────────────────────────────────
     # Default to explicit localhost origins — safe for dev.

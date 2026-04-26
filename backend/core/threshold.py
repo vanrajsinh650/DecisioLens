@@ -16,6 +16,12 @@ _BASE_SENSITIVITY_THRESHOLDS: tuple[float, ...] = (
     0.9,
 )
 
+# ── Issue #2 fix: Local neighborhood for instability detection ───────
+# Only threshold switches within this distance of the user's threshold
+# are counted towards instability.  Global sweep extremes (0.0, 1.0)
+# no longer inflate switch counts.
+LOCAL_INSTABILITY_RADIUS: float = 0.10
+
 
 def make_decision(score: float, threshold: float) -> Decision:
     """
@@ -64,3 +70,29 @@ def analyze_threshold_sensitivity(
         for threshold in sorted(thresholds)
     }
 
+
+def count_local_threshold_switches(
+    threshold_results: dict[float, Decision],
+    user_threshold: float,
+    radius: float = LOCAL_INSTABILITY_RADIUS,
+) -> int:
+    """
+    Count decision switches only within a local neighborhood of the
+    user's threshold.
+
+    Issue #2 fix: The original implementation counted switches across
+    the entire [0, 1] sweep, causing almost every non-extreme score
+    to appear unstable.  This version only considers switches within
+    ±radius of user_threshold.
+    """
+    local = sorted(
+        (t, d) for t, d in threshold_results.items()
+        if abs(t - user_threshold) <= radius
+    )
+    switches = 0
+    prev: Decision | None = None
+    for _, decision in local:
+        if prev is not None and decision != prev:
+            switches += 1
+        prev = decision
+    return switches

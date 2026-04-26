@@ -31,11 +31,21 @@ class ThresholdAnalysisItem(BaseModel):
 
 
 class VariationResult(BaseModel):
-    """Outcome of a single counterfactual variation."""
+    """Outcome of a single counterfactual variation.
 
-    variation: str = Field(description="Variation label, e.g. gender_swap")
+    Issue #7 fix: Now includes label, changed, and profile fields
+    to match the frontend VariationResult interface exactly.
+    """
+
+    variation: str = Field(description="Variation key, e.g. gender_swap")
+    label: str = Field(description="Human-readable label for the variation")
     score: float
     decision: Decision
+    changed: bool = Field(description="Whether the decision differs from baseline")
+    profile: dict[str, str | int | float] | None = Field(
+        default=None,
+        description="The modified profile fields for this variation",
+    )
 
 
 class StabilityZone(BaseModel):

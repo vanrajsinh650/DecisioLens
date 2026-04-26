@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
-from core.threshold import Decision
+from core.threshold import Decision, count_local_threshold_switches
 
 
 VALID_DECISIONS: set[str] = {"ACCEPT", "REJECT"}
@@ -85,9 +85,14 @@ def detect_instability(
     original: Mapping[str, Any],
     variations: Mapping[str, Any] | Sequence[Mapping[str, Any]],
     threshold_results: Mapping[Any, Any],
+    user_threshold: float = 0.5,
 ) -> dict[str, Any]:
     """
     Detect instability from variation outcomes and threshold sensitivity.
+
+    Issue #2 fix: threshold_switch_count now only considers switches
+    within a local neighborhood (±0.10) of user_threshold, preventing
+    nearly every score from being flagged as unstable.
     """
 
     original_decision = _normalize_decision(
@@ -113,16 +118,22 @@ def detect_instability(
                 }
             )
 
+    # Issue #2 fix: use local neighborhood switches instead of global sweep
     normalized_thresholds = _normalize_threshold_results(threshold_results)
-    threshold_switch_points: list[float] = []
+    threshold_dict: dict[float, Decision] = {t: d for t, d in normalized_thresholds}
+    threshold_switch_count = count_local_threshold_switches(
+        threshold_dict, user_threshold
+    )
+
+    # Also compute global switch points for the stability zone visualization
+    global_switch_points: list[float] = []
     previous_decision: Decision | None = None
     for threshold, decision in normalized_thresholds:
         if previous_decision is not None and decision != previous_decision:
-            threshold_switch_points.append(threshold)
+            global_switch_points.append(threshold)
         previous_decision = decision
 
     variation_flip_count = len(decision_flips)
-    threshold_switch_count = len(threshold_switch_points)
     is_unstable = variation_flip_count > 0 or threshold_switch_count > 0
 
     if variation_flip_count >= 2 or threshold_switch_count >= 2:
@@ -138,7 +149,7 @@ def detect_instability(
         "variation_flip_count": variation_flip_count,
         "threshold_switch_count": threshold_switch_count,
         "decision_flips": decision_flips,
-        "threshold_switch_points": threshold_switch_points,
+        "threshold_switch_points": global_switch_points,
     }
 
 
@@ -349,9 +360,14 @@ def compute_stability_zone(
 def compute_impact_analysis(
     original_score: float,
     variation_outcomes: Mapping[str, Mapping[str, Any]],
+    threshold: float = 0.5,
+    original_decision: str | None = None,
 ) -> list[dict[str, Any]]:
     """
     Calculate per-variable score deltas sorted by highest absolute impact.
+
+    Issue #3 fix: Uses the actual user-supplied threshold and original
+    decision instead of a hardcoded 0.5 boundary.
 
     Each entry shows how much the score changed when a single variable
     was modified (counterfactual test).
@@ -361,6 +377,10 @@ def compute_impact_analysis(
     list of {variable, delta, direction, decision_changed}
     """
     impacts: list[dict[str, Any]] = []
+
+    # Derive the original decision from the actual threshold if not provided
+    if original_decision is None:
+        original_decision = "ACCEPT" if original_score >= threshold else "REJECT"
 
     _LABEL_MAP = {
         "gender_swap": "Gender",
@@ -383,19 +403,14 @@ def compute_impact_analysis(
         if delta == 0.0:
             continue
 
-        original_decision = "ACCEPT" if original_score >= 0.5 else "REJECT"
-        variation_decision = outcome.get("decision", original_decision)
-        decision_changed = variation_decision != outcome.get(
-            "original_decision", original_decision
-        )
+        variation_decision = outcome.get("decision", "REJECT")
+        decision_changed = str(variation_decision) != str(original_decision)
 
         impacts.append({
             "variable": _LABEL_MAP.get(name, name.replace("_", " ").title()),
             "delta": delta,
             "direction": "positive" if delta > 0 else "negative",
-            "decision_changed": str(variation_decision) != str(
-                variation_outcomes.get("baseline", {}).get("decision", "")
-            ),
+            "decision_changed": decision_changed,
         })
 
     # Sort by absolute impact, largest first

@@ -27,10 +27,12 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     setup_logging(level=settings.LOG_LEVEL)
     logger = get_logger("main")
+    active_model = settings.GROQ_MODEL if settings.AI_PROVIDER == "groq" else settings.GEMINI_MODEL
     logger.info(
-        "DecisioLens API starting (debug=%s, model=%s)",
+        "DecisioLens API starting (debug=%s, provider=%s, model=%s)",
         settings.DEBUG,
-        settings.GEMINI_MODEL,
+        settings.AI_PROVIDER,
+        active_model,
     )
     yield
     logger.info("DecisioLens API shutting down")

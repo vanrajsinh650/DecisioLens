@@ -86,31 +86,12 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     .filter(isRecord)
     .map((row, index) => {
       const variationName = toString(row.variation, "");
+      // Issue #7 fix: use backend-provided label, changed, profile
       const label = toString(row.label, variationName || `variation_${index + 1}`);
       const score = toNumber(row.score, originalScore);
       const decision = toDecision(row.decision, originalDecision);
       const changed = typeof row.changed === "boolean" ? row.changed : decision !== originalDecision;
-
-      const originalProfile = toProfilePatch(row.profile);
-      const profile = originalProfile
-        ?? (variationName === "baseline"
-          ? { ...requestProfile }
-          : variationName === "gender_swap"
-            ? {
-              ...requestProfile,
-              gender: String(requestProfile.gender).toLowerCase() === "female" ? "male" : "female",
-            }
-            : variationName === "location_change"
-              ? {
-                ...requestProfile,
-                location: String(requestProfile.location) === "Mumbai" ? "Delhi" : "Mumbai",
-              }
-              : variationName === "college_change"
-                ? {
-                  ...requestProfile,
-                  college: String(requestProfile.college) === "Tier 1" ? "Tier 2" : "Tier 1",
-                }
-                : undefined);
+      const profile = toProfilePatch(row.profile);
 
       return {
         label,
