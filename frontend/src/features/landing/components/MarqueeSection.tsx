@@ -1,7 +1,6 @@
 const LOGOS = ["CivicAI", "HireGrid", "LendWise", "PolicyLab", "GrantOps", "InsuraFlow"];
 
 export default function MarqueeSection() {
-    // 
     return (
         <section className="landing-marquee-section" aria-label="Trusted by">
             <div className="landing-container">

@@ -3,7 +3,6 @@ import HeroSection from "@/features/landing/components/HeroSection";
 import MarqueeSection from "@/features/landing/components/MarqueeSection";
 import HowItWorks from "@/features/landing/components/HowItWorks";
 import FeatureHighlights from "@/features/landing/components/FeatureHighlights";
-import VerdictPanel from "@/features/landing/components/VerdictPanel";
 import BreakdownSection from "@/features/landing/components/BreakdownSection";
 import WhySection from "@/features/landing/components/WhySection";
 import ProofSection from "@/features/landing/components/ProofSection";
@@ -23,7 +22,6 @@ export default function LandingPage() {
             <MarqueeSection />
             <HowItWorks />
             <FeatureHighlights />
-            <VerdictPanel />
             <BreakdownSection />
             <WhySection />
             <ProofSection />
