@@ -4,7 +4,7 @@ import HeroSection from "./components/HeroSection";
 
 export default function LandingExperience() {
     return (
-        <div className="space-y-6">
+        <div style={{ overflow: "visible" }}>
             <HeroSection />
             <FeatureHighlights />
             <CTASection />

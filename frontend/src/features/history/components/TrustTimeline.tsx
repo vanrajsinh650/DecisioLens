@@ -136,11 +136,12 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                             />
                             <text
                                 x={tick.x}
-                                y={CHART_HEIGHT - MARGIN.bottom + 18}
-                                textAnchor="middle"
+                                y={CHART_HEIGHT - MARGIN.bottom + 24}
+                                textAnchor="end"
                                 fontSize="10"
                                 fill="hsl(230, 10%, 48%)"
                                 fontFamily="var(--ff-mono)"
+                                transform={`rotate(-45, ${tick.x}, ${CHART_HEIGHT - MARGIN.bottom + 24})`}
                             >
                                 {tick.label}
                             </text>

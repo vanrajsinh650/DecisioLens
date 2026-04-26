@@ -61,8 +61,8 @@ export default function TopBar() {
                 {/* Desktop nav — centered pill group */}
                 <nav className="dl-nav-desktop" aria-label="Primary">
                     <div className="topbar-nav-group">
-                        {NAV_LINKS.filter(l => l.href !== "/").map((link) => {
-                            const isActive = pathname.startsWith(link.href);
+                        {NAV_LINKS.map((link) => {
+                            const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
                             return (
                                 <Link
                                     key={link.href}

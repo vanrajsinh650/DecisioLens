@@ -45,7 +45,7 @@ export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardPr
         .stability-bar {
           display: flex;
           width: 100%;
-          height: 48px;
+          height: 64px;
           border-radius: 8px;
           overflow: hidden;
           margin-top: 12px;
@@ -59,6 +59,7 @@ export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardPr
           min-width: 40px;
           transition: all 0.3s ease;
           cursor: default;
+          gap: 4px;
         }
         .stability-bar__segment--accept {
           background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(34, 197, 94, 0.1));
@@ -69,14 +70,16 @@ export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardPr
           color: #ef4444;
         }
         .stability-bar__label {
-          font-size: 11px;
+          font-size: 13px;
           font-weight: 700;
           letter-spacing: 0.5px;
           font-family: var(--font-mono, monospace);
         }
         .stability-bar__range {
-          font-size: 9px;
-          opacity: 0.7;
+          font-size: 12px;
+          opacity: 1;
+          color: var(--t2, rgba(255,255,255,0.7));
+          font-weight: 500;
           font-family: var(--font-mono, monospace);
         }
         .stability-bar__segment:hover {

@@ -694,7 +694,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .landing-hero {
-    z-index: 1;
+    z-index: 10;
 }
 
 .landing-hero::after {
@@ -1367,7 +1367,7 @@ input[type="range"]::-moz-range-thumb {
 /* Hero: headline */
 .hero-headline {
     margin: 0;
-    font-size: clamp(2.4rem, 5.5vw, 4.4rem);
+    font-size: clamp(2.2rem, 4.2vw, 3.5rem);
     font-weight: 800;
     letter-spacing: -0.045em;
     line-height: 1.04;
