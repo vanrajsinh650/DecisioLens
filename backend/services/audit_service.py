@@ -136,7 +136,7 @@ class AuditService:
             **counterfactual_results,
         }
 
-        # Issue #7 fix: human-readable label mapping
+        # Human-readable label mapping for variation keys
         _VARIATION_LABELS = {
             "baseline": "Baseline (original)",
             "gender_swap": "Gender swap",
@@ -170,7 +170,7 @@ class AuditService:
             original=all_variation_results["baseline"],
             variations=all_variation_results,
             threshold_results=threshold_results,
-            user_threshold=threshold,  # Issue #2 fix: local neighborhood only
+            user_threshold=threshold,
         )
         bias_report = detect_bias_patterns(
             original=all_variation_results["baseline"],
@@ -197,8 +197,8 @@ class AuditService:
         impact_analysis_data = compute_impact_analysis(
             original_score=original_score,
             variation_outcomes=all_variation_results,
-            threshold=threshold,  # Issue #3 fix: use actual threshold
-            original_decision=original_decision,  # Issue #3 fix: use actual decision
+            threshold=threshold,
+            original_decision=original_decision,
         )
 
         auditor_verdict = (
@@ -317,7 +317,7 @@ class AuditService:
         ``name`` field is replaced with a placeholder so the LLM
         never sees real PII.  All string values are truncated and
         stripped of characters that could act as prompt delimiters
-        or injection vectors (Issue #6 hardening).
+        or injection vectors.
         """
         import re
 
@@ -332,7 +332,7 @@ class AuditService:
             "extracurricular", "coverage_amount", "family_size",
             "employment_status", "housing_status",
         }
-        # Issue #6: aggressive character stripping regex
+        # Aggressive character stripping regex —
         # Only allow alphanumeric, spaces, hyphens, periods, commas
         _SAFE_CHARS = re.compile(r"[^a-zA-Z0-9\s.,\-]")
 

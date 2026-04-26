@@ -27,14 +27,16 @@ export function getDomainConfig(domain: DomainType): DomainConfig {
     return DOMAIN_REGISTRY[domain];
 }
 
+/** Returns only backend-supported domains for the audit selector.
+ * "custom" is excluded because the backend rejects it at validation. */
 export function getDomainOptions(): DomainOption[] {
-    return ALL_DOMAINS.map((domain) => {
+    return STATIC_DOMAINS.map((domain) => {
         const config = getDomainConfig(domain);
         return {
             value: config.value,
             label: config.label,
             description: config.description,
-            status: "active",
+            status: "active" as const,
         };
     });
 }

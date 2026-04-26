@@ -68,7 +68,7 @@ class ImpactItem(BaseModel):
 
     variable: str
     delta: float
-    direction: str = Field(description="positive, negative, or none")
+    direction: Literal["positive", "negative", "none"]
     decision_changed: bool
 
 
@@ -76,7 +76,7 @@ class RiskAssessment(BaseModel):
     """Normalized risk score with 3-tier lab label and reasons."""
 
     score: int = Field(ge=0, le=100)
-    level: str = Field(description="SAFE / BORDERLINE / HIGH_RISK")
+    level: Literal["SAFE", "BORDERLINE", "HIGH_RISK"]
     reasons: list[str] = Field(default_factory=list)
 
 
@@ -87,7 +87,7 @@ class Insights(BaseModel):
     bias_detected: bool
     confidence_zone: str
     risk_score: int = Field(ge=0, le=100)
-    risk_level: str
+    risk_level: Literal["SAFE", "BORDERLINE", "HIGH_RISK"]
     reason_tags: list[str]
 
 
@@ -109,7 +109,7 @@ class RecourseItem(BaseModel):
 class HumanReview(BaseModel):
     """Human oversight recommendation based on risk analysis."""
 
-    level: str = Field(description="REQUIRED / RECOMMENDED / NOT_REQUIRED")
+    level: Literal["REQUIRED", "RECOMMENDED", "NOT_REQUIRED"]
     reason: str = Field(description="Plain-language justification")
 
 

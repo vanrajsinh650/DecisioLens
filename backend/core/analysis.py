@@ -90,9 +90,9 @@ def detect_instability(
     """
     Detect instability from variation outcomes and threshold sensitivity.
 
-    Issue #2 fix: threshold_switch_count now only considers switches
-    within a local neighborhood (±0.10) of user_threshold, preventing
-    nearly every score from being flagged as unstable.
+    threshold_switch_count only considers switches within a local
+    neighborhood (±0.10) of user_threshold, preventing the global sweep
+    from flagging nearly every non-extreme score as unstable.
     """
 
     original_decision = _normalize_decision(
@@ -118,7 +118,7 @@ def detect_instability(
                 }
             )
 
-    # Issue #2 fix: use local neighborhood switches instead of global sweep
+    # Use local neighborhood switches instead of the full global sweep
     normalized_thresholds = _normalize_threshold_results(threshold_results)
     threshold_dict: dict[float, Decision] = {t: d for t, d in normalized_thresholds}
     threshold_switch_count = count_local_threshold_switches(
@@ -370,8 +370,8 @@ def compute_impact_analysis(
     """
     Calculate per-variable score deltas sorted by highest absolute impact.
 
-    Issue #3 fix: Uses the actual user-supplied threshold and original
-    decision instead of a hardcoded 0.5 boundary.
+    Uses the active request threshold and original decision so that
+    near-threshold audits produce correct impact narratives.
 
     Each entry shows how much the score changed when a single variable
     was modified (counterfactual test).

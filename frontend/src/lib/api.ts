@@ -86,7 +86,6 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     .filter(isRecord)
     .map((row, index) => {
       const variationName = toString(row.variation, "");
-      // Issue #7 fix: use backend-provided label, changed, profile
       const label = toString(row.label, variationName || `variation_${index + 1}`);
       const score = toNumber(row.score, originalScore);
       const decision = toDecision(row.decision, originalDecision);

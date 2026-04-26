@@ -8,7 +8,10 @@ interface AuditDraft {
     threshold: number;
 }
 
-const DOMAIN_SET: Set<DomainType> = new Set(["hiring", "lending", "education", "custom"]);
+/** All domains the backend supports — must stay in sync with backend SUPPORTED_DOMAINS. */
+const SUPPORTED_STORED_DOMAINS = new Set<DomainType>([
+    "hiring", "lending", "education", "insurance", "welfare",
+]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
     return typeof value === "object" && value !== null;
@@ -19,7 +22,7 @@ const clamp = (value: number, min: number, max: number): number => {
 };
 
 const normalizeDomain = (value: unknown): DomainType => {
-    if (typeof value === "string" && DOMAIN_SET.has(value as DomainType)) {
+    if (typeof value === "string" && SUPPORTED_STORED_DOMAINS.has(value as DomainType)) {
         return value as DomainType;
     }
 
