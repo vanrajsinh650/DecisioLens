@@ -12,7 +12,7 @@ export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardPr
   return (
     <section className="result-card" id="stability-zone-card">
       <h3 className="result-card__title">
-        🧪 Does the result change easily?
+        🧪 Would a small change flip the result?
       </h3>
       <p className="result-card__subtitle">{summary}</p>
 

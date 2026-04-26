@@ -19,13 +19,13 @@ export default function RecourseCard({ recourse, originalDecision }: RecourseCar
                         marginBottom: "12px",
                     }}
                 >
-                    HOW TO IMPROVE YOUR CHANCES
+                    HOW TO IMPROVE YOUR RESULT
                 </p>
                 <p
                     className="font-body"
                     style={{ fontSize: "var(--fs-body)", color: "var(--t3)" }}
                 >
-                    This decision passed. No improvements needed.
+                    The decision was in your favour. No action needed.
                 </p>
             </div>
         );
@@ -54,7 +54,7 @@ export default function RecourseCard({ recourse, originalDecision }: RecourseCar
                     className="font-body"
                     style={{ marginTop: "4px", fontSize: "var(--fs-body)", color: "var(--t2)" }}
                 >
-                    Here are specific things that could change this result or strengthen your case.
+                    Here are specific steps that could change this result or help you make a stronger case.
                 </p>
             </div>
 

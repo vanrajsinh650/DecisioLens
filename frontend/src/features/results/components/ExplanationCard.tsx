@@ -35,7 +35,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                     marginBottom: "24px",
                 }}
             >
-                WHAT THIS MEANS FOR YOU
+                WHY THIS HAPPENED
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -50,7 +50,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t2)",
                         }}
                     >
-                        SUMMARY
+                        IN SHORT
                     </p>
                     <p
                         className="font-body"
@@ -76,7 +76,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t2)",
                         }}
                     >
-                        MAIN REASONS
+                        WHAT CAUSED THIS
                     </p>
                     <ul style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "8px", listStyle: "none", padding: 0, margin: 0 }}>
                         {drivers.length > 0 ? (
@@ -133,7 +133,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t1)",
                         }}
                     >
-                        Recommendation
+                        What You Should Do
                     </p>
                     <p
                         className="font-body"
@@ -144,7 +144,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t1)",
                         }}
                     >
-                        {recommendation || "Review manual guidelines."}
+                        {recommendation || "Check your profile details and try again."}
                     </p>
                 </div>
             </div>

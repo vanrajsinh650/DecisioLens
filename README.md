@@ -14,7 +14,7 @@
 
 AI systems decide who gets hired, who gets a loan, who gets admitted, who gets their insurance claim paid, and who qualifies for government benefits. Most of the time, the people affected by these decisions have no visibility into why they were rejected and no clear path to challenge the outcome.
 
-DecisioLens is a simulation tool that tests how a decision behaves under small controlled changes. You enter a profile, set a threshold, and we run the numbers — swapping gender, city, caste category, employment type, or age group — and show you whether the outcome holds up or falls apart.
+DecisioLens is a simulation tool that tests how a decision behaves under small controlled changes. You enter a profile, set a threshold, and we run the numbers swapping gender, city, caste category, employment type, or age group — and show you whether the outcome holds up or falls apart.
 
 If the decision flips when only gender changes, that is a problem worth knowing about.
 

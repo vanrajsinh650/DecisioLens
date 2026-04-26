@@ -25,10 +25,10 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                         color: "var(--t1)",
                     }}
                 >
-                    WHAT AFFECTED THE SCORE?
+                    WHAT MADE THE BIGGEST DIFFERENCE?
                 </p>
                 <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
-                    The impact of individual variables on the final AI decision score.
+                    These are the things that had the most influence on the final result.
                 </p>
             </div>
 
@@ -105,7 +105,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                                 {item.decision_changed && (
                                     <span
                                         className="font-mono"
-                                        title="This change flipped the decision"
+                                        title="This change flipped the result"
                                         style={{
                                             fontSize: "0.65rem",
                                             fontWeight: 600,
@@ -116,7 +116,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                                             letterSpacing: "0.05em",
                                         }}
                                     >
-                                        FLIP
+                                        RESULT FLIPPED
                                     </span>
                                 )}
                             </div>

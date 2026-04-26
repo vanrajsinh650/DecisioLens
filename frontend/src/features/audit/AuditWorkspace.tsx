@@ -366,9 +366,9 @@ export default function AuditWorkspace() {
     return (
         <div ref={revealRef} style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
             <SectionHeader
-                overline="ANALYSIS CHAMBER"
+                overline="TEST A DECISION"
                 title="Set Up Your Test"
-                subtitle="Enter profile details, set the strictness level, and run the analysis."
+                subtitle="Fill in a profile, choose a category, and hit the button. We'll show you if the result is fair."
                 actions={
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <button
@@ -383,14 +383,14 @@ export default function AuditWorkspace() {
                                 border: "1px solid hsl(172, 60%, 24%)",
                             }}
                         >
-                            {isCompareMode ? "Exit Compare" : "Compare Mode"}
+                            {isCompareMode ? "Exit Compare" : "Compare Side-by-Side"}
                         </button>
                         <button
                             type="button"
                             onClick={resetDraft}
                             className="dl-btn-ghost"
                         >
-                            Reset
+                            Start Fresh
                         </button>
                     </div>
                 }
@@ -421,9 +421,9 @@ export default function AuditWorkspace() {
 
                 {error ? (
                     <ErrorState
-                        title="Analysis Failed"
+                        title="Something went wrong"
                         message={error}
-                        nextStep="Please check profile and try again."
+                        nextStep="Please check the profile details and try again."
                         onRetry={runAudit}
                     />
                 ) : null}
@@ -432,9 +432,9 @@ export default function AuditWorkspace() {
             {latestSession ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
                     <SectionHeader
-                        overline="ANALYSIS RESULTS"
-                        title="Live Results"
-                        subtitle="Your analysis results appear below. Scroll to see each section."
+                        overline="TEST RESULTS"
+                        title="Here's What We Found"
+                        subtitle="Your results are below. Scroll down to see each section."
                     />
 
                     <RawAuditPayloadCard session={latestSession} />
@@ -500,8 +500,8 @@ export default function AuditWorkspace() {
 
             {loading ? (
                 <LoadingState
-                    label="ANALYSIS TERMINAL"
-                    description="Running the threshold test, creating demographic clones, and putting together your verdict."
+                    label="RUNNING TEST"
+                    description="Checking the decision, swapping small details, and putting together your result."
                 />
             ) : null}
         </div>

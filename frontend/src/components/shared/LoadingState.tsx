@@ -9,11 +9,11 @@ interface LoadingStateProps {
 }
 
 const LOADING_MESSAGES = [
-    "> Parsing candidate signal...",
-    "> Mapping threshold boundary...",
-    "> Running 14 scenario variants...",
-    "> Detecting bias vectors...",
-    "> Compiling verdict...",
+    "> Reading the profile...",
+    "> Testing different passing levels...",
+    "> Swapping small details to check fairness...",
+    "> Looking for patterns that seem unfair...",
+    "> Putting together your result...",
 ];
 
 export default function LoadingState({ label, description, compact = false }: LoadingStateProps) {
@@ -131,7 +131,7 @@ export default function LoadingState({ label, description, compact = false }: Lo
                                 color: "var(--aurora-violet)",
                             }}
                         >
-                            {label ?? "TERMINAL FEED"}
+                            {label ?? "RUNNING YOUR TEST"}
                         </p>
 
                         <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "10px", minHeight: "130px" }}>

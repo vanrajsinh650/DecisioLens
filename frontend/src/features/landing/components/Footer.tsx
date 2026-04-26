@@ -1,0 +1,51 @@
+export default function Footer() {
+    return (
+        <footer
+            style={{
+                borderTop: "1px solid var(--rim)",
+                padding: "32px 0",
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "16px",
+            }}
+        >
+            <p
+                className="font-mono"
+                style={{
+                    fontSize: "0.7rem",
+                    letterSpacing: "0.08em",
+                    color: "var(--t3)",
+                    margin: 0,
+                }}
+            >
+                DecisioLens · Decision Integrity Lab · 2026
+            </p>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span
+                    aria-hidden
+                    className="dl-pulse-dot"
+                    style={{
+                        width: "5px",
+                        height: "5px",
+                        borderRadius: "50%",
+                        background: "var(--aurora-green)",
+                    }}
+                />
+                <span
+                    className="font-mono"
+                    style={{
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.08em",
+                        color: "var(--t3)",
+                        textTransform: "uppercase",
+                    }}
+                >
+                    All systems operational
+                </span>
+            </div>
+        </footer>
+    );
+}

@@ -15,20 +15,20 @@ function getStabilityVerdict(riskScore: number): {
 } {
     if (riskScore >= 70)
         return {
-            label: "Decision is Not Confident",
+            label: "This decision may be unfair",
             tone: "risk",
-            pillLabels: ["Too Close To Call", "🚨 A Human Should Check This", "High Risk"],
+            pillLabels: ["Result Changes Easily", "A Human Should Check This", "High Concern"],
         };
     if (riskScore >= 35)
         return {
-            label: "Decision is Too Close To Call",
+            label: "This decision is not fully clear",
             tone: "warn",
-            pillLabels: ["Too Close To Call", "Caution", "Moderate Risk"],
+            pillLabels: ["Close Call", "Worth Checking", "Medium Concern"],
         };
     return {
-        label: "Decision is All Clear",
+        label: "This decision looks stable",
         tone: "safe",
-        pillLabels: ["All Clear", "No Issues Found", "Low Risk"],
+        pillLabels: ["Looks Good", "No Issues Found", "Low Concern"],
     };
 }
 
@@ -139,7 +139,7 @@ export default function ResultHeroCard({
                         color: "var(--t2)",
                     }}
                 >
-                    Score: {formatThreshold(originalScore)} · Strictness Level:{" "}
+                    Score: {formatThreshold(originalScore)} · Passing Bar:{" "}
                     {formatThreshold(threshold * 100)} · Margin: {formatSignedNumber(distance, 0, "pts")}
                 </p>
 
@@ -157,14 +157,14 @@ export default function ResultHeroCard({
                             onClick={onRerun}
                             className="dl-btn-ghost"
                         >
-                            ANALYZE AGAIN
+                            TEST AGAIN
                         </button>
                         <button
                             type="button"
                             onClick={onClear}
                             className="dl-btn-ghost"
                         >
-                            CLEAR RESULTS
+                            START NEW TEST
                         </button>
                     </div>
                 )}

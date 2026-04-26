@@ -4,252 +4,270 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
- * DecisionLensScene A rotating wireframe torus ("the lens") with orbiting 
- * data nodes and ambient particle dust. Inspired by AgentScope's planetary ring
- * but themed for decision auditing a scanning instrument peering into the void.
- * 
- * Renders behind the hero text, responds to mouse parallax, and fades in on load.
+ * DecisionLensScene — Restrained, human-feeling orbit visualization.
+ *
+ * One tasteful focal wireframe torus + two supporting rings + quiet particle field.
+ * NOT flashy: 22 nodes, sparse links, gentle pulse. Looks cinematic, not AI-generated.
  */
 
-const TORUS_RADIUS = 180;
-const TORUS_TUBE = 50;
-const NODE_COUNT = 40;
-const DUST_COUNT = 300;
-const LERP_SPEED = 0.03;
+const NODE_COUNT   = 22;
+const DUST_COUNT   = 160;
+const LERP_SPEED   = 0.05;
 
-function lerp(a: number, b: number, t: number): number {
+// Aurora palette
+const VIOLET = "#7C3AED";
+const TEAL   = "#0D9488";
+const AMBER  = "#D97706";
+const WHITE  = "#E2E8F0";
+const GREY   = "#9ca3af";
+
+function lerp(a: number, b: number, t: number) {
     return a + (b - a) * t;
 }
 
 export default function DecisionLensScene() {
     const [enabled, setEnabled] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    const rafId = useRef(0);
-    const mouseTarget = useRef({ x: 0, y: 0 });
+    const rafId        = useRef(0);
+    const mouseTarget  = useRef({ x: 0, y: 0 });
     const mouseCurrent = useRef({ x: 0, y: 0 });
+    const isHovering   = useRef(false);
 
     useEffect(() => {
-        const media = window.matchMedia("(min-width: 768px)");
-        const sync = () => setEnabled(media.matches);
+        const mq = window.matchMedia("(min-width: 768px)");
+        const sync = () => setEnabled(mq.matches);
         sync();
-        media.addEventListener("change", sync);
-        return () => media.removeEventListener("change", sync);
+        mq.addEventListener("change", sync);
+        return () => mq.removeEventListener("change", sync);
     }, []);
 
     useEffect(() => {
         if (!enabled) return;
-        const container = containerRef.current;
-        if (!container) return;
+        const el = containerRef.current;
+        if (!el) return;
 
         const dpr = Math.min(window.devicePixelRatio, 2);
-        const width = container.clientWidth;
-        const height = container.clientHeight;
+        let w = el.clientWidth;
+        let h = el.clientHeight;
 
-        // Scene
-        const scene = new THREE.Scene();
-        // Orbit is perfectly centered vertically
-        scene.position.y = 0;
+        const scene  = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, w / h, 1, 100);
+        camera.position.set(0, 0, 7.5);
 
-        // Camera perspective for depth
-        const camera = new THREE.PerspectiveCamera(50, width / height, 1, 2000);
-        camera.position.set(0, 100, 480);
-        camera.lookAt(0, 0, 0);
-
-        // Renderer
-        const renderer = new THREE.WebGLRenderer({
-            alpha: true,
-            antialias: true,
-        });
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setPixelRatio(dpr);
-        renderer.setSize(width, height);
+        renderer.setSize(w, h);
         renderer.setClearColor(0x000000, 0);
-        container.appendChild(renderer.domElement);
+        el.appendChild(renderer.domElement);
 
-        // ─── Main wireframe torus (the "lens") ───
-        const torusGeom = new THREE.TorusGeometry(TORUS_RADIUS, TORUS_TUBE, 24, 64);
+        // ── Central wireframe torus (violet) ──────────────────────────────────
+        const torusGeo = new THREE.TorusGeometry(2.0, 0.55, 20, 64);
         const torusMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("#FF4500"),
+            color: new THREE.Color(VIOLET),
             wireframe: true,
             transparent: true,
-            opacity: 0.15,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
         });
-        const torus = new THREE.Mesh(torusGeom, torusMat);
-        torus.rotation.x = Math.PI * 0.5;
+        const torus = new THREE.Mesh(torusGeo, torusMat);
+        torus.rotation.x = (50 * Math.PI) / 180; // 50° tilt
         scene.add(torus);
 
-        // ─── Inner ring (scanning band) ───
-        const innerRingGeom = new THREE.TorusGeometry(TORUS_RADIUS * 0.55, 2, 8, 80);
-        const innerRingMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("#9E9E9E"),
+        // ── Scan ring (teal, counter-spin) ────────────────────────────────────
+        const scanGeo1 = new THREE.TorusGeometry(1.55, 0.015, 8, 90);
+        const scanMat1 = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(TEAL),
             wireframe: true,
             transparent: true,
-            opacity: 0.25,
+            opacity: 0.55,
+            blending: THREE.AdditiveBlending,
         });
-        const innerRing = new THREE.Mesh(innerRingGeom, innerRingMat);
-        innerRing.rotation.x = Math.PI * 0.5;
-        scene.add(innerRing);
+        const scanRing1 = new THREE.Mesh(scanGeo1, scanMat1);
+        scanRing1.rotation.x = (70 * Math.PI) / 180;
+        scene.add(scanRing1);
 
-        // ─── Outer ring (boundary) ───
-        const outerRingGeom = new THREE.TorusGeometry(TORUS_RADIUS * 1.4, 1.5, 6, 100);
-        const outerRingMat = new THREE.MeshBasicMaterial({
-            color: new THREE.Color("#FF4500"),
+        // ── Scan ring (amber, perpendicular) ──────────────────────────────────
+        const scanGeo2 = new THREE.TorusGeometry(2.45, 0.012, 6, 80);
+        const scanMat2 = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(AMBER),
             wireframe: true,
             transparent: true,
-            opacity: 0.08,
+            opacity: 0.5,
+            blending: THREE.AdditiveBlending,
         });
-        const outerRing = new THREE.Mesh(outerRingGeom, outerRingMat);
-        outerRing.rotation.x = Math.PI * 0.55;
-        scene.add(outerRing);
+        const scanRing2 = new THREE.Mesh(scanGeo2, scanMat2);
+        scanRing2.rotation.y = Math.PI / 2;
+        scene.add(scanRing2);
 
-        // ─── Orbiting data nodes ───
+        // ── Orbiting nodes (instanced feel via simple meshes) ─────────────────
+        const nodeColors = [
+            new THREE.Color(VIOLET),
+            new THREE.Color(TEAL),
+            new THREE.Color(AMBER),
+            new THREE.Color(WHITE),
+        ];
+        const nodeGeo = new THREE.SphereGeometry(0.04, 6, 6);
+
+        type NodeData = {
+            angle: number;
+            radius: number;
+            speed: number;
+            tiltX: number;
+            tiltZ: number;
+            baseScale: number;
+            pulseOffset: number;
+            mesh: THREE.Mesh;
+            links: number[];        // indices of linked nodes (max 2)
+        };
+
+        const nodes: NodeData[] = [];
         const nodeGroup = new THREE.Group();
         scene.add(nodeGroup);
 
-        const nodePositions: { angle: number; radius: number; speed: number; yOffset: number }[] = [];
-        const nodeGeom = new THREE.SphereGeometry(2, 6, 6);
-
-        const nodeColors = [
-            new THREE.Color("#2E7D32"), // green
-            new THREE.Color("#D32F2F"), // crimson
-            new THREE.Color("#F57C00"), // amber
-            new THREE.Color("#FFFFFF"), // white
-        ];
-
         for (let i = 0; i < NODE_COUNT; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const radius = TORUS_RADIUS * (0.6 + Math.random() * 0.9);
-            const speed = 0.002 + Math.random() * 0.004;
-            const yOffset = (Math.random() - 0.5) * TORUS_TUBE * 1.5;
-            const color = nodeColors[i % nodeColors.length];
-
-            nodePositions.push({ angle, radius, speed, yOffset });
-
-            const nodeMat = new THREE.MeshBasicMaterial({
-                color,
+            const col = nodeColors[i % nodeColors.length];
+            const mat = new THREE.MeshBasicMaterial({
+                color: col,
                 transparent: true,
-                opacity: 0.4 + Math.random() * 0.4,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending,
             });
-            const node = new THREE.Mesh(nodeGeom, nodeMat);
-            node.position.set(
-                Math.cos(angle) * radius,
-                yOffset,
-                Math.sin(angle) * radius
-            );
-            nodeGroup.add(node);
+            const mesh = new THREE.Mesh(nodeGeo, mat);
+            nodeGroup.add(mesh);
+
+            nodes.push({
+                angle: Math.random() * Math.PI * 2,
+                radius: 1.2 + Math.random() * 1.6,
+                speed: (0.08 + Math.random() * 0.16) * (Math.random() > 0.5 ? 1 : -1),
+                tiltX: (Math.random() - 0.5) * 1.2,
+                tiltZ: (Math.random() - 0.5) * 0.8,
+                baseScale: 0.85 + Math.random() * 0.3,
+                pulseOffset: Math.random() * Math.PI * 2,
+                mesh,
+                links: [],
+            });
         }
 
-        // ─── Ambient dust points ───
-        const dustPositions = new Float32Array(DUST_COUNT * 3);
-        const dustOpacities = new Float32Array(DUST_COUNT);
-        const dustSizes = new Float32Array(DUST_COUNT);
-
-        for (let i = 0; i < DUST_COUNT; i++) {
-            dustPositions[i * 3] = (Math.random() - 0.5) * 800;
-            dustPositions[i * 3 + 1] = (Math.random() - 0.5) * 500;
-            dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 400;
-            dustOpacities[i] = 0.05 + Math.random() * 0.2;
-            dustSizes[i] = 1 + Math.random() * 2;
-        }
-
-        const dustGeom = new THREE.BufferGeometry();
-        dustGeom.setAttribute("position", new THREE.BufferAttribute(dustPositions, 3));
-
-        const dustMat = new THREE.PointsMaterial({
-            color: new THREE.Color("#9E9E9E"),
-            size: 1.5,
-            transparent: true,
-            opacity: 0.15,
-            sizeAttenuation: true,
-        });
-        const dustPoints = new THREE.Points(dustGeom, dustMat);
-        scene.add(dustPoints);
-
-        // ─── Connecting lines between nearby nodes ───
+        // ── Sparse neural graph lines (max 2 per node, distance < 0.85) ──────
         const lineGroup = new THREE.Group();
         scene.add(lineGroup);
+        const lineMat = new THREE.LineBasicMaterial({
+            color: new THREE.Color(VIOLET),
+            transparent: true,
+            opacity: 0.18,
+            blending: THREE.AdditiveBlending,
+        });
 
-        function updateLines() {
-            // Remove old lines
-            while (lineGroup.children.length > 0) {
-                const child = lineGroup.children[0];
-                lineGroup.remove(child);
-                if (child instanceof THREE.Line) {
-                    child.geometry.dispose();
-                    (child.material as THREE.Material).dispose();
+        // Pre-compute link topology (static, not per-frame)
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                if (nodes[i].links.length >= 2 || nodes[j].links.length >= 2) continue;
+                const dr = Math.abs(nodes[i].radius - nodes[j].radius);
+                if (dr < 0.85) {
+                    nodes[i].links.push(j);
+                    nodes[j].links.push(i);
                 }
             }
+        }
 
-            const nodes = nodeGroup.children;
-            const maxDist = TORUS_RADIUS * 0.7;
-            let lineCount = 0;
-
-            for (let i = 0; i < nodes.length && lineCount < 20; i++) {
-                for (let j = i + 1; j < nodes.length && lineCount < 20; j++) {
-                    const dist = nodes[i].position.distanceTo(nodes[j].position);
-                    if (dist < maxDist) {
-                        const points = [nodes[i].position.clone(), nodes[j].position.clone()];
-                        const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-                        const lineMat = new THREE.LineBasicMaterial({
-                            color: new THREE.Color("#FF4500"),
-                            transparent: true,
-                            opacity: 0.08,
-                        });
-                        const line = new THREE.Line(lineGeom, lineMat);
-                        lineGroup.add(line);
-                        lineCount++;
+        // We'll rebuild line geometry every ~90 frames (cheap)
+        let lineTimer = 0;
+        function rebuildLines() {
+            while (lineGroup.children.length) {
+                const c = lineGroup.children[0] as THREE.Line;
+                lineGroup.remove(c);
+                c.geometry.dispose();
+            }
+            for (let i = 0; i < nodes.length; i++) {
+                for (const j of nodes[i].links) {
+                    if (j <= i) continue; // avoid dupes
+                    const d = nodes[i].mesh.position.distanceTo(nodes[j].mesh.position);
+                    if (d < 0.85) {
+                        const pts = [nodes[i].mesh.position.clone(), nodes[j].mesh.position.clone()];
+                        const g = new THREE.BufferGeometry().setFromPoints(pts);
+                        lineGroup.add(new THREE.Line(g, lineMat));
                     }
                 }
             }
         }
 
-        // ─── Mouse tracking ───
-        const handleMouseMove = (e: MouseEvent) => {
-            const nx = (e.clientX / window.innerWidth - 0.5) * 2;
-            const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-            mouseTarget.current.x = nx * 15;
-            mouseTarget.current.y = -ny * 10;
-        };
-        window.addEventListener("mousemove", handleMouseMove);
+        // ── Dust particles ────────────────────────────────────────────────────
+        const dustPos = new Float32Array(DUST_COUNT * 3);
+        for (let i = 0; i < DUST_COUNT; i++) {
+            dustPos[i * 3]     = (Math.random() - 0.5) * 12;
+            dustPos[i * 3 + 1] = (Math.random() - 0.5) * 8;
+            dustPos[i * 3 + 2] = (Math.random() - 0.5) * 6 - 2; // behind structure
+        }
+        const dustGeo = new THREE.BufferGeometry();
+        dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+        const dustMat = new THREE.PointsMaterial({
+            color: new THREE.Color(GREY),
+            size: 0.025,
+            transparent: true,
+            opacity: 0.55,
+            sizeAttenuation: true,
+        });
+        const dust = new THREE.Points(dustGeo, dustMat);
+        scene.add(dust);
 
-        // ─── Animation loop (throttled to 30fps) ───
-        let frameCount = 0;
-        let lastFrameTime = 0;
-        const FRAME_INTERVAL = 1000 / 30;
+        // ── Parallax group (holds everything for mouse rotation) ─────────
+        const pivotGroup = new THREE.Group();
+        pivotGroup.add(torus, scanRing1, scanRing2, nodeGroup, lineGroup, dust);
+        scene.add(pivotGroup);
+
+        // ── Events ────────────────────────────────────────────────────────────
+        const onMouse = (e: MouseEvent) => {
+            mouseTarget.current.x = ((e.clientX / window.innerWidth) - 0.5) * 2;
+            mouseTarget.current.y = -((e.clientY / window.innerHeight) - 0.5) * 2;
+        };
+        const onEnter = () => { isHovering.current = true; };
+        const onLeave = () => { isHovering.current = false; };
+        window.addEventListener("mousemove", onMouse);
+        el.addEventListener("mouseenter", onEnter);
+        el.addEventListener("mouseleave", onLeave);
+
+        // ── Animation ─────────────────────────────────────────────────────────
+        let lastTime = 0;
+        const interval = 1000 / 60;
 
         const animate = (now: number) => {
             rafId.current = requestAnimationFrame(animate);
+            if (now - lastTime < interval) return;
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
 
-            if (now - lastFrameTime < FRAME_INTERVAL) return;
-            lastFrameTime = now;
+            const speedMul = isHovering.current ? 1.4 : 1.0;
 
-            frameCount++;
-
-            // Mouse parallax
+            // Smooth parallax
             mouseCurrent.current.x = lerp(mouseCurrent.current.x, mouseTarget.current.x, LERP_SPEED);
             mouseCurrent.current.y = lerp(mouseCurrent.current.y, mouseTarget.current.y, LERP_SPEED);
+            pivotGroup.rotation.y = mouseCurrent.current.x * 0.05;
+            pivotGroup.rotation.x = mouseCurrent.current.y * 0.05;
 
-            // Rotate torus slowly
-            torus.rotation.z += 0.001;
-            innerRing.rotation.z -= 0.003;
-            outerRing.rotation.z += 0.0005;
+            // Ring spins (very gentle)
+            torus.rotation.z     += 0.08 * dt * speedMul;
+            scanRing1.rotation.z += -0.22 * dt * speedMul;
+            scanRing2.rotation.z += 0.28 * dt * speedMul;
+            dust.rotation.y      += 0.01 * dt;
 
-            // Orbit nodes
-            const nodes = nodeGroup.children;
-            for (let i = 0; i < nodes.length; i++) {
-                const info = nodePositions[i];
-                info.angle += info.speed;
-                nodes[i].position.x = Math.cos(info.angle) * info.radius;
-                nodes[i].position.z = Math.sin(info.angle) * info.radius;
+            // Node orbits + gentle size pulse (±15%)
+            const t = now * 0.001;
+            for (const nd of nodes) {
+                nd.angle += nd.speed * dt * speedMul;
+                const x = Math.cos(nd.angle) * nd.radius;
+                const z = Math.sin(nd.angle) * nd.radius;
+                nd.mesh.position.set(x + nd.tiltX * 0.15, nd.tiltZ * 0.3, z);
+                const pulse = 1 + 0.15 * Math.sin(t * 1.2 + nd.pulseOffset);
+                const s = nd.baseScale * pulse;
+                nd.mesh.scale.setScalar(s);
             }
 
-            // Update connecting lines every 30 frames
-            if (frameCount % 30 === 0) {
-                updateLines();
+            // Rebuild link lines occasionally
+            lineTimer++;
+            if (lineTimer >= 90) {
+                rebuildLines();
+                lineTimer = 0;
             }
-
-            // Apply parallax to entire scene
-            scene.rotation.y = mouseCurrent.current.x * 0.003;
-            scene.rotation.x = mouseCurrent.current.y * 0.003;
 
             renderer.render(scene, camera);
         };
@@ -258,46 +276,36 @@ export default function DecisionLensScene() {
             rafId.current = requestAnimationFrame(animate);
         }
 
-        // Visibility
-        const handleVisibility = () => {
-            if (document.hidden) {
-                cancelAnimationFrame(rafId.current);
-                rafId.current = 0;
-            } else if (rafId.current === 0) {
-                rafId.current = requestAnimationFrame(animate);
-            }
+        const onVis = () => {
+            if (document.hidden) { cancelAnimationFrame(rafId.current); rafId.current = 0; }
+            else if (!rafId.current) { rafId.current = requestAnimationFrame(animate); }
         };
-        document.addEventListener("visibilitychange", handleVisibility);
+        document.addEventListener("visibilitychange", onVis);
 
-        // Resize
-        const handleResize = () => {
-            const w = container.clientWidth;
-            const h = container.clientHeight;
+        const onResize = () => {
+            w = el.clientWidth;
+            h = el.clientHeight;
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
         };
-        window.addEventListener("resize", handleResize);
+        window.addEventListener("resize", onResize);
 
         return () => {
             cancelAnimationFrame(rafId.current);
             rafId.current = 0;
-            window.removeEventListener("mousemove", handleMouseMove);
-            window.removeEventListener("resize", handleResize);
-            document.removeEventListener("visibilitychange", handleVisibility);
+            window.removeEventListener("mousemove", onMouse);
+            window.removeEventListener("resize", onResize);
+            document.removeEventListener("visibilitychange", onVis);
+            el.removeEventListener("mouseenter", onEnter);
+            el.removeEventListener("mouseleave", onLeave);
             renderer.dispose();
-            torusGeom.dispose();
-            torusMat.dispose();
-            innerRingGeom.dispose();
-            innerRingMat.dispose();
-            outerRingGeom.dispose();
-            outerRingMat.dispose();
-            nodeGeom.dispose();
-            dustGeom.dispose();
-            dustMat.dispose();
-            if (container.contains(renderer.domElement)) {
-                container.removeChild(renderer.domElement);
-            }
+            torusGeo.dispose(); torusMat.dispose();
+            scanGeo1.dispose(); scanMat1.dispose();
+            scanGeo2.dispose(); scanMat2.dispose();
+            nodeGeo.dispose(); dustGeo.dispose(); dustMat.dispose();
+            lineMat.dispose();
+            if (el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
         };
     }, [enabled]);
 
@@ -313,7 +321,7 @@ export default function DecisionLensScene() {
                 zIndex: 0,
                 pointerEvents: "none",
                 opacity: 0,
-                animation: "fade-in 1.5s ease-out 0.5s forwards",
+                animation: "fade-in 2s ease-out 0.4s forwards",
             }}
         />
     );

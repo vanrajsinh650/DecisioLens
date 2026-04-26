@@ -7,17 +7,17 @@ interface JuryPanelProps {
 const JURY_ROLES = [
     {
         key: "auditor" as const,
-        role: "Bias Check",
+        role: "Fairness",
         accentColor: "var(--aurora-violet)",
     },
     {
         key: "challenger" as const,
-        role: "Stability Check",
+        role: "Consistency",
         accentColor: "var(--aurora-teal)",
     },
     {
         key: "judge" as const,
-        role: "Final Assessment",
+        role: "Final Result",
         accentColor: "var(--aurora-amber)",
     },
 ];

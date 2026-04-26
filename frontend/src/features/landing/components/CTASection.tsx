@@ -21,7 +21,7 @@ export default function CTASection() {
                     fontWeight: 600,
                 }}
             >
-                {">> SIMULATE NOW"}
+                {">> START TESTING"}
             </p>
 
             <h2
@@ -33,7 +33,7 @@ export default function CTASection() {
                     marginBottom: "12px",
                 }}
             >
-                Simulate an AI decision. Find out if it was fair.
+                Find out if an AI decision was fair.
             </h2>
 
             <p
@@ -46,7 +46,7 @@ export default function CTASection() {
                     lineHeight: 1.75,
                 }}
             >
-                Enter a realistic profile, pick a domain (hiring, lending, insurance, education, or welfare) and get a full counterfactual test report in seconds.
+                Enter a simple profile, pick a category (hiring, lending, insurance, education, or welfare), and we show you if the result would change if any small detail was different.
             </p>
 
             <Link
@@ -54,7 +54,7 @@ export default function CTASection() {
                 className="dl-btn-primary dl-btn-hero"
                 style={{ textDecoration: "none" }}
             >
-                Simulate a Decision →
+                Test a Decision →
             </Link>
 
             {/* Footer line */}

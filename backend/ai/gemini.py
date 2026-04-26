@@ -360,9 +360,9 @@ def _collect_structured_reasons(context: Mapping[str, Any]) -> list[str]:
     reasons: list[str] = []
 
     if int(instability.get("threshold_switch_count", 0)) > 0:
-        reasons.append("Outcome changes with threshold.")
+        reasons.append("The result changes depending on how strict the passing bar is.")
     if int(instability.get("variation_flip_count", 0)) > 0:
-        reasons.append("Outcome changes with profile variations.")
+        reasons.append("The result changes when small details in the profile change.")
 
     suspicious_patterns = bias.get("suspicious_patterns", [])
     if isinstance(suspicious_patterns, list):
@@ -372,24 +372,24 @@ def _collect_structured_reasons(context: Mapping[str, Any]) -> list[str]:
             if isinstance(row, Mapping)
         }
         if "location_change" in variation_names:
-            reasons.append("Sensitive to location variation.")
+            reasons.append("The result changes when the location changes.")
         if "gender_swap" in variation_names:
-            reasons.append("Sensitive to demographic variation.")
+            reasons.append("The result changes when the gender changes.")
         if "college_change" in variation_names:
-            reasons.append("Sensitive to education-profile variation.")
+            reasons.append("The result changes when the education background changes.")
 
     if bool(bias.get("has_bias_flags")):
-        reasons.append("Counterfactual checks flagged bias-sensitive behavior.")
+        reasons.append("Fairness checks found signs the decision may not treat everyone equally.")
 
     if not reasons and isinstance(reason_tags, list):
         tag_reason_map = {
-            "location_sensitive": "Sensitive to location variation.",
-            "threshold_sensitive": "Outcome changes with threshold.",
-            "profile_instability": "Outcome changes with profile variations.",
-            "demographic_sensitive": "Sensitive to demographic variation.",
-            "education_sensitive": "Sensitive to education-profile variation.",
-            "score_instability": "Score is close to the decision boundary.",
-            "bias_detected": "Bias-sensitive behavior was detected.",
+            "location_sensitive": "The result changes when the location changes.",
+            "threshold_sensitive": "The result changes depending on how strict the passing bar is.",
+            "profile_instability": "The result changes when small details in the profile change.",
+            "demographic_sensitive": "The result changes when demographic details change.",
+            "education_sensitive": "The result changes when the education background changes.",
+            "score_instability": "The score is very close to the passing line.",
+            "bias_detected": "Fairness checks found signs of unequal treatment.",
         }
         for tag in reason_tags:
             mapped = tag_reason_map.get(str(tag))
@@ -397,7 +397,7 @@ def _collect_structured_reasons(context: Mapping[str, Any]) -> list[str]:
                 reasons.append(mapped)
 
     if not reasons:
-        reasons.append("No major instability or bias flags were detected.")
+        reasons.append("No major concerns or fairness issues were detected.")
 
     return list(dict.fromkeys(reasons))
 

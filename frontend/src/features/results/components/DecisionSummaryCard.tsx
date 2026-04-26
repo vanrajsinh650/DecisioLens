@@ -42,7 +42,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                     marginBottom: "16px",
                 }}
             >
-                DECISION SUMMARY
+                QUICK SUMMARY
             </p>
 
             <div
@@ -79,11 +79,11 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         className="font-body uppercase"
                         style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
                     >
-                        Decision Stability
+                        Does It Change?
                     </p>
                     <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={instabilityDetected ? "⚠️ Fragile" : "Stable"}
+                            label={instabilityDetected ? "⚠️ Changes Easily" : "Stays The Same"}
                             tone={instabilityDetected ? "caution" : "stable"}
                             dot
                         />
@@ -95,11 +95,11 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         className="font-body uppercase"
                         style={{ fontSize: "var(--fs-label)", fontWeight: 600, letterSpacing: "0.12em", color: "var(--t2)" }}
                     >
-                        Bias
+                        Is It Fair?
                     </p>
                     <div style={{ marginTop: "8px" }}>
                         <Badge
-                            label={biasDetected ? "Detected" : "✅ No Bias"}
+                            label={biasDetected ? "Unfairness Detected" : "✅ Looks Fair"}
                             tone={biasDetected ? "risk" : "stable"}
                             dot
                         />
@@ -138,7 +138,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                         padding: "16px",
                     }}
                 >
-                    <Badge label="Request Human Review" tone="warn" dot />
+                    <Badge label="A Human Should Review This" tone="warn" dot />
                     <p
                         className="font-body"
                         style={{
@@ -147,7 +147,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                             color: "var(--t1)",
                         }}
                     >
-                        Sensitive risk signals were detected. A human should review this before making a final decision.
+                        We found signs this decision may not be reliable. A real person should look at it before a final choice is made.
                     </p>
                 </div>
             )}
@@ -168,7 +168,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 <span>·</span>
                 <span>Decision Type: {session.domain}</span>
                 <span>·</span>
-                <span>Strictness Level: {formatThreshold(request.threshold)}</span>
+                <span>Passing Bar: {formatThreshold(request.threshold)}</span>
             </div>
         </div>
     );

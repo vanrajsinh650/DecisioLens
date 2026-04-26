@@ -58,7 +58,7 @@ export default function AuditForm({
                         color: "var(--t2)",
                     }}
                 >
-                    SELECT DECISION TYPE
+                    WHAT ARE WE TESTING?
                 </label>
                 <DomainSelector
                     options={domainOptions}
@@ -87,7 +87,7 @@ export default function AuditForm({
                                 color: "var(--t2)",
                             }}
                         >
-                            DEFINE CUSTOM SCHEMA
+                            SET UP YOUR OWN FIELDS
                         </label>
                         <CustomFieldBuilder onChange={onCustomFieldsChange} disabled={isLoading} />
                     </div>
@@ -106,7 +106,7 @@ export default function AuditForm({
                         color: "var(--t1)",
                     }}
                 >
-                    PROFILE DETAILS
+                    PERSON'S DETAILS
                 </p>
 
                 {/* Full-width rule under overline */}
@@ -134,10 +134,10 @@ export default function AuditForm({
                         color: "var(--t1)",
                     }}
                 >
-                    SET STRICTNESS LEVEL
+                    HOW STRICT IS THE PASSING BAR?
                 </p>
                 <p className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)" }}>
-                    People who score below this number will not pass. Drag to make it stricter or easier.
+                    People scoring below this number will not pass. Slide left to make it easier, right to make it stricter.
                 </p>
 
                 <ThresholdControl

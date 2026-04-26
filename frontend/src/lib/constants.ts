@@ -8,7 +8,7 @@ export const NAV_LINKS: Array<{ href: string; label: string }> = [
   { href: "/audit", label: "Test" },
   { href: "/results", label: "Report" },
   { href: "/history", label: "History" },
-  { href: "/batch", label: "Batch Analysis" },
+  { href: "/batch", label: "Bulk Testing" },
 ];
 
 export const DOMAIN_OPTIONS: DomainOption[] = getDomainOptions();

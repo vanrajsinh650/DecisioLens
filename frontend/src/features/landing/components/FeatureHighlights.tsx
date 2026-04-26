@@ -2,24 +2,24 @@ import Card from "@/components/shared/Card";
 
 const FEATURES = [
     {
-        title: "Is it stable?",
-        description: "We test the same profile at 10 different strictness levels and show you exactly where the outcome flips.",
-        stat: "THRESHOLD_SIMULATION",
+        title: "Is it consistent?",
+        description: "We test the same profile at 10 different passing bars and show you exactly where the result flips.",
+        stat: "DECISION_LEVEL_TEST",
     },
     {
         title: "Is it fair?",
-        description: "We swap gender, city, category, or college and check if the result changes when it shouldn't.",
-        stat: "COUNTERFACTUAL_SCAN",
+        description: "We swap gender, city, category, or school and check if the result changes when it shouldn't.",
+        stat: "FAIRNESS_CHECK",
     },
     {
         title: "Can you appeal it?",
-        description: "Get a plain-language breakdown of the decision and a formal appeal letter ready to send to whoever made the call.",
-        stat: "APPEAL_GENERATOR",
+        description: "Get a plain-language breakdown of the decision and a formal appeal letter ready to send.",
+        stat: "APPEAL_LETTER",
     },
     {
-        title: "Why us?",
-        description: "Most fairness tools need full dataset access. We work with a single profile and a single decision. Anyone can use it.",
-        stat: "USER_LEVEL_SIMULATION",
+        title: "Why use this?",
+        description: "Most fairness tools need a full dataset. We work with just one profile and one decision. Anyone can use it.",
+        stat: "ONE_PROFILE_TESTING",
     },
 ];
 
@@ -37,7 +37,7 @@ export default function FeatureHighlights() {
                     fontWeight: 600,
                 }}
             >
-                {">> CORE CAPABILITIES"}
+                {">> WHAT WE DO"}
             </p>
 
             <div className="grid gap-4 md:grid-cols-3">

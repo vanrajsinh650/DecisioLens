@@ -77,7 +77,7 @@ export default function ErrorState({ title, message, nextStep, onRetry }: ErrorS
                         transition: "all 0.15s ease",
                     }}
                 >
-                    Retry
+                    Try Again
                 </button>
             )}
         </div>

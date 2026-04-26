@@ -87,7 +87,7 @@ export default function ThresholdControl({
                         letterSpacing: "0.04em",
                     }}
                 >
-                    Boundary score · {normalizedThreshold} normalized
+                    Passing bar · Higher means stricter selection
                 </span>
             </div>
         </div>

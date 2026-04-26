@@ -119,8 +119,8 @@ export default function ResultsExperience() {
     if (!isSessionReady) {
         return (
             <LoadingState
-                label="Fetching results"
-                description="Loading the latest audit snapshot."
+                label="Loading your result"
+                description="Just a moment while we pull up your last test."
             />
         );
     }
@@ -128,9 +128,9 @@ export default function ResultsExperience() {
     if (error) {
         return (
             <EmptyState
-                title="Unable to load report"
+                title="Can't load this report"
                 description={error}
-                ctaLabel="Run a fresh audit"
+                ctaLabel="Run a new test"
                 ctaHref="/audit"
             />
         );
@@ -140,8 +140,8 @@ export default function ResultsExperience() {
         return (
             <EmptyState
                 title="No results yet"
-                description="Scan an AI decision first to see where it could be wrong and why."
-                ctaLabel="Scan a Decision"
+                description="Run a test first to see if an AI decision was fair."
+                ctaLabel="Test a Decision"
                 ctaHref="/audit"
             />
         );
@@ -164,9 +164,9 @@ export default function ResultsExperience() {
     return (
         <div ref={revealContainerRef} style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
             <SectionHeader
-                overline={`${session.domain?.toUpperCase() ?? "ANALYSIS"} · YOUR RESULT`}
+                overline={`${session.domain?.toUpperCase() ?? "TEST"} · YOUR RESULT`}
                 title="Decision Trust Report"
-                subtitle="This report shows if the AI decision about you was fair, stable, and trustworthy."
+                subtitle="This report shows whether the AI decision was fair, consistent, and trustworthy."
             />
 
             {/* Section 1 Verdict Hero */}
