@@ -30,7 +30,7 @@ export default function VariationRow({
             }}
         >
             <td className="px-4 py-3 font-mono text-mono text-t1">
-                <p>{formatVariationName(row.label)}</p>
+                <p>{row.label || formatVariationName(row.variation)}</p>
                 {profileMeta ? <p className="mt-1 text-xs font-normal text-t3">{profileMeta}</p> : null}
             </td>
             <td className="px-4 py-3 font-mono text-mono text-t2">{formatThreshold(row.score)}</td>

@@ -20,8 +20,9 @@ export default function ThresholdSensitivityCard({
     const flipPoints = rows.filter((row) => row.decision !== originalDecision).length;
     const isSensitive = flipPoints > 0;
 
-    const thresholdPos = baselineThreshold * 100;
-    const scorePos = Math.min(100, Math.max(0, originalScore));
+    const clampPercent = (value: number) => Math.min(100, Math.max(0, value));
+    const thresholdPos = clampPercent(baselineThreshold * 100);
+    const scorePos = clampPercent(originalScore * 100);
 
     // Flip zone is ±4 points from threshold
     const flipZoneStart = Math.max(0, thresholdPos - 4);

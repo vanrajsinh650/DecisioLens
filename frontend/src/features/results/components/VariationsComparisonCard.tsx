@@ -7,14 +7,17 @@ interface VariationsComparisonCardProps {
 
 export default function VariationsComparisonCard({ variations }: VariationsComparisonCardProps) {
     const baselineRow =
-        variations.find((row) => row.label === "baseline") ?? variations[0] ?? null;
+        variations.find((row) => row.variation === "baseline") ?? variations[0] ?? null;
 
     if (!baselineRow) {
         return null;
     }
 
     // Limit to 6 scenarios 3×2 grid per spec
-    const displayVariations = variations.slice(0, 6);
+    const displayVariations = [
+        baselineRow,
+        ...variations.filter((row) => row !== baselineRow),
+    ].slice(0, 6);
 
     return (
         <div className="dl-reveal">
@@ -42,7 +45,8 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
             >
                 {displayVariations.map((row) => {
                     const isChanged = row.changed;
-                    const isBaseline = row.label === "baseline";
+                    const isBaseline = row.variation === "baseline";
+                    const displayName = row.label || formatVariationName(row.variation);
 
                     // What changed text
                     const changeText =
@@ -61,7 +65,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
 
                     return (
                         <div
-                            key={row.label}
+                            key={row.variation || row.label}
                             className="dl-card dl-scenario-card"
                             style={{
                                 borderLeft: isChanged
@@ -79,7 +83,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                                     color: "var(--t1)",
                                 }}
                             >
-                                {formatVariationName(row.label)}
+                                {displayName}
                             </p>
 
                             {/* What changed */}

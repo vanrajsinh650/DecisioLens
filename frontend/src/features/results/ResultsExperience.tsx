@@ -41,7 +41,7 @@ export default function ResultsExperience() {
 
     useEffect(() => {
         const historyId = searchParams.get("id") ?? getSelectedHistoryAuditId();
-        
+
         if (historyId) {
             const fromHistory = getAuditHistoryItem(historyId)
                 ?? getAuditHistory().find((item) => item.id === historyId)
@@ -78,42 +78,53 @@ export default function ResultsExperience() {
     useEffect(() => {
         if (!session || !revealContainerRef.current) return;
 
+        const container = revealContainerRef.current;
+
         const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (prefersReducedMotion) {
-            const els = revealContainerRef.current.querySelectorAll(".dl-reveal, .dl-reveal-card, .dl-gauge");
+            const els = container.querySelectorAll(".dl-reveal, .dl-reveal-card, .dl-gauge");
             els.forEach((el) => el.classList.add("revealed"));
             return;
         }
 
-        // Small delay so DOM has time to render the results
-        const timer = setTimeout(() => {
-            if (!revealContainerRef.current) return;
+        let observer: IntersectionObserver | null = null;
+        const staggerTimers: number[] = [];
 
-            const observer = new IntersectionObserver(
+        // Small delay so DOM has time to render the results
+        const timer = window.setTimeout(() => {
+            if (!container.isConnected) return;
+
+            observer = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
                         if (entry.isIntersecting) {
                             const el = entry.target as HTMLElement;
                             const delay = el.dataset.staggerDelay;
                             if (delay) {
-                                setTimeout(() => el.classList.add("revealed"), parseFloat(delay) * 1000);
+                                const revealTimer = window.setTimeout(
+                                    () => el.classList.add("revealed"),
+                                    parseFloat(delay) * 1000,
+                                );
+                                staggerTimers.push(revealTimer);
                             } else {
                                 el.classList.add("revealed");
                             }
-                            observer.unobserve(el);
+                            observer?.unobserve(el);
                         }
                     });
                 },
                 { threshold: 0.15 }
             );
 
-            const elements = revealContainerRef.current.querySelectorAll(".dl-reveal, .dl-reveal-card, .dl-gauge");
-            elements.forEach((el) => observer.observe(el));
-
-            return () => observer.disconnect();
+            const elements = container.querySelectorAll(".dl-reveal, .dl-reveal-card, .dl-gauge");
+            elements.forEach((el) => observer?.observe(el));
         }, 100);
 
-        return () => clearTimeout(timer);
+        return () => {
+            window.clearTimeout(timer);
+            staggerTimers.forEach((staggerTimer) => window.clearTimeout(staggerTimer));
+            observer?.disconnect();
+        };
     }, [session]);
 
     if (!isSessionReady) {
@@ -208,7 +219,7 @@ export default function ResultsExperience() {
                 <VariationsComparisonCard variations={session.response.variations} />
             </div>
 
-            {/* Section 4 Risk Summary */}
+            {/* Section 6 Risk Summary */}
             <div className="print-section">
                 <RiskInsightCard
                     insights={session.response.insights}
@@ -216,19 +227,19 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 4a Request Human Review */}
+            {/* Section 7 Request Human Review */}
             {session.response.human_review && (
                 <div className="print-section">
                     <HumanReviewCard humanReview={session.response.human_review} />
                 </div>
             )}
 
-            {/* Section 5 What This Means For You */}
+            {/* Section 8 What This Means For You */}
             <div className="print-section">
                 <ExplanationCard explanation={session.response.explanation} />
             </div>
 
-            {/* Section 5a How To Improve Your Chances */}
+            {/* Section 9 How to improve your chances */}
             {session.response.recourse && session.response.recourse.length > 0 && (
                 <div className="print-section">
                     <RecourseCard
@@ -238,7 +249,7 @@ export default function ResultsExperience() {
                 </div>
             )}
 
-            {/* Section 6 What You Can Do Next */}
+            {/* Section 10 What You Can Do Next */}
             <div className="print-section">
                 <AppealCard
                     appeal={session.response.appeal}
@@ -246,7 +257,7 @@ export default function ResultsExperience() {
                 />
             </div>
 
-            {/* Section 7 What Our System Says */}
+            {/* Section 11 What Our System Says */}
             {session.response.ai_jury_view ? (
                 <div className="print-section">
                     <JuryPanel jury={session.response.ai_jury_view} />

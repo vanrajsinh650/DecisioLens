@@ -87,12 +87,14 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     .map((row, index) => {
       const variationName = toString(row.variation, "");
       const label = toString(row.label, variationName || `variation_${index + 1}`);
+      const variation = variationName || (index === 0 ? "baseline" : `variation_${index + 1}`);
       const score = toNumber(row.score, originalScore);
       const decision = toDecision(row.decision, originalDecision);
       const changed = typeof row.changed === "boolean" ? row.changed : decision !== originalDecision;
       const profile = toProfilePatch(row.profile);
 
       return {
+        variation,
         label,
         score,
         decision,

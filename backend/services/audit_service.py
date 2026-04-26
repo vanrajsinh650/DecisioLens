@@ -182,6 +182,7 @@ class AuditService:
         risk_assessment = compute_risk_score(
             instability=instability_report,
             bias_detected=bool(bias_report.get("has_bias_flags")),
+            bias_flag_count=int(bias_report.get("flag_count", 0)),
         )
         reason_tags = build_reason_tags(
             instability_report=instability_report,
@@ -250,11 +251,12 @@ class AuditService:
         appeal = gemini_results[1] if isinstance(gemini_results[1], str) else _fallback_appeal(context)
         explanation_request = gemini_results[2] if isinstance(gemini_results[2], str) else _fallback_explanation_request(context)
 
-        # Post-process: inject real name into explanation_request letter
-        # (LLM prompt used [REDACTED] for PII safety, but final output
-        # needs the real name for governance/legal usability)
+        # Deterministically format the applicant name after generation. The LLM
+        # sees only sanitized context and is asked to use a structured placeholder;
+        # if it omits the placeholder, append a canonical Applicant line instead
+        # of relying on a literal global replacement of redaction text.
         real_name = str(validated_profile.get("name", "the applicant"))
-        explanation_request = explanation_request.replace("[REDACTED]", real_name)
+        explanation_request = _format_explanation_request_letter(explanation_request, real_name)
         # ── 9. Recourse + human review ───────────────────────────────
         recourse_list = compute_recourse_suggestions(
             original_score=original_score,
@@ -390,3 +392,28 @@ class AuditService:
             },
             "ai_jury_view": ai_jury_view,
         }
+
+
+_APPLICANT_NAME_PLACEHOLDERS = (
+    "{{APPLICANT_NAME}}",
+    "{APPLICANT_NAME}",
+    "<APPLICANT_NAME>",
+)
+
+
+def _format_explanation_request_letter(letter: str, applicant_name: str) -> str:
+    """Inject applicant identity deterministically without exposing PII to the LLM."""
+    name = applicant_name.strip() or "the applicant"
+    formatted = letter.strip()
+
+    for placeholder in _APPLICANT_NAME_PLACEHOLDERS:
+        formatted = formatted.replace(placeholder, name)
+
+    # If the model copied the sanitized context token, keep prose readable without
+    # depending on that token as the mechanism for inserting the real identity.
+    formatted = formatted.replace("[REDACTED]", "the applicant")
+
+    if name != "the applicant" and name.lower() not in formatted.lower():
+        formatted = f"{formatted}\n\nApplicant: {name}"
+
+    return formatted

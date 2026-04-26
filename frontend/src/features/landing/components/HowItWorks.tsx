@@ -1,64 +1,79 @@
 "use client";
 
+import { useRef, useEffect } from "react";
+
 const STEPS = [
     {
         num: "01",
+        label: "CAPTURE",
         title: "Enter a profile",
         description: "Give us the basics — age, income, location, education. Just one person's details.",
+        icon: "◈",
     },
     {
         num: "02",
+        label: "MUTATE",
         title: "We change small things",
         description: "We swap the gender, change the city, adjust the school. Then we run the decision again.",
+        icon: "⟳",
     },
     {
         num: "03",
+        label: "VERDICT",
         title: "See what flipped",
         description: "If the result changed when it shouldn't have, we flag it. You get a full trust report in seconds.",
+        icon: "◎",
     },
 ];
 
 export default function HowItWorks() {
+    const sectionRef = useRef<HTMLElement>(null);
+
+    useEffect(() => {
+        const cards = sectionRef.current?.querySelectorAll(".step-card-reveal");
+        if (!cards) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        (entry.target as HTMLElement).classList.add("revealed");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.15 }
+        );
+        cards.forEach((c) => observer.observe(c));
+        return () => observer.disconnect();
+    }, []);
+
     return (
-        <section
-            id="how-it-works"
-            className="landing-section"
-        >
+        <section id="how-it-works" ref={sectionRef} className="landing-section">
             <div className="landing-container">
-                {/* Section overline */}
-                <p
-                    className="font-mono"
-                    style={{
-                        fontSize: "0.65rem",
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        color: "var(--aurora-amber)",
-                        marginBottom: "12px",
-                        fontWeight: 600,
-                    }}
-                >
-                    How it works
+                <p className="landing-eyebrow" style={{ marginBottom: "12px" }}>
+                    THE PROTOCOL
                 </p>
 
                 <h2
                     className="font-display"
                     style={{
-                        fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                        fontSize: "clamp(1.5rem, 3vw, 2.4rem)",
                         fontWeight: 700,
                         color: "var(--t1)",
                         marginBottom: "12px",
-                        letterSpacing: "-0.03em",
+                        letterSpacing: "-0.04em",
+                        lineHeight: 1.08,
                     }}
                 >
-                    Three steps. One answer.
+                    Three steps inside the chamber.
                 </h2>
 
                 <p
                     className="font-body"
                     style={{
-                        maxWidth: "620px",
+                        maxWidth: "560px",
                         color: "var(--t2)",
-                        margin: "0 0 48px",
+                        margin: "0 0 56px",
                         lineHeight: 1.75,
                     }}
                 >
@@ -69,41 +84,37 @@ export default function HowItWorks() {
                     style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                        gap: "24px",
+                        gap: "20px",
                     }}
                 >
-                    {STEPS.map((step) => (
+                    {STEPS.map((step, i) => (
                         <article
                             key={step.num}
-                            className="panel"
-                            style={{
-                                position: "relative",
-                                padding: "32px 28px",
-                                borderRadius: "12px",
-                                overflow: "hidden",
-                            }}
+                            className="step-card-reveal panel step-card"
+                            style={{ animationDelay: `${i * 0.1}s` }}
                         >
-                            {/* Step number */}
-                            <span
-                                className="font-mono"
-                                style={{
-                                    fontSize: "0.7rem",
-                                    letterSpacing: "0.1em",
-                                    color: "var(--aurora-amber)",
-                                    fontWeight: 700,
-                                }}
-                            >
-                                STEP {step.num}
-                            </span>
+                            {/* Step tag */}
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                                <span className="font-mono step-num-badge">
+                                    {step.num} / {step.label}
+                                </span>
+                                <span aria-hidden style={{ fontSize: "1.6rem", color: "var(--aurora-amber)", opacity: 0.7 }}>
+                                    {step.icon}
+                                </span>
+                            </div>
+
+                            {/* Glowing divider */}
+                            <div className="step-divider" />
 
                             <h3
                                 className="font-display"
                                 style={{
-                                    marginTop: "16px",
-                                    fontSize: "1.15rem",
+                                    marginTop: "20px",
+                                    fontSize: "1.2rem",
                                     fontWeight: 700,
                                     color: "var(--t1)",
-                                    letterSpacing: "-0.01em",
+                                    letterSpacing: "-0.02em",
+                                    lineHeight: 1.25,
                                 }}
                             >
                                 {step.title}
@@ -114,7 +125,7 @@ export default function HowItWorks() {
                                 style={{
                                     marginTop: "12px",
                                     fontSize: "0.9rem",
-                                    lineHeight: 1.65,
+                                    lineHeight: 1.7,
                                     color: "var(--t2)",
                                 }}
                             >

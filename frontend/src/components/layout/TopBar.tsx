@@ -2,19 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { APP_NAME, NAV_LINKS } from "@/lib/constants";
 
 export default function TopBar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setScrolled(window.scrollY > 12);
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     return (
         <header
             data-no-print
-            className="dl-topbar sticky top-0 z-40"
-            style={{ height: "56px" }}
+            className={`dl-topbar sticky top-0 z-40${scrolled ? " dl-topbar-scrolled" : ""}`}
+            style={{ height: "64px" }}
         >
             <div style={{
                 width: "100%",
@@ -22,124 +29,100 @@ export default function TopBar() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                paddingLeft: "clamp(24px, 5vw, 48px)",
-                paddingRight: "clamp(24px, 5vw, 48px)",
+                paddingLeft: "clamp(20px, 5vw, 48px)",
+                paddingRight: "clamp(20px, 5vw, 48px)",
             }}>
                 {/* Logo */}
-                <Link href="/" style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
                     <span
                         aria-hidden="true"
                         className="dl-pulse-dot"
                         style={{
-                            width: "6px",
-                            height: "6px",
+                            width: "7px",
+                            height: "7px",
                             borderRadius: "50%",
-                            background: "var(--aurora-violet)",
+                            background: "var(--aurora-amber)",
+                            boxShadow: "0 0 10px var(--aurora-amber)",
                         }}
                     />
                     <span
                         className="font-display"
                         style={{
                             color: "var(--t1)",
-                            fontSize: "1.25rem",
+                            fontSize: "1.3rem",
                             fontWeight: 800,
-                            letterSpacing: "0.02em",
+                            letterSpacing: "-0.02em",
                         }}
                     >
                         {APP_NAME}
                     </span>
                 </Link>
 
-                {/* Desktop nav */}
-                <nav
-                    className="dl-nav-desktop"
-                    aria-label="Primary"
-                >
-                    {NAV_LINKS.map((link) => {
-                        const isActive =
-                            link.href === "/"
-                                ? pathname === "/"
-                                : pathname.startsWith(link.href);
-
-                        return (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className="font-mono uppercase dl-nav-link"
-                                data-active={isActive ? "true" : undefined}
-                                style={{
-                                    fontSize: "0.85rem",
-                                    letterSpacing: "0.08em",
-                                    borderRadius: "4px",
-                                    padding: "8px 14px",
-                                    color: isActive ? "var(--t1)" : "var(--t2)",
-                                    background: isActive ? "var(--s2)" : "transparent",
-                                    border: isActive ? "1px solid var(--rim)" : "1px solid transparent",
-                                    transition: "all 0.15s ease",
-                                }}
-                            >
-                                {link.label}
-                            </Link>
-                        );
-                    })}
+                {/* Desktop nav — centered pill group */}
+                <nav className="dl-nav-desktop" aria-label="Primary">
+                    <div className="topbar-nav-group">
+                        {NAV_LINKS.filter(l => l.href !== "/").map((link) => {
+                            const isActive = pathname.startsWith(link.href);
+                            return (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="topbar-nav-link font-mono"
+                                    data-active={isActive ? "true" : undefined}
+                                >
+                                    {link.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </nav>
 
-                {/* Mobile hamburger */}
-                <button
-                    type="button"
-                    className="dl-hamburger"
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    aria-label="Toggle menu"
-                    aria-expanded={mobileOpen}
-                >
-                    <span
-                        style={{
-                            display: "block",
-                            width: "20px",
-                            height: "2px",
-                            background: "var(--t1)",
-                            borderRadius: "1px",
-                            transition: "all 0.2s ease",
-                            transform: mobileOpen ? "rotate(45deg) translateY(4px)" : "none",
-                        }}
-                    />
-                    <span
-                        style={{
-                            display: "block",
-                            width: mobileOpen ? "0px" : "20px",
-                            height: "2px",
-                            background: "var(--t1)",
-                            borderRadius: "1px",
-                            transition: "all 0.2s ease",
+                {/* Right side: CTA */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <Link href="/audit" className="topbar-cta-btn dl-nav-desktop">
+                        <span className="topbar-cta-shine" />
+                        Test a Decision →
+                    </Link>
+
+                    {/* Mobile hamburger */}
+                    <button
+                        type="button"
+                        className="dl-hamburger"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label="Toggle menu"
+                        aria-expanded={mobileOpen}
+                    >
+                        <span style={{
+                            display: "block", width: "20px", height: "2px",
+                            background: "var(--t1)", borderRadius: "1px",
+                            transition: "all 0.25s ease",
+                            transform: mobileOpen ? "rotate(45deg) translateY(6px)" : "none",
+                        }} />
+                        <span style={{
+                            display: "block", width: "20px", height: "2px",
+                            background: "var(--t1)", borderRadius: "1px",
+                            transition: "all 0.25s ease",
                             opacity: mobileOpen ? 0 : 1,
-                        }}
-                    />
-                    <span
-                        style={{
-                            display: "block",
-                            width: "20px",
-                            height: "2px",
-                            background: "var(--t1)",
-                            borderRadius: "1px",
-                            transition: "all 0.2s ease",
-                            transform: mobileOpen ? "rotate(-45deg) translateY(-4px)" : "none",
-                        }}
-                    />
-                </button>
+                            transform: mobileOpen ? "scaleX(0)" : "none",
+                        }} />
+                        <span style={{
+                            display: "block", width: "20px", height: "2px",
+                            background: "var(--t1)", borderRadius: "1px",
+                            transition: "all 0.25s ease",
+                            transform: mobileOpen ? "rotate(-45deg) translateY(-6px)" : "none",
+                        }} />
+                    </button>
+                </div>
             </div>
 
             {/* Mobile drawer */}
             {mobileOpen && (
-                <nav
-                    className="dl-mobile-nav"
-                    aria-label="Mobile navigation"
-                >
+                <nav className="dl-mobile-nav" aria-label="Mobile navigation">
                     {NAV_LINKS.map((link) => {
                         const isActive =
                             link.href === "/"
                                 ? pathname === "/"
                                 : pathname.startsWith(link.href);
-
                         return (
                             <Link
                                 key={link.href}
@@ -148,12 +131,12 @@ export default function TopBar() {
                                 className="font-mono uppercase"
                                 style={{
                                     display: "block",
-                                    padding: "14px 24px",
-                                    fontSize: "var(--fs-mono)",
+                                    padding: "15px 24px",
+                                    fontSize: "0.8rem",
                                     letterSpacing: "0.1em",
-                                    color: isActive ? "var(--t1)" : "var(--t2)",
-                                    background: isActive ? "var(--s2)" : "transparent",
-                                    borderBottom: "1px solid var(--rim)",
+                                    color: isActive ? "var(--aurora-amber)" : "var(--t2)",
+                                    background: isActive ? "rgba(245,124,0,0.06)" : "transparent",
+                                    borderBottom: "1px solid rgba(255,255,255,0.06)",
                                     transition: "all 0.15s ease",
                                 }}
                             >
@@ -161,6 +144,16 @@ export default function TopBar() {
                             </Link>
                         );
                     })}
+                    <div style={{ padding: "16px 24px" }}>
+                        <Link
+                            href="/audit"
+                            onClick={() => setMobileOpen(false)}
+                            className="topbar-cta-btn"
+                            style={{ display: "block", textAlign: "center" }}
+                        >
+                            Test a Decision →
+                        </Link>
+                    </div>
                 </nav>
             )}
         </header>

@@ -18,6 +18,16 @@ const LOADING_MESSAGES = [
 
 export default function LoadingState({ label, description, compact = false }: LoadingStateProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const progressPercent = LOADING_MESSAGES.length <= 1
+        ? 100
+        : (currentIndex / (LOADING_MESSAGES.length - 1)) * 100;
+    const progressStyle = {
+        height: "100%",
+        background: "var(--aurora-violet)",
+        width: `${progressPercent}%`,
+        transition: "width 0.3s ease",
+        animation: "none",
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -93,7 +103,7 @@ export default function LoadingState({ label, description, compact = false }: Lo
                         overflow: "hidden",
                     }}
                 >
-                    <div className="loading-progress-bar" style={{ height: "100%", background: "var(--aurora-violet)", width: "0%" }} />
+                    <div className="loading-progress-bar" style={progressStyle} />
                 </div>
             </div>
         );
@@ -172,7 +182,7 @@ export default function LoadingState({ label, description, compact = false }: Lo
                             overflow: "hidden",
                         }}
                     >
-                        <div className="loading-progress-bar" style={{ height: "100%", background: "var(--aurora-violet)", width: "0%" }} />
+                        <div className="loading-progress-bar" style={progressStyle} />
                     </div>
                 </div>
             </div>

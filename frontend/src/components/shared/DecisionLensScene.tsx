@@ -167,14 +167,15 @@ export default function DecisionLensScene() {
 
     return (
         <div
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
+            onPointerEnter={() => setHovered(true)}
+            onPointerLeave={() => setHovered(false)}
             style={{
                 position: "relative",
                 width: "100%",
                 height: "100%",
                 minHeight: "420px",
                 zIndex: 20,
+                pointerEvents: "auto",
             }}
         >
             {/* Soft amber halo behind the scene */}

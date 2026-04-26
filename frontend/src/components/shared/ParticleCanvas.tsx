@@ -6,7 +6,7 @@ import * as THREE from "three";
 /**
  * DecisioLens Living Ambient Dust Field
  * 
- * 800 static dust particles rendered via Three.js WebGL.
+ * 400 static dust particles rendered via Three.js WebGL.
  * Parallax shift on mouse-move using lerp interpolation at 0.04 speed.
  * requestAnimationFrame-driven at 60fps with devicePixelRatio awareness.
  * Auto-pauses when document.hidden is true.

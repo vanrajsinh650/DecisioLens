@@ -2,15 +2,13 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-
-import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useEffect, useRef } from "react";
 
 const DecisionLensScene = dynamic(
     () => import("@/components/shared/DecisionLensScene"),
     { ssr: false }
 );
 
-/* ── Lab-style stats ───────────────────────────────────────────────── */
 const STATS = [
     { value: "1,284", label: "Decisions tested" },
     { value: "37%", label: "Had fairness issues" },
@@ -18,78 +16,87 @@ const STATS = [
 ];
 
 export default function HeroSection() {
-    const revealRef = useScrollReveal();
+    const sectionRef = useRef<HTMLElement>(null);
+
+    useEffect(() => {
+        const el = sectionRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) el.classList.add("hero-in-view"); },
+            { threshold: 0.1 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
 
     return (
         <section
-            ref={revealRef}
-            className="landing-hero"
-            style={{
-                position: "relative",
-                overflow: "hidden",
-            }}
+            ref={sectionRef}
+            className="landing-hero hero-section-full"
+            style={{ position: "relative", overflow: "hidden" }}
         >
-            {/* ── Hero: two-column on desktop, stacked on mobile ── */}
+            {/* Ambient grid lines */}
+            <div className="hero-grid-lines" aria-hidden />
+
+            {/* Content grid */}
             <div
                 className="hero-grid landing-container"
                 style={{
                     position: "relative",
-                    minHeight: "min(760px, calc(100vh - 56px))",
+                    minHeight: "calc(100vh - 64px)",
                     display: "grid",
                     alignItems: "center",
                     gap: "clamp(32px, 5vw, 72px)",
-                    paddingTop: "clamp(72px, 8vw, 112px)",
-                    paddingBottom: "clamp(72px, 8vw, 112px)",
+                    paddingTop: "clamp(80px, 8vw, 120px)",
+                    paddingBottom: "clamp(80px, 8vw, 120px)",
                 }}
             >
-                {/* Ambient amber radial glow (behind everything) */}
+                {/* Ambient amber glow */}
                 <div
                     aria-hidden
                     style={{
                         position: "absolute",
-                        top: "20%",
-                        right: "10%",
-                        width: "520px",
-                        height: "520px",
-                        background: "radial-gradient(circle, rgba(255,69,0,0.12) 0%, rgba(245,124,0,0.05) 38%, transparent 72%)",
+                        top: "15%",
+                        right: "8%",
+                        width: "600px",
+                        height: "600px",
+                        background: "radial-gradient(circle, rgba(255,69,0,0.1) 0%, rgba(245,124,0,0.04) 40%, transparent 70%)",
+                        borderRadius: "50%",
+                        pointerEvents: "none",
+                        zIndex: 0,
+                    }}
+                />
+                <div
+                    aria-hidden
+                    style={{
+                        position: "absolute",
+                        bottom: "20%",
+                        left: "-5%",
+                        width: "400px",
+                        height: "400px",
+                        background: "radial-gradient(circle, rgba(245,124,0,0.06) 0%, transparent 65%)",
                         borderRadius: "50%",
                         pointerEvents: "none",
                         zIndex: 0,
                     }}
                 />
 
-                {/* LEFT COLUMN — text content */}
-                <div
-                    style={{
-                        position: "relative",
-                        zIndex: 2,
-                        maxWidth: "620px",
-                    }}
-                >
+                {/* LEFT COLUMN */}
+                <div style={{ position: "relative", zIndex: 2, maxWidth: "640px" }}>
                     {/* Status bar */}
                     <div
-                        className="hero-stagger-1 font-mono"
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "16px",
-                            alignItems: "center",
-                            fontSize: "0.65rem",
-                            letterSpacing: "0.08em",
-                            color: "var(--t3)",
-                            textTransform: "uppercase",
-                            marginBottom: "20px",
-                        }}
+                        className="hero-stagger-1 font-mono hero-status-bar"
                     >
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "7px" }}>
                             <span
                                 aria-hidden
                                 className="dl-pulse-dot"
                                 style={{
-                                    width: "5px",
-                                    height: "5px",
+                                    width: "6px",
+                                    height: "6px",
                                     borderRadius: "50%",
                                     background: "var(--aurora-green)",
+                                    boxShadow: "0 0 8px var(--aurora-green)",
                                 }}
                             />
                             chamber online
@@ -101,111 +108,51 @@ export default function HeroSection() {
                     </div>
 
                     {/* Kicker chip */}
-                    <div
-                        className="hero-stagger-1"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            padding: "6px 14px",
-                            borderRadius: "4px",
-                            border: "1px solid rgba(217,119,6,0.3)",
-                            background: "rgba(217,119,6,0.06)",
-                            marginBottom: "24px",
-                        }}
-                    >
-                        <span
-                            className="font-mono"
-                            style={{
-                                fontSize: "0.65rem",
-                                letterSpacing: "0.1em",
-                                textTransform: "uppercase",
-                                color: "var(--aurora-amber)",
-                                fontWeight: 600,
-                            }}
-                        >
+                    <div className="hero-stagger-1 hero-chip">
+                        <span className="font-mono hero-chip-text">
                             decision integrity lab
                         </span>
                     </div>
 
                     {/* Headline */}
-                    <h1
-                        className="hero-stagger-2 font-display"
-                        style={{
-                            margin: 0,
-                            fontSize: "clamp(2.2rem, 5vw, 4rem)",
-                            fontWeight: 800,
-                            letterSpacing: "-0.04em",
-                            lineHeight: 1.05,
-                            color: "var(--t1)",
-                        }}
-                    >
+                    <h1 className="hero-stagger-2 font-display hero-headline">
                         Can this decision{" "}
                         <br className="hidden-mobile" />
                         be{" "}
-                        <span className="text-gradient-amber">
+                        <span className="text-gradient-amber hero-trusted-word">
                             trusted?
                         </span>
                     </h1>
 
                     {/* Subcopy */}
-                    <p
-                        className="hero-stagger-3 font-body"
-                        style={{
-                            marginTop: "24px",
-                            fontSize: "clamp(0.95rem, 1.4vw, 1.1rem)",
-                            lineHeight: 1.65,
-                            color: "var(--t2)",
-                            maxWidth: "520px",
-                        }}
-                    >
+                    <p className="hero-stagger-3 font-body hero-subcopy">
                         We test what happens when small details change.
                         If the answer flips, the system isn't being fair — and you get a clear report you can actually use.
                     </p>
 
                     {/* CTAs */}
-                    <div
-                        className="hero-stagger-4"
-                        style={{
-                            marginTop: "32px",
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: "12px",
-                            alignItems: "center",
-                        }}
-                    >
-                        <Link href="/audit" className="dl-btn-primary dl-btn-hero">
+                    <div className="hero-stagger-4 hero-cta-row">
+                        <Link href="/audit" className="dl-btn-primary dl-btn-hero dl-btn-shine">
+                            <span className="btn-shine-effect" />
                             Test a Decision →
                         </Link>
-                        <Link
-                            href="#how-it-works"
-                            className="dl-btn-ghost"
-                            style={{ padding: "14px 24px" }}
-                        >
+                        <Link href="#how-it-works" className="dl-btn-ghost hero-ghost-btn">
                             How It Works
                         </Link>
                     </div>
 
-                    {/* Lab stats */}
-                    <div
-                        className="hero-stagger-5"
-                        style={{
-                            marginTop: "48px",
-                            display: "flex",
-                            gap: "32px",
-                            flexWrap: "wrap",
-                        }}
-                    >
+                    {/* Stats row */}
+                    <div className="hero-stagger-5 hero-stats-row">
                         {STATS.map((s) => (
-                            <div key={s.label}>
+                            <div key={s.label} className="hero-stat-item">
                                 <p
                                     className="font-display"
                                     style={{
                                         margin: 0,
-                                        fontSize: "1.6rem",
+                                        fontSize: "1.8rem",
                                         fontWeight: 700,
                                         color: "var(--t1)",
-                                        letterSpacing: "-0.02em",
+                                        letterSpacing: "-0.03em",
                                     }}
                                 >
                                     {s.value}
@@ -213,9 +160,8 @@ export default function HeroSection() {
                                 <p
                                     className="font-mono"
                                     style={{
-                                        margin: 0,
-                                        marginTop: "4px",
-                                        fontSize: "0.65rem",
+                                        margin: "4px 0 0",
+                                        fontSize: "0.63rem",
                                         letterSpacing: "0.08em",
                                         textTransform: "uppercase",
                                         color: "var(--t3)",
@@ -227,49 +173,25 @@ export default function HeroSection() {
                         ))}
                     </div>
 
-                    <div
-                        className="hero-stagger-5 hero-signal-card"
-                        style={{
-                            marginTop: "36px",
-                            maxWidth: "560px",
-                            display: "grid",
-                            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                            gap: "1px",
-                            overflow: "hidden",
-                            borderRadius: "12px",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            background: "rgba(255, 255, 255, 0.06)",
-                        }}
-                    >
+                    {/* Lane signal cards */}
+                    <div className="hero-stagger-5 hero-signal-card">
                         {["Hiring", "Lending", "Benefits"].map((label, index) => (
-                            <div
-                                key={label}
-                                style={{
-                                    padding: "14px 16px",
-                                    background: "rgba(10, 10, 10, 0.76)",
-                                }}
-                            >
-                                <p
-                                    className="font-mono"
-                                    style={{
-                                        margin: 0,
-                                        fontSize: "0.62rem",
-                                        letterSpacing: "0.1em",
-                                        textTransform: "uppercase",
-                                        color: "var(--t3)",
-                                    }}
-                                >
+                            <div key={label} className="hero-lane-cell">
+                                <p className="font-mono" style={{
+                                    margin: 0,
+                                    fontSize: "0.6rem",
+                                    letterSpacing: "0.1em",
+                                    textTransform: "uppercase",
+                                    color: "var(--t3)",
+                                }}>
                                     lane 0{index + 1}
                                 </p>
-                                <p
-                                    className="font-body"
-                                    style={{
-                                        margin: "4px 0 0",
-                                        color: "var(--t1)",
-                                        fontSize: "0.86rem",
-                                        fontWeight: 600,
-                                    }}
-                                >
+                                <p className="font-body" style={{
+                                    margin: "4px 0 0",
+                                    color: "var(--t1)",
+                                    fontSize: "0.86rem",
+                                    fontWeight: 600,
+                                }}>
                                     {label}
                                 </p>
                             </div>
@@ -284,12 +206,15 @@ export default function HeroSection() {
                         position: "relative",
                         width: "100%",
                         height: "100%",
-                        minHeight: "480px",
+                        minHeight: "500px",
                     }}
                 >
                     <DecisionLensScene />
                 </div>
             </div>
+
+            {/* Bottom fade */}
+            <div className="hero-bottom-fade" aria-hidden />
         </section>
     );
 }

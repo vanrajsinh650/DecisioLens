@@ -42,11 +42,8 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                     return (
                         <div
                             key={i}
+                            className="impact-analysis-row"
                             style={{
-                                display: "grid",
-                                gridTemplateColumns: "140px 1fr 60px 50px",
-                                alignItems: "center",
-                                gap: "16px",
                                 padding: "8px 12px",
                                 background: item.decision_changed ? "var(--aurora-amber-surface)" : "transparent",
                                 border: item.decision_changed ? "1px solid hsl(38, 82%, 24%)" : "1px solid transparent",
@@ -55,13 +52,10 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                         >
                             {/* Label */}
                             <span
-                                className="font-mono"
+                                className="font-mono impact-label"
                                 style={{
                                     fontSize: "var(--fs-mono)",
                                     color: "var(--t1)",
-                                    whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
                                 }}
                             >
                                 {item.variable}
@@ -69,6 +63,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
 
                             {/* Bar Track */}
                             <div
+                                className="impact-bar"
                                 style={{
                                     height: "6px",
                                     background: "var(--s2)",
@@ -89,7 +84,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
 
                             {/* Value */}
                             <span
-                                className="font-mono"
+                                className="font-mono impact-value"
                                 style={{
                                     fontSize: "var(--fs-mono)",
                                     fontWeight: 600,
@@ -101,10 +96,10 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                             </span>
 
                             {/* Flip indicator */}
-                            <div style={{ textAlign: "right" }}>
+                            <div className="impact-badge-wrap">
                                 {item.decision_changed && (
                                     <span
-                                        className="font-mono"
+                                        className="font-mono impact-flip-badge"
                                         title="This change flipped the result"
                                         style={{
                                             fontSize: "0.65rem",

@@ -226,7 +226,11 @@ def classify_confidence(score: Any, threshold: float = 0.5) -> str:
     return "Unstable"
 
 
-def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
+def compute_risk_score(
+    instability: Any,
+    bias_detected: bool,
+    bias_flag_count: int = 0,
+) -> dict[str, Any]:
     """
     Compute a normalized 0-100 risk score with 3-tier lab labels.
 
@@ -248,6 +252,7 @@ def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
     is_unstable = bool(instability_report.get("is_unstable"))
     variation_flip_count = int(instability_report.get("variation_flip_count", 0))
     threshold_switch_count = int(instability_report.get("threshold_switch_count", 0))
+    normalized_bias_flag_count = max(0, int(bias_flag_count))
 
     if sensitivity == "HIGH":
         instability_points = 55
@@ -273,8 +278,12 @@ def compute_risk_score(instability: Any, bias_detected: bool) -> dict[str, Any]:
     # Build human-readable reasons
     reasons: list[str] = []
     if bias_detected:
-        flag_count = int(instability_report.get("variation_flip_count", 0))
-        reasons.append("decision changes with demographic or profile variations")
+        if normalized_bias_flag_count > 0:
+            reasons.append(
+                f"{normalized_bias_flag_count} fairness flag(s) detected across counterfactual checks"
+            )
+        else:
+            reasons.append("fairness flags detected across counterfactual checks")
     if threshold_switch_count > 0:
         reasons.append("result flips at nearby decision levels")
     if variation_flip_count > 0:

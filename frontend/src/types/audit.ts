@@ -27,6 +27,7 @@ export interface ThresholdAnalysisItem {
 }
 
 export interface VariationResult {
+  variation: string;
   label: string;
   score: number;
   decision: Decision;
