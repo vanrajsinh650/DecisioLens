@@ -97,11 +97,18 @@ class AuditService:
         logger.debug("Profile validated", extra={"audit_id": id(validated_profile)})
 
         # ── 2. Baseline score (cached) ───────────────────────────────
+        import math as _math
         cache_key = profile_cache_key(validated_profile)
         original_score: float | None = self._cache.get(cache_key)
         if original_score is None:
             original_score = compute_score_from_validated(validated_profile)
-            self._cache.set(cache_key, original_score)
+            # Only cache finite, valid scores — prevents cache poisoning
+            if _math.isfinite(original_score) and 0.0 <= original_score <= 1.0:
+                self._cache.set(cache_key, original_score)
+            else:
+                raise ValueError(
+                    f"Scoring produced invalid value {original_score} — refusing to cache"
+                )
             logger.debug("Score computed: %.6f", original_score)
         else:
             logger.debug("Score cache hit: %.6f", original_score)
@@ -242,6 +249,12 @@ class AuditService:
         explanation = gemini_results[0] if isinstance(gemini_results[0], str) else _fallback_explanation(context)
         appeal = gemini_results[1] if isinstance(gemini_results[1], str) else _fallback_appeal(context)
         explanation_request = gemini_results[2] if isinstance(gemini_results[2], str) else _fallback_explanation_request(context)
+
+        # Post-process: inject real name into explanation_request letter
+        # (LLM prompt used [REDACTED] for PII safety, but final output
+        # needs the real name for governance/legal usability)
+        real_name = str(validated_profile.get("name", "the applicant"))
+        explanation_request = explanation_request.replace("[REDACTED]", real_name)
         # ── 9. Recourse + human review ───────────────────────────────
         recourse_list = compute_recourse_suggestions(
             original_score=original_score,

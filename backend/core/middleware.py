@@ -11,6 +11,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from core.logging import get_logger
@@ -63,6 +64,27 @@ async def key_error_handler(_request: Request, exc: KeyError) -> JSONResponse:
     return _error_response(400, "Validation Error", str(exc))
 
 
+async def request_validation_error_handler(
+    _request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Normalize FastAPI's default 422 into our structured error shape.
+
+    Without this handler, malformed JSON / type mismatches return
+    FastAPI's default {detail: [...]} format which is inconsistent
+    with our custom {error, detail, status_code} contract.
+    """
+    errors = exc.errors()
+    # Build a concise human-readable summary
+    messages = []
+    for err in errors[:5]:  # cap at 5 to keep response small
+        loc = " -> ".join(str(l) for l in err.get("loc", []))
+        msg = err.get("msg", "invalid")
+        messages.append(f"{loc}: {msg}" if loc else msg)
+    detail = "; ".join(messages)
+    logger.warning("Request validation error: %s", detail)
+    return _error_response(422, "Request Validation Error", detail)
+
+
 # ── Request timing middleware ────────────────────────────────────────
 
 async def request_timing_middleware(request: Request, call_next):
@@ -100,6 +122,7 @@ def register_middleware(app: FastAPI) -> None:
     app.add_exception_handler(KeyError, key_error_handler)
     app.add_exception_handler(ValueError, value_error_handler)
     app.add_exception_handler(TypeError, type_error_handler)
+    app.add_exception_handler(RequestValidationError, request_validation_error_handler)
     app.add_exception_handler(Exception, generic_error_handler)
 
     # Timing middleware.

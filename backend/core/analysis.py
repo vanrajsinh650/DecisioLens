@@ -315,20 +315,24 @@ def compute_stability_zone(
             "summary": "No threshold data available.",
         }
 
-    # Detect transition boundaries
+    # Detect transition boundaries — half-open intervals [start, end)
+    # The flip threshold belongs to the NEW zone, not the old one.
     zones: list[dict[str, Any]] = []
     current_label = sorted_items[0][1]
     current_start = sorted_items[0][0]
+    prev_threshold = current_start
 
     for threshold, decision in sorted_items[1:]:
         if decision != current_label:
+            # Previous zone ends just before this threshold
             zones.append({
                 "start": round(current_start, 4),
-                "end": round(threshold, 4),
+                "end": round(prev_threshold, 4),
                 "label": current_label,
             })
             current_start = threshold
             current_label = decision
+        prev_threshold = threshold
 
     # Close the last zone
     zones.append({

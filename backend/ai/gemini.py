@@ -343,10 +343,10 @@ def _looks_structured_explanation(text: str) -> bool:
 
 
 def _structured_recommendation(risk_level: str) -> str:
-    normalized = risk_level.upper()
-    if normalized == "HIGH":
+    normalized = risk_level.upper().replace(" ", "_")
+    if normalized == "HIGH_RISK":
         return "Prioritize human review before finalizing this decision."
-    if normalized == "MEDIUM":
+    if normalized == "BORDERLINE":
         return "Consider human review before final action."
     return "Decision can proceed with routine monitoring and audit logging."
 
