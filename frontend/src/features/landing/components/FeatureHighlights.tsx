@@ -1,5 +1,3 @@
-import Card from "@/components/shared/Card";
-
 const FEATURES = [
     {
         title: "Is it consistent?",
@@ -25,39 +23,84 @@ const FEATURES = [
 
 export default function FeatureHighlights() {
     return (
-        <section>
-            {/* Section overline */}
-            <p
-                className="font-mono uppercase"
-                style={{
-                    fontSize: "0.7rem",
-                    letterSpacing: "0.1em",
-                    color: "var(--aurora-teal)",
-                    marginBottom: "24px",
-                    fontWeight: 600,
-                }}
-            >
-                {">> WHAT WE DO"}
-            </p>
+        <section className="landing-section landing-section-muted">
+            <div className="landing-container">
+                {/* Section overline */}
+                <p
+                    className="font-mono uppercase"
+                    style={{
+                        fontSize: "0.7rem",
+                        letterSpacing: "0.1em",
+                        color: "var(--aurora-teal)",
+                        marginBottom: "24px",
+                        fontWeight: 600,
+                    }}
+                >
+                    {">> WHAT WE DO"}
+                </p>
 
-            <div className="grid gap-4 md:grid-cols-3">
-                {FEATURES.map((feature) => (
-                    <Card key={feature.title}>
-                        <h2 className="font-display" style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--t1)" }}>{feature.title}</h2>
-                        <p className="font-body" style={{ marginTop: "8px", fontSize: "0.875rem", color: "var(--t2)" }}>{feature.description}</p>
-                        <p
-                            className="font-mono"
-                            style={{
-                                marginTop: "12px",
-                                fontSize: "0.75rem",
-                                color: "var(--t3)",
-                                letterSpacing: "0.04em",
-                            }}
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "space-between",
+                        alignItems: "flex-end",
+                        gap: "24px",
+                        marginBottom: "32px",
+                    }}
+                >
+                    <h2
+                        className="font-display"
+                        style={{
+                            margin: 0,
+                            maxWidth: "640px",
+                            fontSize: "clamp(1.55rem, 3vw, 2.35rem)",
+                            lineHeight: 1.12,
+                            letterSpacing: "-0.035em",
+                            color: "var(--t1)",
+                        }}
+                    >
+                        One decision in. A complete fairness audit out.
+                    </h2>
+                    <p
+                        className="font-mono"
+                        style={{
+                            margin: 0,
+                            maxWidth: "300px",
+                            color: "var(--t3)",
+                            fontSize: "0.72rem",
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            lineHeight: 1.8,
+                        }}
+                    >
+                        profile → stress test → stability map → appeal packet
+                    </p>
+                </div>
+
+                <div className="landing-feature-grid">
+                    {FEATURES.map((feature, index) => (
+                        <article
+                            key={feature.title}
+                            className="panel landing-feature-card"
                         >
-                            {"// "}{feature.stat}
-                        </p>
-                    </Card>
-                ))}
+                            <span
+                                className="font-mono"
+                                style={{
+                                    color: index === 1 ? "var(--aurora-crimson)" : "var(--aurora-amber)",
+                                    fontSize: "0.68rem",
+                                    letterSpacing: "0.1em",
+                                    textTransform: "uppercase",
+                                    fontWeight: 700,
+                                }}
+                            >
+                                0{index + 1} / {feature.stat}
+                            </span>
+                            <h3 className="font-display" style={{ margin: "18px 0 0", fontSize: "1.2rem", lineHeight: 1.25, fontWeight: 700, color: "var(--t1)" }}>{feature.title}</h3>
+                            <p className="font-body" style={{ margin: "10px 0 0", fontSize: "0.9rem", lineHeight: 1.7, color: "var(--t2)" }}>{feature.description}</p>
+                        </article>
+                    ))}
+                </div>
             </div>
         </section>
     );

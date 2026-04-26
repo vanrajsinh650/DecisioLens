@@ -19,91 +19,91 @@ const REASONS = [
 export default function WhySection() {
     return (
         <section
-            style={{
-                paddingTop: "40px",
-                paddingBottom: "80px",
-            }}
+            className="landing-section"
         >
-            <p
-                className="font-mono"
-                style={{
-                    fontSize: "0.65rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--aurora-amber)",
-                    marginBottom: "12px",
-                    fontWeight: 600,
-                }}
-            >
-                Why this matters
-            </p>
+            <div className="landing-container">
+                <p
+                    className="font-mono"
+                    style={{
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        color: "var(--aurora-amber)",
+                        marginBottom: "12px",
+                        fontWeight: 600,
+                    }}
+                >
+                    Why this matters
+                </p>
 
-            <h2
-                className="font-display"
-                style={{
-                    fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                    fontWeight: 700,
-                    color: "var(--t1)",
-                    marginBottom: "48px",
-                    letterSpacing: "-0.03em",
-                }}
-            >
-                AI decides your future. You should be able to check it.
-            </h2>
+                <h2
+                    className="font-display"
+                    style={{
+                        fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                        fontWeight: 700,
+                        color: "var(--t1)",
+                        marginBottom: "48px",
+                        letterSpacing: "-0.03em",
+                    }}
+                >
+                    AI decides your future. You should be able to check it.
+                </h2>
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                    gap: "24px",
-                }}
-            >
-                {REASONS.map((r) => (
-                    <div
-                        key={r.title}
-                        style={{
-                            padding: "28px 24px",
-                            borderLeft: "2px solid var(--aurora-amber)",
-                        }}
-                    >
-                        <span
-                            className="font-mono"
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                        gap: "24px",
+                    }}
+                >
+                    {REASONS.map((r) => (
+                        <div
+                            key={r.title}
+                            className="landing-reason-card"
                             style={{
-                                fontSize: "1.4rem",
-                                color: "var(--aurora-amber)",
-                                lineHeight: 1,
+                                padding: "28px 24px",
+                                borderLeft: "2px solid var(--aurora-amber)",
                             }}
                         >
-                            {r.icon}
-                        </span>
+                            <span
+                                className="font-mono"
+                                style={{
+                                    fontSize: "1.4rem",
+                                    color: "var(--aurora-amber)",
+                                    lineHeight: 1,
+                                }}
+                            >
+                                {r.icon}
+                            </span>
 
-                        <h3
-                            className="font-display"
-                            style={{
-                                marginTop: "16px",
-                                fontSize: "1.05rem",
-                                fontWeight: 700,
-                                color: "var(--t1)",
-                                letterSpacing: "-0.01em",
-                                lineHeight: 1.35,
-                            }}
-                        >
-                            {r.title}
-                        </h3>
+                            <h3
+                                className="font-display"
+                                style={{
+                                    marginTop: "16px",
+                                    fontSize: "1.05rem",
+                                    fontWeight: 700,
+                                    color: "var(--t1)",
+                                    letterSpacing: "-0.01em",
+                                    lineHeight: 1.35,
+                                }}
+                            >
+                                {r.title}
+                            </h3>
 
-                        <p
-                            className="font-body"
-                            style={{
-                                marginTop: "10px",
-                                fontSize: "0.88rem",
-                                lineHeight: 1.65,
-                                color: "var(--t2)",
-                            }}
-                        >
-                            {r.description}
-                        </p>
-                    </div>
-                ))}
+                            <p
+                                className="font-body"
+                                style={{
+                                    marginTop: "10px",
+                                    fontSize: "0.88rem",
+                                    lineHeight: 1.65,
+                                    color: "var(--t2)",
+                                }}
+                            >
+                                {r.description}
+                            </p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </section>
     );

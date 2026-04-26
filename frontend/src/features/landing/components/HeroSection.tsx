@@ -12,9 +12,9 @@ const DecisionLensScene = dynamic(
 
 /* ── Lab-style stats ───────────────────────────────────────────────── */
 const STATS = [
-    { value: "1,284",  label: "Decisions tested" },
-    { value: "37%",    label: "Had fairness issues" },
-    { value: "<2s",    label: "Average test time" },
+    { value: "1,284", label: "Decisions tested" },
+    { value: "37%", label: "Had fairness issues" },
+    { value: "<2s", label: "Average test time" },
 ];
 
 export default function HeroSection() {
@@ -23,23 +23,24 @@ export default function HeroSection() {
     return (
         <section
             ref={revealRef}
+            className="landing-hero"
             style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0,
-                paddingBottom: "80px",
+                position: "relative",
+                overflow: "hidden",
             }}
         >
             {/* ── Hero: two-column on desktop, stacked on mobile ── */}
             <div
+                className="hero-grid landing-container"
                 style={{
                     position: "relative",
-                    width: "100%",
-                    minHeight: "640px",
+                    minHeight: "min(760px, calc(100vh - 56px))",
                     display: "grid",
                     alignItems: "center",
+                    gap: "clamp(32px, 5vw, 72px)",
+                    paddingTop: "clamp(72px, 8vw, 112px)",
+                    paddingBottom: "clamp(72px, 8vw, 112px)",
                 }}
-                className="hero-grid"
             >
                 {/* Ambient amber radial glow (behind everything) */}
                 <div
@@ -50,7 +51,7 @@ export default function HeroSection() {
                         right: "10%",
                         width: "520px",
                         height: "520px",
-                        background: "radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 70%)",
+                        background: "radial-gradient(circle, rgba(255,69,0,0.12) 0%, rgba(245,124,0,0.05) 38%, transparent 72%)",
                         borderRadius: "50%",
                         pointerEvents: "none",
                         zIndex: 0,
@@ -63,7 +64,6 @@ export default function HeroSection() {
                         position: "relative",
                         zIndex: 2,
                         maxWidth: "620px",
-                        padding: "0 16px",
                     }}
                 >
                     {/* Status bar */}
@@ -160,7 +160,7 @@ export default function HeroSection() {
                         }}
                     >
                         We test what happens when small details change.
-                        If the answer flips, the system isn't being fair.
+                        If the answer flips, the system isn't being fair — and you get a clear report you can actually use.
                     </p>
 
                     {/* CTAs */}
@@ -222,6 +222,55 @@ export default function HeroSection() {
                                     }}
                                 >
                                     {s.label}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div
+                        className="hero-stagger-5 hero-signal-card"
+                        style={{
+                            marginTop: "36px",
+                            maxWidth: "560px",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                            gap: "1px",
+                            overflow: "hidden",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(255, 255, 255, 0.08)",
+                            background: "rgba(255, 255, 255, 0.06)",
+                        }}
+                    >
+                        {["Hiring", "Lending", "Benefits"].map((label, index) => (
+                            <div
+                                key={label}
+                                style={{
+                                    padding: "14px 16px",
+                                    background: "rgba(10, 10, 10, 0.76)",
+                                }}
+                            >
+                                <p
+                                    className="font-mono"
+                                    style={{
+                                        margin: 0,
+                                        fontSize: "0.62rem",
+                                        letterSpacing: "0.1em",
+                                        textTransform: "uppercase",
+                                        color: "var(--t3)",
+                                    }}
+                                >
+                                    lane 0{index + 1}
+                                </p>
+                                <p
+                                    className="font-body"
+                                    style={{
+                                        margin: "4px 0 0",
+                                        color: "var(--t1)",
+                                        fontSize: "0.86rem",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    {label}
                                 </p>
                             </div>
                         ))}

@@ -22,99 +22,110 @@ export default function HowItWorks() {
     return (
         <section
             id="how-it-works"
-            style={{
-                paddingTop: "80px",
-                paddingBottom: "80px",
-            }}
+            className="landing-section"
         >
-            {/* Section overline */}
-            <p
-                className="font-mono"
-                style={{
-                    fontSize: "0.65rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--aurora-amber)",
-                    marginBottom: "12px",
-                    fontWeight: 600,
-                }}
-            >
-                How it works
-            </p>
+            <div className="landing-container">
+                {/* Section overline */}
+                <p
+                    className="font-mono"
+                    style={{
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        color: "var(--aurora-amber)",
+                        marginBottom: "12px",
+                        fontWeight: 600,
+                    }}
+                >
+                    How it works
+                </p>
 
-            <h2
-                className="font-display"
-                style={{
-                    fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                    fontWeight: 700,
-                    color: "var(--t1)",
-                    marginBottom: "48px",
-                    letterSpacing: "-0.03em",
-                }}
-            >
-                Three steps. One answer.
-            </h2>
+                <h2
+                    className="font-display"
+                    style={{
+                        fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
+                        fontWeight: 700,
+                        color: "var(--t1)",
+                        marginBottom: "12px",
+                        letterSpacing: "-0.03em",
+                    }}
+                >
+                    Three steps. One answer.
+                </h2>
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                    gap: "24px",
-                }}
-            >
-                {STEPS.map((step) => (
-                    <article
-                        key={step.num}
-                        className="panel"
-                        style={{
-                            position: "relative",
-                            padding: "32px 28px",
-                            borderRadius: "12px",
-                            overflow: "hidden",
-                        }}
-                    >
-                        {/* Step number */}
-                        <span
-                            className="font-mono"
+                <p
+                    className="font-body"
+                    style={{
+                        maxWidth: "620px",
+                        color: "var(--t2)",
+                        margin: "0 0 48px",
+                        lineHeight: 1.75,
+                    }}
+                >
+                    Give DecisioLens one real-world case. It runs controlled variations, compares every outcome, and turns the result into a clear trust report.
+                </p>
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                        gap: "24px",
+                    }}
+                >
+                    {STEPS.map((step) => (
+                        <article
+                            key={step.num}
+                            className="panel"
                             style={{
-                                fontSize: "0.7rem",
-                                letterSpacing: "0.1em",
-                                color: "var(--aurora-amber)",
-                                fontWeight: 700,
+                                position: "relative",
+                                padding: "32px 28px",
+                                borderRadius: "12px",
+                                overflow: "hidden",
                             }}
                         >
-                            STEP {step.num}
-                        </span>
+                            {/* Step number */}
+                            <span
+                                className="font-mono"
+                                style={{
+                                    fontSize: "0.7rem",
+                                    letterSpacing: "0.1em",
+                                    color: "var(--aurora-amber)",
+                                    fontWeight: 700,
+                                }}
+                            >
+                                STEP {step.num}
+                            </span>
 
-                        <h3
-                            className="font-display"
-                            style={{
-                                marginTop: "16px",
-                                fontSize: "1.15rem",
-                                fontWeight: 700,
-                                color: "var(--t1)",
-                                letterSpacing: "-0.01em",
-                            }}
-                        >
-                            {step.title}
-                        </h3>
+                            <h3
+                                className="font-display"
+                                style={{
+                                    marginTop: "16px",
+                                    fontSize: "1.15rem",
+                                    fontWeight: 700,
+                                    color: "var(--t1)",
+                                    letterSpacing: "-0.01em",
+                                }}
+                            >
+                                {step.title}
+                            </h3>
 
-                        <p
-                            className="font-body"
-                            style={{
-                                marginTop: "12px",
-                                fontSize: "0.9rem",
-                                lineHeight: 1.65,
-                                color: "var(--t2)",
-                            }}
-                        >
-                            {step.description}
-                        </p>
+                            <p
+                                className="font-body"
+                                style={{
+                                    marginTop: "12px",
+                                    fontSize: "0.9rem",
+                                    lineHeight: 1.65,
+                                    color: "var(--t2)",
+                                }}
+                            >
+                                {step.description}
+                            </p>
 
-                        {/* Subtle scanline decoration */}
-                        <div className="scanline" aria-hidden />
-                    </article>
-                ))}
+                            {/* Subtle scanline decoration */}
+                            <div className="scanline" aria-hidden />
+                        </article>
+                    ))}
+                </div>
             </div>
         </section>
     );
