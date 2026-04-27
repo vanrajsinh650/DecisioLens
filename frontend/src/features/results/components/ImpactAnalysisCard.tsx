@@ -36,6 +36,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                 {impacts.map((item, i) => {
                     const barWidth = Math.min((Math.abs(item.delta) / maxDelta) * 100, 100);
                     const isPositive = item.direction === "positive";
+                    const color = item.direction === "none" ? "var(--t3)" : isPositive ? "var(--aurora-green)" : "var(--aurora-crimson)";
                     const pct = (item.delta * 100).toFixed(1);
                     const sign = isPositive ? "+" : "";
 
@@ -75,7 +76,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                                     style={{
                                         height: "100%",
                                         width: `${barWidth}%`,
-                                        background: isPositive ? "var(--aurora-green)" : "var(--aurora-crimson)",
+                                        background: color,
                                         borderRadius: "3px",
                                         transition: "width 0.5s ease",
                                     }}
@@ -88,7 +89,7 @@ export default function ImpactAnalysisCard({ impacts }: ImpactAnalysisCardProps)
                                 style={{
                                     fontSize: "var(--fs-mono)",
                                     fontWeight: 600,
-                                    color: isPositive ? "var(--aurora-green)" : "var(--aurora-crimson)",
+                                    color,
                                     textAlign: "right",
                                 }}
                             >

@@ -20,7 +20,7 @@ export default function DomainSelector({
     disabled = false,
 }: DomainSelectorProps) {
     return (
-        <div className="dl-segmented">
+        <div id="domain-selector" className="dl-segmented">
             {options.map((option) => {
                 const isSelected = value === option.value;
                 return (

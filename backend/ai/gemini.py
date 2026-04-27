@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import threading
 from functools import lru_cache
 from typing import Any, Mapping
 
@@ -59,9 +60,11 @@ class GeminiService:
     """Singleton wrapper around the Google Generative AI SDK or Groq SDK."""
 
     _instance: GeminiService | None = None
+    _instance_lock = threading.Lock()
 
     def __init__(self, settings: Settings) -> None:
         self._provider = settings.AI_PROVIDER.lower()
+        self._timeout_seconds = float(settings.AI_CALL_TIMEOUT_SECONDS or _AI_CALL_TIMEOUT_SECONDS)
         self._semaphore = asyncio.Semaphore(_AI_CONCURRENCY_LIMIT)
 
         # Circuit breaker state
@@ -90,7 +93,18 @@ class GeminiService:
             try:
                 from google import genai
 
-                self._gemini_client = genai.Client(api_key=api_key)
+                http_options = None
+                try:
+                    from google.genai import types as genai_types
+
+                    http_options = genai_types.HttpOptions(timeout=int(self._timeout_seconds * 1000))
+                except Exception:
+                    http_options = None
+
+                if http_options is not None:
+                    self._gemini_client = genai.Client(api_key=api_key, http_options=http_options)
+                else:
+                    self._gemini_client = genai.Client(api_key=api_key)
                 logger.info("Gemini client initialized (model=%s)", self._gemini_model)
             except ImportError as exc:
                 self._gemini_client = None
@@ -108,7 +122,7 @@ class GeminiService:
             try:
                 from groq import Groq
 
-                self._groq_client = Groq(api_key=api_key)
+                self._groq_client = Groq(api_key=api_key, timeout=self._timeout_seconds)
                 logger.info("Groq client initialized (model=%s)", self._groq_model)
             except ImportError as exc:
                 self._groq_client = None
@@ -123,7 +137,9 @@ class GeminiService:
     def instance(cls) -> GeminiService:
         """Return a lazily-created singleton."""
         if cls._instance is None:
-            cls._instance = cls(get_settings())
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = cls(get_settings())
         return cls._instance
 
     # ── Public async API ─────────────────────────────────────────────
@@ -227,25 +243,39 @@ class GeminiService:
         Implements a circuit breaker (Issue #5) to prevent queueing
         collapse when the upstream API is persistently failing.
         """
-        allowed, half_open_probe = await self._reserve_circuit_slot()
-        if not allowed:
+        call_fn = self._call_groq if self._provider == "groq" else self._call_gemini
+        half_open_probe = False
+        result: str | None = None
+
+        try:
+            await asyncio.wait_for(self._semaphore.acquire(), timeout=self._timeout_seconds)
+        except asyncio.TimeoutError:
+            logger.warning("AI semaphore acquisition timed out after %ss — using fallback", self._timeout_seconds)
             return None
 
-        call_fn = self._call_groq if self._provider == "groq" else self._call_gemini
         try:
-            result = await call_fn(
-                system_instruction=system_instruction,
-                prompt=prompt,
-                max_output_tokens=max_output_tokens,
-                temperature=temperature,
-            )
-        except Exception as exc:
-            logger.warning("AI provider call failed before fallback handling: %s", exc)
-            result = None
+            allowed, half_open_probe = await self._reserve_circuit_slot()
+            if not allowed:
+                return None
 
-        await self._record_circuit_result(success=result is not None, half_open_probe=half_open_probe)
+            try:
+                result = await call_fn(
+                    system_instruction=system_instruction,
+                    prompt=prompt,
+                    max_output_tokens=max_output_tokens,
+                    temperature=temperature,
+                )
+            except Exception as exc:
+                logger.warning("AI provider call failed before fallback handling: %s", exc)
+                result = None
 
-        return result
+            return result
+        finally:
+            self._semaphore.release()
+            if half_open_probe or result is not None:
+                await self._record_circuit_result(success=result is not None, half_open_probe=half_open_probe)
+            elif 'allowed' in locals() and allowed:
+                await self._record_circuit_result(success=False, half_open_probe=False)
 
     async def _reserve_circuit_slot(self) -> tuple[bool, bool]:
         """Return whether an AI call may run and whether it is a probe."""
@@ -323,27 +353,26 @@ class GeminiService:
             logger.warning("Google GenAI SDK types unavailable — using fallback: %s", exc)
             return None
 
-        async with self._semaphore:
-            try:
-                response = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        self._gemini_client.models.generate_content,
-                        model=self._gemini_model,
-                        contents=prompt,
-                        config=types.GenerateContentConfig(
-                            systemInstruction=system_instruction,
-                            temperature=temperature,
-                            maxOutputTokens=max_output_tokens,
-                        ),
+        try:
+            response = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self._gemini_client.models.generate_content,
+                    model=self._gemini_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        systemInstruction=system_instruction,
+                        temperature=temperature,
+                        maxOutputTokens=max_output_tokens,
                     ),
-                    timeout=_AI_CALL_TIMEOUT_SECONDS,
-                )
-            except asyncio.TimeoutError:
-                logger.warning("Gemini call timed out after %ds — using fallback", _AI_CALL_TIMEOUT_SECONDS)
-                return None
-            except Exception as exc:
-                logger.warning("Gemini API call failed — using fallback: %s", exc)
-                return None
+                ),
+                timeout=self._timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Gemini call timed out after %ss — using fallback", self._timeout_seconds)
+            return None
+        except Exception as exc:
+            logger.warning("Gemini API call failed — using fallback: %s", exc)
+            return None
 
         text = getattr(response, "text", None)
         if not isinstance(text, str):
@@ -364,27 +393,26 @@ class GeminiService:
         if self._groq_client is None:
             return None
 
-        async with self._semaphore:
-            try:
-                response = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        self._groq_client.chat.completions.create,
-                        model=self._groq_model,
-                        messages=[
-                            {"role": "system", "content": system_instruction},
-                            {"role": "user", "content": prompt},
-                        ],
-                        temperature=temperature,
-                        max_tokens=max_output_tokens,
-                    ),
-                    timeout=_AI_CALL_TIMEOUT_SECONDS,
-                )
-            except asyncio.TimeoutError:
-                logger.warning("Groq call timed out after %ds — using fallback", _AI_CALL_TIMEOUT_SECONDS)
-                return None
-            except Exception as exc:
-                logger.warning("Groq API call failed — using fallback: %s", exc)
-                return None
+        try:
+            response = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self._groq_client.chat.completions.create,
+                    model=self._groq_model,
+                    messages=[
+                        {"role": "system", "content": system_instruction},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=temperature,
+                    max_tokens=max_output_tokens,
+                ),
+                timeout=self._timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Groq call timed out after %ss — using fallback", self._timeout_seconds)
+            return None
+        except Exception as exc:
+            logger.warning("Groq API call failed — using fallback: %s", exc)
+            return None
 
         text = getattr(response.choices[0].message, "content", None) if response.choices else None
         if not isinstance(text, str):

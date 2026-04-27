@@ -16,7 +16,6 @@ export const DOMAIN_REGISTRY: Record<DomainType, DomainConfig> = {
     custom: defaultCustomDomain,
 };
 
-const STATIC_DOMAINS: DomainType[] = ["hiring", "lending", "education", "insurance", "welfare"];
 const ALL_DOMAINS: DomainType[] = ["hiring", "lending", "education", "insurance", "welfare", "custom"];
 
 export function getDomainConfig(domain: DomainType): DomainConfig {
@@ -27,10 +26,8 @@ export function getDomainConfig(domain: DomainType): DomainConfig {
     return DOMAIN_REGISTRY[domain];
 }
 
-/** Returns only backend-supported domains for the audit selector.
- * "custom" is excluded because the backend rejects it at validation. */
 export function getDomainOptions(): DomainOption[] {
-    return STATIC_DOMAINS.map((domain) => {
+    return ALL_DOMAINS.map((domain) => {
         const config = getDomainConfig(domain);
         return {
             value: config.value,
@@ -42,5 +39,5 @@ export function getDomainOptions(): DomainOption[] {
 }
 
 export function getAllStaticDomains(): DomainConfig[] {
-    return STATIC_DOMAINS.map((domain) => DOMAIN_REGISTRY[domain]);
+    return ALL_DOMAINS.filter((domain) => domain !== "custom").map((domain) => DOMAIN_REGISTRY[domain]);
 }

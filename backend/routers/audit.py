@@ -10,10 +10,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from core.cache import Cache
+from core.config import get_settings
 from core.dependencies import get_cache, get_gemini_service
 from ai.gemini import GeminiService
 from schemas.response import AuditResponse
@@ -38,7 +39,16 @@ def _get_audit_service(
     return AuditService(gemini=gemini, cache=cache)
 
 
-@router.post("/run", response_model=AuditResponse)
+async def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
+    """Reject unauthenticated audit runs before any AI work is scheduled."""
+    expected_key = get_settings().PUBLIC_API_KEY
+    if not expected_key:
+        raise HTTPException(status_code=503, detail="Audit API key is not configured")
+    if x_api_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+
+@router.post("/run", response_model=AuditResponse, dependencies=[Depends(require_api_key)])
 async def run_audit_endpoint(
     request: AuditRequest,
     service: AuditService = Depends(_get_audit_service),

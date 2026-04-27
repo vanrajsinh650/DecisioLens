@@ -10,7 +10,7 @@ interface AuditDraft {
 
 /** All domains the backend supports — must stay in sync with backend SUPPORTED_DOMAINS. */
 const SUPPORTED_STORED_DOMAINS = new Set<DomainType>([
-    "hiring", "lending", "education", "insurance", "welfare",
+    "hiring", "lending", "education", "insurance", "welfare", "custom",
 ]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -48,7 +48,7 @@ const normalizeProfile = (value: unknown, domain: DomainType): AuditProfile => {
     const merged: AuditProfile = { ...defaults };
 
     Object.entries(value).forEach(([key, fieldValue]) => {
-        if (typeof fieldValue === "string" || typeof fieldValue === "number") {
+        if (typeof fieldValue === "string" || typeof fieldValue === "number" || typeof fieldValue === "boolean" || fieldValue === null) {
             merged[key] = fieldValue;
         }
     });

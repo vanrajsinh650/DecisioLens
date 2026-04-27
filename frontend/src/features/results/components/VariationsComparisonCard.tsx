@@ -1,4 +1,4 @@
-import { formatVariationName, formatThreshold } from "@/lib/format";
+import { formatPercent, formatVariationName } from "@/lib/format";
 import { VariationResult } from "@/types/audit";
 
 interface VariationsComparisonCardProps {
@@ -114,7 +114,7 @@ export default function VariationsComparisonCard({ variations }: VariationsCompa
                                     color: "var(--t1)",
                                 }}
                             >
-                                {formatThreshold(row.score)}
+                                {formatPercent(row.score, 1)}
                             </p>
 
                             {/* Status badge */}

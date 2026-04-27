@@ -12,9 +12,11 @@ import Walkthrough from "@/components/shared/Walkthrough";
 import AppealCard from "@/features/results/components/AppealCard";
 import DecisionSummaryCard from "@/features/results/components/DecisionSummaryCard";
 import ExplanationCard from "@/features/results/components/ExplanationCard";
+import HumanReviewCard from "@/features/results/components/HumanReviewCard";
 import ImpactAnalysisCard from "@/features/results/components/ImpactAnalysisCard";
 import JuryPanel from "@/features/results/components/JuryPanel";
 import RawAuditPayloadCard from "@/features/results/components/RawAuditPayloadCard";
+import RecourseCard from "@/features/results/components/RecourseCard";
 import ResultHeroCard from "@/features/results/components/ResultHeroCard";
 import RiskInsightCard from "@/features/results/components/RiskInsightCard";
 import StabilityZoneCard from "@/features/results/components/StabilityZoneCard";
@@ -66,6 +68,100 @@ function deriveTrustVerdict(riskScore: number): TrustVerdict {
     return "STABLE";
 }
 
+const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
+
+const profileNumber = (profile: AuditProfile, key: string, fallback: number): number => {
+    const value = profile[key];
+    const numeric = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+};
+
+function computePreviewScore(domain: DomainType, profile: AuditProfile): number {
+    const gender = String(profile.gender ?? "").toLowerCase();
+    const genderEffect = gender === "female" || gender === "f" ? -0.03 : 0;
+
+    if (domain === "hiring") {
+        const rawScore = profileNumber(profile, "score", 50);
+        const rawExp = profileNumber(profile, "experience", 0);
+        const education = String(profile.education ?? profile.college ?? "").toLowerCase();
+        const interview = profileNumber(profile, "interview_score", 50);
+        const location = String(profile.location ?? "").toLowerCase();
+        const expComponent = 1 - Math.exp(-rawExp / 10);
+        const educationComponent = education.includes("phd") || education.includes("doctorate") || education.includes("tier 1") || education.includes("iit") || education.includes("nit")
+            ? 1
+            : education.includes("master")
+                ? 0.85
+                : education.includes("bachelor") || education.includes("tier 2")
+                    ? 0.7
+                    : education.includes("tier 3")
+                        ? 0.45
+                        : education.includes("diploma")
+                            ? 0.4
+                            : 0.5;
+        const locationEffect = ["nagpur", "jaipur", "lucknow", "patna", "bhopal", "rural", "village"].includes(location) ? -0.02 : 0;
+        return clamp01((0.35 * expComponent) + (0.30 * (rawScore / 100)) + (0.20 * educationComponent) + (0.15 * (interview / 100)) + genderEffect + locationEffect);
+    }
+
+    if (domain === "lending") {
+        const credit = profileNumber(profile, "credit_score", 600);
+        const income = profileNumber(profile, "income", 5);
+        const loan = profileNumber(profile, "loan_amount", 10);
+        const employment = String(profile.employment_type ?? "").toLowerCase();
+        const employmentYears = profileNumber(profile, "employment_years", 3);
+        const location = String(profile.location ?? "").toLowerCase();
+        const creditComponent = clamp01((credit - 300) / 600);
+        const incomeComponent = clamp01(income / 30);
+        const dtiComponent = clamp01((loan / Math.max(income, 0.5)) / 10);
+        const stabilityComponent = clamp01(employmentYears / 15);
+        const employmentComponent = employment.includes("salaried") || employment.includes("full") ? 1 : employment.includes("self") ? 0.65 : employment.includes("freelance") || employment.includes("contract") ? 0.45 : 0.55;
+        const locationEffect = ["rural", "remote", "village", "small town"].includes(location) ? -0.02 : 0;
+        return clamp01((0.35 * creditComponent) + (0.25 * incomeComponent) - (0.20 * dtiComponent) + (0.10 * stabilityComponent) + (0.10 * employmentComponent) + genderEffect + locationEffect);
+    }
+
+    if (domain === "education") {
+        const entrance = profileNumber(profile, "score", 50);
+        const grade12 = profileNumber(profile, "grade_12", 50);
+        const extracurricular = profileNumber(profile, "extracurricular", 5);
+        const college = String(profile.college ?? "").toLowerCase();
+        const category = String(profile.category ?? "general").toLowerCase();
+        const incomeBand = String(profile.income_band ?? "middle").toLowerCase();
+        const location = String(profile.location ?? "").toLowerCase();
+        const collegeComponent = college.includes("tier 1") || college.includes("iit") || college.includes("nit") ? 1 : college.includes("tier 2") ? 0.65 : college.includes("tier 3") ? 0.35 : 0.5;
+        const incomeComponent = incomeBand.includes("low") ? 1 : incomeBand.includes("middle") ? 0.7 : incomeBand.includes("high") ? 0.4 : 0.6;
+        const locationEffect = ["rural", "village", "remote", "small town"].includes(location) ? -0.02 : 0;
+        const categoryEffect = ["sc", "st", "obc", "ews"].includes(category) ? -0.02 : 0;
+        return clamp01((0.42 * (grade12 / 100)) + (0.33 * (entrance / 100)) + (0.10 * incomeComponent) + (0.08 * clamp01(extracurricular / 10)) + (0.07 * collegeComponent) + genderEffect + locationEffect + categoryEffect);
+    }
+
+    if (domain === "insurance") {
+        const claim = profileNumber(profile, "claim_amount", 2);
+        const age = profileNumber(profile, "age", 40);
+        const preExisting = String(profile.pre_existing ?? "None").toLowerCase();
+        const coverage = profileNumber(profile, "coverage_amount", 10);
+        const tenure = profileNumber(profile, "policy_tenure", 0);
+        const cityTier = String(profile.city_tier ?? "Tier 1").toLowerCase();
+        const healthComponent = preExisting.includes("both") ? 0.3 : preExisting === "diabetes" || preExisting === "hypertension" ? 0.5 : 1;
+        const ageComponent = age < 25 ? 0.6 : age < 35 ? 0.85 : age <= 50 ? 1 : age <= 60 ? 0.7 : 0.4;
+        const locationEffect = cityTier.includes("tier 3") || cityTier.includes("rural") ? -0.02 : 0;
+        return clamp01((0.32 * healthComponent) + (0.28 * ageComponent) - (0.20 * clamp01(claim / 50)) - (0.10 * clamp01(coverage / 100)) + (0.10 * clamp01(tenure / 10)) + genderEffect + locationEffect);
+    }
+
+    if (domain === "welfare") {
+        const income = profileNumber(profile, "annual_income", 3);
+        const familySize = profileNumber(profile, "family_size", 4);
+        const land = profileNumber(profile, "land_holding", 0);
+        const stateTier = String(profile.state_tier ?? "Developed State").toLowerCase();
+        const category = String(profile.category ?? "general").toLowerCase();
+        const aadhaar = String(profile.aadhaar_linked ?? "").toLowerCase();
+        const incomeComponent = clamp01(1 - (income / 15));
+        const categoryComponent = category === "sc" || category === "st" ? 1 : category === "obc" || category === "ews" ? 0.85 : 0.45;
+        const locationEffect = stateTier.includes("remote") || stateTier.includes("developing") ? -0.02 : 0;
+        return clamp01((0.30 * incomeComponent) + (0.15 * clamp01(familySize / 10)) + (0.10 * 0.2) + (0.10 * 0.15) + (0.15 * (1 - clamp01(land / 10))) + (0.10 * (aadhaar === "yes" ? 1 : 0)) + (0.10 * categoryComponent) + genderEffect + locationEffect);
+    }
+
+    return clamp01(profileNumber(profile, "score", 50) / 100);
+}
+
 function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string | number {
     if (field.type === "number") {
         const numeric = Number(value);
@@ -108,7 +204,7 @@ function alignProfileWithDomain(domain: DomainType, profile: AuditProfile): Audi
 /** Risk Preview reactive spectrum widget for sticky right panel */
 function RiskPreview({ threshold, score }: { threshold: number; score: number }) {
     const thresholdPos = threshold * 100;
-    const scorePos = Math.min(100, Math.max(0, score));
+    const scorePos = Math.min(100, Math.max(0, score * 100));
     const distance = scorePos - thresholdPos;
 
     // Color based on proximity
@@ -359,7 +455,7 @@ export default function AuditWorkspace() {
     };
 
     // Derive score for the risk preview
-    const currentScore = Number(profile.score ?? profile.credit_score ?? 50);
+    const currentScore = computePreviewScore(domain, profile);
 
 
 
@@ -455,6 +551,7 @@ export default function AuditWorkspace() {
                             rows={latestSession.response.threshold_analysis}
                             baselineThreshold={latestSession.request.threshold}
                             originalScore={latestSession.response.original.score}
+                            originalDecision={latestSession.response.original.decision}
                             confidenceZone={latestSession.response.original.confidence_zone ?? "Unknown"}
                         />
                     </div>
@@ -483,8 +580,24 @@ export default function AuditWorkspace() {
                     <div className="print-section">
                         <ExplanationCard explanation={latestSession.response.explanation} />
                     </div>
+                    {latestSession.response.human_review && (
+                        <div className="print-section">
+                            <HumanReviewCard humanReview={latestSession.response.human_review} />
+                        </div>
+                    )}
+                    {latestSession.response.recourse && latestSession.response.recourse.length > 0 && (
+                        <div className="print-section">
+                            <RecourseCard
+                                recourse={latestSession.response.recourse}
+                                originalDecision={latestSession.response.original.decision}
+                            />
+                        </div>
+                    )}
                     <div className="print-section">
-                        <AppealCard appeal={latestSession.response.appeal} />
+                        <AppealCard
+                            appeal={latestSession.response.appeal}
+                            explanationRequest={latestSession.response.explanation_request}
+                        />
                     </div>
                     {latestSession.response.ai_jury_view ? (
                         <div className="print-section">

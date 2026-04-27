@@ -21,6 +21,8 @@ class OriginalDecision(BaseModel):
 
     score: float = Field(description="Probability score between 0 and 1")
     decision: Decision = Field(description="Binary ACCEPT / REJECT outcome")
+    threshold: float = Field(description="Decision threshold used for the audit")
+    confidence_zone: str | None = Field(default=None, description="Distance-to-boundary confidence band")
 
 
 class ThresholdAnalysisItem(BaseModel):
@@ -42,7 +44,7 @@ class VariationResult(BaseModel):
     score: float
     decision: Decision
     changed: bool = Field(description="Whether the decision differs from baseline")
-    profile: dict[str, str | int | float] | None = Field(
+    profile: dict[str, str | int | float | bool | None] | None = Field(
         default=None,
         description="The modified profile fields for this variation",
     )

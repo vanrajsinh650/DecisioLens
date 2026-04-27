@@ -13,8 +13,10 @@ interface TrustTimelineProps {
 }
 
 const CHART_WIDTH = 800;
-const CHART_HEIGHT = 220;
-const MARGIN = { top: 20, right: 20, bottom: 48, left: 48 };
+const CHART_HEIGHT = 280;
+const MARGIN = { top: 20, right: 28, bottom: 96, left: 64 };
+const X_AXIS_Y = CHART_HEIGHT - MARGIN.bottom;
+const X_TICK_LABEL_Y = X_AXIS_Y + 30;
 
 const verdictColor: Record<TrustVerdict, string> = {
     STABLE: "hsl(145, 65%, 52%)",
@@ -28,6 +30,19 @@ function clampRisk(value: number): number {
     }
 
     return Math.max(0, Math.min(100, value));
+}
+
+function formatAxisDate(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+    });
 }
 
 export default function TrustTimeline({ points }: TrustTimelineProps) {
@@ -65,7 +80,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
             })
             .map((item) => ({
                 x: item.x,
-                label: new Date(item.point.date).toLocaleDateString(),
+                label: formatAxisDate(item.point.date),
             }));
 
         const ticksY = [0, 25, 50, 75, 100].map((value) => ({
@@ -107,72 +122,80 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                     No history points to plot yet.
                 </p>
             ) : (
-                <svg viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} width="100%" role="img" aria-label="Trust score timeline">
-                    {chart.ticksY.map((tick) => (
-                        <g key={tick.value}>
-                            <line
-                                x1={MARGIN.left}
-                                y1={tick.y}
-                                x2={CHART_WIDTH - MARGIN.right}
-                                y2={tick.y}
-                                stroke="hsl(230, 10%, 22%)"
-                                strokeWidth="1"
-                            />
-                            <text x={MARGIN.left - 10} y={tick.y + 4} textAnchor="end" fontSize="11" fill="hsl(230, 10%, 48%)" fontFamily="var(--ff-mono)">
-                                {tick.value}
-                            </text>
-                        </g>
-                    ))}
+                <div style={{ width: "100%", overflowX: "auto", paddingBottom: "4px" }}>
+                    <svg
+                        viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
+                        width="100%"
+                        role="img"
+                        aria-label="Trust score timeline"
+                        style={{ display: "block", minWidth: "560px" }}
+                    >
+                        {chart.ticksY.map((tick) => (
+                            <g key={tick.value}>
+                                <line
+                                    x1={MARGIN.left}
+                                    y1={tick.y}
+                                    x2={CHART_WIDTH - MARGIN.right}
+                                    y2={tick.y}
+                                    stroke="hsl(230, 10%, 22%)"
+                                    strokeWidth="1"
+                                />
+                                <text x={MARGIN.left - 10} y={tick.y + 4} textAnchor="end" fontSize="11" fill="hsl(230, 10%, 48%)" fontFamily="var(--ff-mono)">
+                                    {tick.value}
+                                </text>
+                            </g>
+                        ))}
 
-                    {chart.ticksX.map((tick, index) => (
-                        <g key={`${tick.label}-${index}`}>
-                            <line
-                                x1={tick.x}
-                                y1={CHART_HEIGHT - MARGIN.bottom}
-                                x2={tick.x}
-                                y2={CHART_HEIGHT - MARGIN.bottom + 6}
-                                stroke="hsl(230, 10%, 30%)"
-                                strokeWidth="1"
-                            />
-                            <text
-                                x={tick.x}
-                                y={CHART_HEIGHT - MARGIN.bottom + 24}
-                                textAnchor="end"
-                                fontSize="10"
-                                fill="hsl(230, 10%, 48%)"
-                                fontFamily="var(--ff-mono)"
-                                transform={`rotate(-45, ${tick.x}, ${CHART_HEIGHT - MARGIN.bottom + 24})`}
+                        {chart.ticksX.map((tick, index) => (
+                            <g key={`${tick.label}-${index}`}>
+                                <line
+                                    x1={tick.x}
+                                    y1={X_AXIS_Y}
+                                    x2={tick.x}
+                                    y2={X_AXIS_Y + 6}
+                                    stroke="hsl(230, 10%, 30%)"
+                                    strokeWidth="1"
+                                />
+                                <text
+                                    x={tick.x}
+                                    y={X_TICK_LABEL_Y}
+                                    textAnchor="end"
+                                    fontSize="10"
+                                    fill="hsl(230, 10%, 48%)"
+                                    fontFamily="var(--ff-mono)"
+                                    transform={`rotate(-45, ${tick.x}, ${X_TICK_LABEL_Y})`}
+                                >
+                                    {tick.label}
+                                </text>
+                            </g>
+                        ))}
+
+                        <polyline
+                            points={chart.polyline}
+                            fill="none"
+                            stroke="hsl(265, 65%, 60%)"
+                            strokeWidth="2.5"
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                        />
+
+                        {chart.plotted.map((item) => (
+                            <circle
+                                key={`${item.point.date}-${item.index}`}
+                                cx={item.x}
+                                cy={item.y}
+                                r={4.5}
+                                fill={verdictColor[item.point.verdict]}
+                                stroke="#03030A"
+                                strokeWidth="1.5"
                             >
-                                {tick.label}
-                            </text>
-                        </g>
-                    ))}
-
-                    <polyline
-                        points={chart.polyline}
-                        fill="none"
-                        stroke="hsl(265, 65%, 60%)"
-                        strokeWidth="2.5"
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                    />
-
-                    {chart.plotted.map((item) => (
-                        <circle
-                            key={`${item.point.date}-${item.index}`}
-                            cx={item.x}
-                            cy={item.y}
-                            r={4.5}
-                            fill={verdictColor[item.point.verdict]}
-                            stroke="#03030A"
-                            strokeWidth="1.5"
-                        >
-                            <title>
-                                {new Date(item.point.date).toLocaleString()} · Risk {Math.round(clampRisk(item.point.risk_score))}/100 · {item.point.verdict}
-                            </title>
-                        </circle>
-                    ))}
-                </svg>
+                                <title>
+                                    {new Date(item.point.date).toLocaleString()} · Risk {Math.round(clampRisk(item.point.risk_score))}/100 · {item.point.verdict}
+                                </title>
+                            </circle>
+                        ))}
+                    </svg>
+                </div>
             )}
         </div>
     );

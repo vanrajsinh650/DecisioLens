@@ -6,6 +6,7 @@ export const APP_NAME = "DecisioLens";
 export const NAV_LINKS: Array<{ href: string; label: string }> = [
   { href: "/", label: "Home" },
   { href: "/audit", label: "Test" },
+  { href: "/compare", label: "Compare" },
   { href: "/results", label: "Report" },
   { href: "/history", label: "History" },
   { href: "/batch", label: "Bulk Testing" },

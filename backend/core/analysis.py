@@ -303,12 +303,12 @@ def compute_stability_zone(
     threshold_results: Mapping[float, str],
 ) -> dict[str, Any]:
     """
-    Convert threshold-sweep results into labelled ACCEPT / UNSTABLE / REJECT
-    range bands.
+    Convert a score into continuous ACCEPT / REJECT threshold bands.
 
-    The *unstable zone* is the range of thresholds around the transition
-    point where the decision switches.  If there is no switch point (score
-    is always ACCEPT or always REJECT), the unstable zone is empty.
+    The exact decision boundary is the score itself: thresholds at or below
+    the score accept, while thresholds above the score reject. The sampled
+    sweep is accepted for API compatibility but is not used as the source of
+    truth for the boundary.
 
     Returns
     -------
@@ -316,54 +316,12 @@ def compute_stability_zone(
         zones   – list of {start, end, label} range bands
         summary – one-line human-readable sentence
     """
-    sorted_items = sorted(threshold_results.items(), key=lambda kv: kv[0])
-
-    if not sorted_items:
-        return {
-            "zones": [],
-            "summary": "No threshold data available.",
-        }
-
-    # Detect transition boundaries — half-open intervals [start, end)
-    # The flip threshold belongs to the NEW zone, not the old one.
-    zones: list[dict[str, Any]] = []
-    current_label = sorted_items[0][1]
-    current_start = sorted_items[0][0]
-    prev_threshold = current_start
-
-    for threshold, decision in sorted_items[1:]:
-        if decision != current_label:
-            # Previous zone ends just before this threshold
-            zones.append({
-                "start": round(current_start, 4),
-                "end": round(prev_threshold, 4),
-                "label": current_label,
-            })
-            current_start = threshold
-            current_label = decision
-        prev_threshold = threshold
-
-    # Close the last zone
-    zones.append({
-        "start": round(current_start, 4),
-        "end": round(sorted_items[-1][0], 4),
-        "label": current_label,
-    })
-
-    # Build summary
-    accept_zones = [z for z in zones if z["label"] == "ACCEPT"]
-    reject_zones = [z for z in zones if z["label"] == "REJECT"]
-
-    if not reject_zones:
-        summary = "Result stays ACCEPT across all decision levels — very stable."
-    elif not accept_zones:
-        summary = "Result stays REJECT across all decision levels — very stable."
-    else:
-        flip_point = reject_zones[0]["start"]
-        summary = (
-            f"Result is ACCEPT below {flip_point:.2f} and REJECT at or above — "
-            f"the decision flips near {flip_point:.2f}."
-        )
+    boundary = round(_normalize_score(score, "score"), 4)
+    zones = [
+        {"start": 0.0, "end": boundary, "label": "ACCEPT"},
+        {"start": boundary, "end": 1.0, "label": "REJECT"},
+    ]
+    summary = f"Result is ACCEPT at thresholds <= {score:.2f} and REJECT above {score:.2f}."
 
     return {"zones": zones, "summary": summary}
 
@@ -502,14 +460,13 @@ def compute_recourse_suggestions(
 
     gap = threshold - original_score  # How far the score is below threshold
 
-    # 1. Threshold-based recourse
-    for flip_threshold in instability_report.get("threshold_switch_points", []):
-        if float(flip_threshold) < threshold:
-            suggestions.append({
-                "action": f"Request a lower decision threshold (currently {threshold:.2f}, accepted at {float(flip_threshold):.2f})",
-                "impact": "Would flip outcome to ACCEPT at the indicated threshold",
-            })
-            break
+    # 1. Threshold-based recourse: a score is accepted at thresholds <= score.
+    accepted_at = min(original_score, threshold)
+    if accepted_at < threshold:
+        suggestions.append({
+            "action": f"Request a threshold at or below {accepted_at:.2f} (currently {threshold:.2f})",
+            "impact": "Would meet the current score under the indicated threshold",
+        })
 
     # 2. Score-based recourse
     if gap > 0:

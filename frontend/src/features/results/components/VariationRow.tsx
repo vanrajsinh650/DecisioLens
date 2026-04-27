@@ -1,5 +1,5 @@
 import Badge from "@/components/shared/Badge";
-import { formatThreshold, formatVariationName, normalizeDecisionTone } from "@/lib/format";
+import { formatPercent, formatVariationName, normalizeDecisionTone } from "@/lib/format";
 import { Decision, VariationResult } from "@/types/audit";
 
 interface VariationRowProps {
@@ -33,7 +33,7 @@ export default function VariationRow({
                 <p>{row.label || formatVariationName(row.variation)}</p>
                 {profileMeta ? <p className="mt-1 text-xs font-normal text-t3">{profileMeta}</p> : null}
             </td>
-            <td className="px-4 py-3 font-mono text-mono text-t2">{formatThreshold(row.score)}</td>
+            <td className="px-4 py-3 font-mono text-mono text-t2">{formatPercent(row.score, 1)}</td>
             <td className="px-4 py-3">
                 <Badge label={row.decision} tone={normalizeDecisionTone(row.decision)} dot />
             </td>

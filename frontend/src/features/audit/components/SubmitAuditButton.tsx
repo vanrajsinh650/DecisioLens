@@ -8,6 +8,7 @@ export default function SubmitAuditButton({ isLoading, disabled }: SubmitAuditBu
 
     return (
         <button
+            id="btn-submit-audit"
             type="submit"
             disabled={inactive}
             className="dl-btn-primary"

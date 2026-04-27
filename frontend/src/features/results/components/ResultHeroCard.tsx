@@ -1,4 +1,4 @@
-import { formatDateTime, formatSignedNumber, formatThreshold, signalClasses, SignalTone } from "@/lib/format";
+import { formatDateTime, formatPercent, formatSignedNumber, signalClasses, SignalTone } from "@/lib/format";
 import { AuditSession } from "@/types/audit";
 
 interface ResultHeroCardProps {
@@ -43,8 +43,10 @@ export default function ResultHeroCard({
     const palette = signalClasses[verdict.tone];
 
     const originalScore = response.original.score;
-    const threshold = request.threshold;
-    const distance = originalScore - threshold * 100;
+    const threshold = response.original.threshold ?? request.threshold;
+    const scorePct = originalScore * 100;
+    const thresholdPct = threshold * 100;
+    const distance = scorePct - thresholdPct;
     const timestamp = formatDateTime(session.submittedAt);
 
     return (
@@ -139,8 +141,8 @@ export default function ResultHeroCard({
                         color: "var(--t2)",
                     }}
                 >
-                    Score: {formatThreshold(originalScore)} · Passing Bar:{" "}
-                    {formatThreshold(threshold * 100)} · Margin: {formatSignedNumber(distance, 0, "pts")}
+                    Score: {formatPercent(originalScore, 1)} · Passing Bar:{" "}
+                    {formatPercent(threshold, 1)} · Margin: {formatSignedNumber(distance, 0, "pts")}
                 </p>
 
                 {/* Action buttons */}
@@ -157,7 +159,7 @@ export default function ResultHeroCard({
                             onClick={onRerun}
                             className="dl-btn-ghost"
                         >
-                            TEST AGAIN
+                            Test at stricter bar (+0.02)
                         </button>
                         <button
                             type="button"

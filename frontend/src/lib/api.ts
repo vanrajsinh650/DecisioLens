@@ -1,6 +1,25 @@
 import { AuditRequest, AuditResponse, Decision } from "@/types/audit";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
+const REQUEST_TIMEOUT_MS = 30_000;
+
+/**
+ * Lazily resolve API config at call time, not import time.
+ * This prevents Next.js SSG prerendering from crashing when
+ * client-side env vars are unavailable during static generation.
+ */
+function getApiConfig(): { base: string; key: string } {
+  const base = process.env.NEXT_PUBLIC_API_BASE;
+  const key = process.env.NEXT_PUBLIC_API_KEY;
+
+  if (!base) {
+    throw new Error("NEXT_PUBLIC_API_BASE is required");
+  }
+  if (!key) {
+    throw new Error("NEXT_PUBLIC_API_KEY is required");
+  }
+
+  return { base, key };
+}
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -29,8 +48,8 @@ const toDecision = (value: unknown, fallback: Decision = "REJECT"): Decision => 
 const toProfilePatch = (value: unknown): AuditResponse["variations"][number]["profile"] => {
   if (!isRecord(value)) return undefined;
 
-  const next = Object.entries(value).reduce<Record<string, string | number>>((profile, [key, item]) => {
-    if (typeof item === "string") {
+  const next = Object.entries(value).reduce<NonNullable<AuditResponse["variations"][number]["profile"]>>((profile, [key, item]) => {
+    if (typeof item === "string" || typeof item === "boolean" || item === null) {
       profile[key] = item;
       return profile;
     }
@@ -61,35 +80,70 @@ const buildBackendPayload = (payload: AuditRequest): { domain: string; profile: 
   };
 };
 
+const requireRecord = (value: unknown, label: string): UnknownRecord => {
+  if (!isRecord(value)) throw new Error(`Invalid audit response from server: missing ${label}`);
+  return value;
+};
+
+const requireArray = (value: unknown, label: string): unknown[] => {
+  if (!Array.isArray(value)) throw new Error(`Invalid audit response from server: missing ${label}`);
+  return value;
+};
+
+const requireNumber = (value: unknown, label: string): number => {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(numeric)) throw new Error(`Invalid audit response from server: invalid ${label}`);
+  return numeric;
+};
+
+const requireString = (value: unknown, label: string): string => {
+  if (typeof value !== "string") throw new Error(`Invalid audit response from server: invalid ${label}`);
+  return value;
+};
+
+const requireDecision = (value: unknown, label: string): Decision => {
+  if (value === "ACCEPT" || value === "REJECT") return value;
+  throw new Error(`Invalid audit response from server: invalid ${label}`);
+};
+
 const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditResponse => {
-  const payload = isRecord(raw) ? raw : {};
+  const payload = requireRecord(raw, "payload");
+
+  if (
+    !isRecord(payload.original)
+    || !Array.isArray(payload.threshold_analysis)
+    || !Array.isArray(payload.variations)
+    || !isRecord(payload.insights)
+    || typeof payload.explanation !== "string"
+    || typeof payload.appeal !== "string"
+  ) {
+    throw new Error("Invalid audit response from server");
+  }
 
   const requestProfile = request.profile;
-  const originalRaw = isRecord(payload.original) ? payload.original : {};
-  const originalScore = toNumber(originalRaw.score, 0);
-  const originalDecision = toDecision(originalRaw.decision, "REJECT");
+  const originalRaw = requireRecord(payload.original, "original");
+  const originalScore = requireNumber(originalRaw.score, "original.score");
+  const originalDecision = requireDecision(originalRaw.decision, "original.decision");
   const originalThreshold = toNumber(originalRaw.threshold, request.threshold);
   const confidenceZone = toString(originalRaw.confidence_zone, toString(payload.confidence_zone));
 
-  const thresholdRowsRaw = Array.isArray(payload.threshold_analysis)
-    ? payload.threshold_analysis
-    : [];
+  const thresholdRowsRaw = requireArray(payload.threshold_analysis, "threshold_analysis");
   const thresholdAnalysis = thresholdRowsRaw
     .filter(isRecord)
     .map((row) => ({
-      threshold: toNumber(row.threshold, originalThreshold),
-      decision: toDecision(row.decision, originalDecision),
+      threshold: requireNumber(row.threshold, "threshold_analysis.threshold"),
+      decision: requireDecision(row.decision, "threshold_analysis.decision"),
     }));
 
-  const variationRowsRaw = Array.isArray(payload.variations) ? payload.variations : [];
+  const variationRowsRaw = requireArray(payload.variations, "variations");
   const variations = variationRowsRaw
     .filter(isRecord)
     .map((row, index) => {
-      const variationName = toString(row.variation, "");
+      const variationName = requireString(row.variation, "variations.variation");
       const label = toString(row.label, variationName || `variation_${index + 1}`);
       const variation = variationName || (index === 0 ? "baseline" : `variation_${index + 1}`);
-      const score = toNumber(row.score, originalScore);
-      const decision = toDecision(row.decision, originalDecision);
+      const score = requireNumber(row.score, "variations.score");
+      const decision = requireDecision(row.decision, "variations.decision");
       const changed = typeof row.changed === "boolean" ? row.changed : decision !== originalDecision;
       const profile = toProfilePatch(row.profile);
 
@@ -103,7 +157,7 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
       };
     });
 
-  const insightsRaw = isRecord(payload.insights) ? payload.insights : {};
+  const insightsRaw = requireRecord(payload.insights, "insights");
   const riskRaw = isRecord(payload.risk) ? payload.risk : {};
   const reasonTags = toStringArray(
     insightsRaw.reason_tags,
@@ -113,7 +167,8 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
   const insights = {
     instability: Boolean(insightsRaw.instability),
     bias_detected: Boolean(insightsRaw.bias_detected),
-    risk_score: toNumber(insightsRaw.risk_score, toNumber(riskRaw.score, 0)),
+    confidence_zone: toString(insightsRaw.confidence_zone, confidenceZone),
+    risk_score: requireNumber(insightsRaw.risk_score ?? riskRaw.score, "insights.risk_score"),
     risk_level: toString(insightsRaw.risk_level, toString(riskRaw.level)),
     reason_tags: reasonTags,
   };
@@ -194,8 +249,8 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     ...(impactAnalysis && impactAnalysis.length > 0 ? { impact_analysis: impactAnalysis } : {}),
     ...(risk ? { risk } : {}),
     insights,
-    explanation: toString(payload.explanation),
-    appeal: toString(payload.appeal),
+    explanation: requireString(payload.explanation, "explanation"),
+    appeal: requireString(payload.appeal, "appeal"),
     ...(explanationRequest ? { explanation_request: explanationRequest } : {}),
     ...(recourse && recourse.length > 0 ? { recourse } : {}),
     ...(humanReview ? { human_review: humanReview } : {}),
@@ -204,21 +259,35 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
 };
 
 export async function runAudit(payload: AuditRequest): Promise<AuditResponse> {
+  const { base: API_BASE, key: API_KEY } = getApiConfig();
   const backendPayload = buildBackendPayload(payload);
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const response = await fetch(`${API_BASE.replace(/\/+$/, "")}/audit/run`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(backendPayload),
-  });
+  try {
+    const response = await fetch(`${API_BASE.replace(/\/+$/, "")}/audit/run`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": API_KEY,
+      },
+      body: JSON.stringify(backendPayload),
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Audit failed (${response.status}): ${text || "Unknown error"}`);
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Audit failed (${response.status}): ${text || "Unknown error"}`);
+    }
+
+    const raw = (await response.json()) as unknown;
+    return normalizeAuditResponse(raw, payload);
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("Audit request timed out. Please try again.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
   }
-
-  const raw = (await response.json()) as unknown;
-  return normalizeAuditResponse(raw, payload);
 }

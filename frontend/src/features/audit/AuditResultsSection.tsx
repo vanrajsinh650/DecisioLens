@@ -47,6 +47,7 @@ export default function AuditResultsSection({ session, onRerun, onClear }: Audit
                     rows={session.response.threshold_analysis}
                     baselineThreshold={session.request.threshold}
                     originalScore={session.response.original.score}
+                    originalDecision={session.response.original.decision}
                     confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
                 />
             </div>
@@ -76,7 +77,7 @@ export default function AuditResultsSection({ session, onRerun, onClear }: Audit
                 <ExplanationCard explanation={session.response.explanation} />
             </div>
             <div className="print-section">
-                <AppealCard appeal={session.response.appeal} />
+                <AppealCard appeal={session.response.appeal} explanationRequest={session.response.explanation_request} />
             </div>
             {session.response.ai_jury_view ? (
                 <div className="print-section">

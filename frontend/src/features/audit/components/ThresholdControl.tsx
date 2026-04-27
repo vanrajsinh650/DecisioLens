@@ -16,6 +16,7 @@ export default function ThresholdControl({
 
     return (
         <div
+            id="threshold-control"
             style={{
                 display: "flex",
                 flexDirection: "column",

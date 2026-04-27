@@ -17,7 +17,7 @@ from typing import Any, Mapping
 from pydantic import BaseModel, ConfigDict, Field
 
 
-SUPPORTED_DOMAINS = {"hiring", "lending", "education", "insurance", "welfare"}
+SUPPORTED_DOMAINS = {"hiring", "lending", "education", "insurance", "welfare", "custom"}
 
 # Maximum size for any single string field value (bytes)
 _MAX_STRING_FIELD_LENGTH = 500
@@ -52,6 +52,9 @@ _DOMAIN_ALLOWED_FIELDS: dict[str, set[str]] = {
         "name", "domain", "gender", "annual_income", "land_holding",
         "aadhaar_linked", "state_tier", "category",
         "family_size", "employment_status", "housing_status",  # consumed by _score_welfare
+    },
+    "custom": {
+        "name", "domain", "score", "gender", "group", "location", "category",
     },
 }
 # Union of all allowed fields for initial acceptance before domain is resolved
@@ -201,7 +204,7 @@ def validate_profile(data: Mapping[str, Any]) -> dict[str, Any]:
 
     # Determine domain-specific allowed fields
     domain = normalized.get("domain", "hiring")
-    allowed = _DOMAIN_ALLOWED_FIELDS.get(domain, _ALL_ALLOWED_FIELDS)
+    allowed = set(normalized.keys()) if domain == "custom" else _DOMAIN_ALLOWED_FIELDS.get(domain, _ALL_ALLOWED_FIELDS)
 
     # Split into schema fields and allowed extras
     schema_fields = {"name", "domain", "gender"}

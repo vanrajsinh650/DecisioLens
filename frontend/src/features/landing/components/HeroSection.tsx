@@ -9,6 +9,8 @@ const DecisionLensScene = dynamic(
     { ssr: false }
 );
 
+const TOP_DOMAIN_LABELS = ["Hiring", "Lending", "Insurance", "Education", "Welfare"];
+
 export default function HeroSection() {
     const sectionRef = useRef<HTMLElement>(null);
 
@@ -74,7 +76,7 @@ export default function HeroSection() {
                             letterSpacing: "0.09em",
                             color: "var(--t3)",
                             textTransform: "uppercase",
-                            marginBottom: "22px",
+                            marginBottom: "14px",
                         }}
                     >
                         <span style={{ display: "inline-flex", alignItems: "center", gap: "7px" }}>
@@ -91,13 +93,6 @@ export default function HeroSection() {
                         </span>
                         <span style={{ color: "var(--t4)" }}>·</span>
                         <span>decision integrity engine</span>
-                    </div>
-
-                    {/* Kicker chip */}
-                    <div className="hero-stagger-1 hero-chip">
-                        <span className="font-mono hero-chip-text">
-                            decision integrity lab
-                        </span>
                     </div>
 
                     {/* Headline */}
@@ -130,9 +125,9 @@ export default function HeroSection() {
                         className="hero-stagger-5 hero-signal-card"
                         style={{
                             marginTop: "48px",
-                            maxWidth: "560px",
+                            maxWidth: "760px",
                             display: "grid",
-                            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
                             gap: "1px",
                             overflow: "hidden",
                             borderRadius: "12px",
@@ -140,7 +135,7 @@ export default function HeroSection() {
                             background: "rgba(255, 255, 255, 0.06)",
                         }}
                     >
-                        {["Hiring", "Lending", "Benefits"].map((label, index) => (
+                        {TOP_DOMAIN_LABELS.map((label, index) => (
                             <div key={label} className="hero-lane-cell">
                                 <p className="font-mono" style={{
                                     margin: 0, fontSize: "0.6rem", letterSpacing: "0.1em",

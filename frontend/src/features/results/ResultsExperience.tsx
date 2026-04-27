@@ -210,6 +210,7 @@ export default function ResultsExperience() {
                     rows={session.response.threshold_analysis}
                     baselineThreshold={session.request.threshold}
                     originalScore={session.response.original.score}
+                    originalDecision={session.response.original.decision}
                     confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
                 />
             </div>

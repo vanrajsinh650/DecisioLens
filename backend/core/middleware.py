@@ -13,6 +13,7 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from core.logging import get_logger
 
@@ -85,6 +86,21 @@ async def request_validation_error_handler(
     return _error_response(422, "Request Validation Error", detail)
 
 
+async def pydantic_validation_error_handler(
+    _request: Request, exc: ValidationError
+) -> JSONResponse:
+    """Handle internal model validation triggered by client data as 400."""
+    errors = exc.errors()
+    messages = []
+    for err in errors[:5]:
+        loc = " -> ".join(str(l) for l in err.get("loc", []))
+        msg = err.get("msg", "invalid")
+        messages.append(f"{loc}: {msg}" if loc else msg)
+    detail = "; ".join(messages) or str(exc)
+    logger.warning("Pydantic validation error: %s", detail)
+    return _error_response(400, "Validation Error", detail)
+
+
 # ── Request timing middleware ────────────────────────────────────────
 
 async def request_timing_middleware(request: Request, call_next):
@@ -123,6 +139,7 @@ def register_middleware(app: FastAPI) -> None:
     app.add_exception_handler(ValueError, value_error_handler)
     app.add_exception_handler(TypeError, type_error_handler)
     app.add_exception_handler(RequestValidationError, request_validation_error_handler)
+    app.add_exception_handler(ValidationError, pydantic_validation_error_handler)
     app.add_exception_handler(Exception, generic_error_handler)
 
     # Timing middleware.

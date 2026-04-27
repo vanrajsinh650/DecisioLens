@@ -122,6 +122,7 @@ function SlotResult({ title, session, loading, error, onClear, onRerun }: SlotRe
                         rows={session.response.threshold_analysis}
                         baselineThreshold={session.request.threshold}
                         originalScore={session.response.original.score}
+                        originalDecision={session.response.original.decision}
                         confidenceZone={session.response.original.confidence_zone ?? "Unknown"}
                     />
                     <VariationsComparisonCard variations={session.response.variations} />

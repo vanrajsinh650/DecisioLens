@@ -8,18 +8,19 @@ interface StabilityZoneCardProps {
 
 export default function StabilityZoneCard({ stabilityZone }: StabilityZoneCardProps) {
   const { zones, summary } = stabilityZone;
+  const coveredTotal = zones.reduce((sum, zone) => sum + Math.max(zone.end - zone.start, 0), 0);
 
   return (
-    <section className="result-card" id="stability-zone-card">
-      <h3 className="result-card__title">
+    <section className="dl-reveal dl-card" id="stability-zone-card">
+      <h3 className="font-display" style={{ fontSize: "var(--fs-h2)", color: "var(--t1)", fontWeight: 700 }}>
         🧪 Would a small change flip the result?
       </h3>
-      <p className="result-card__subtitle">{summary}</p>
+      <p className="font-body" style={{ marginTop: "4px", color: "var(--t2)", fontSize: "0.875rem" }}>{summary}</p>
 
       {zones.length > 0 && (
         <div className="stability-bar" role="figure" aria-label="Decision stability range">
           {zones.map((zone, i) => {
-            const width = Math.max((zone.end - zone.start) * 100, 2);
+            const width = coveredTotal > 0 ? (Math.max(zone.end - zone.start, 0) / coveredTotal) * 100 : 0;
             const isAccept = zone.label === "ACCEPT";
 
             return (

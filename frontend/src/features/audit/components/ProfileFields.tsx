@@ -24,6 +24,7 @@ export default function ProfileFields({
 
     return (
         <div
+            id="profile-fields"
             style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
@@ -32,6 +33,8 @@ export default function ProfileFields({
         >
             {fields.map((field) => {
                 const value = profile[field.key] ?? "";
+                const required = field.key === "name";
+                const isInvalid = required && String(value).trim().length === 0;
 
                 return (
                     <label
@@ -59,6 +62,8 @@ export default function ProfileFields({
                                 value={String(value)}
                                 onChange={(e) => onChange(field.key, e.target.value)}
                                 disabled={disabled}
+                                required={required}
+                                aria-invalid={isInvalid}
                                 className="dl-select"
                             >
                                 {field.options?.map((opt) => (
@@ -73,9 +78,11 @@ export default function ProfileFields({
                                 min={field.min}
                                 max={field.max}
                                 placeholder={String(field.placeholder ?? "")}
-                                value={value}
+                                value={typeof value === "string" || typeof value === "number" ? value : ""}
                                 onChange={(e) => onChange(field.key, e.target.value)}
                                 disabled={disabled}
+                                required={required}
+                                aria-invalid={isInvalid}
                                 className="dl-input"
                             />
                         ) : (
@@ -85,9 +92,16 @@ export default function ProfileFields({
                                 value={String(value)}
                                 onChange={(e) => onChange(field.key, e.target.value)}
                                 disabled={disabled}
+                                required={required}
+                                aria-invalid={isInvalid}
                                 className="dl-input"
                             />
                         )}
+                        {isInvalid ? (
+                            <span className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--aurora-crimson)" }}>
+                                {field.label} is required.
+                            </span>
+                        ) : null}
                     </label>
                 );
             })}

@@ -65,7 +65,7 @@ export default function RiskInsightCard({ insights, reasonTags }: RiskInsightCar
                     gaugeValue={biasDetected ? 85 : 10}
                 />
                 <StatPill
-                    label="HOW SURE ARE WE?"
+                    label="RISK LEVEL"
                     value={insights.risk_level ?? "MODERATE"}
                     tone="neutral"
                     gaugeValue={50}

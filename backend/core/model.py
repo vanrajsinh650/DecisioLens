@@ -20,6 +20,12 @@ def _clamp(value: float, lower: float, upper: float) -> float:
     return max(lower, min(value, upper))
 
 
+def _num(profile: Mapping[str, Any], key: str, default: float) -> float:
+    """Read a numeric profile value without treating valid zero as missing."""
+    value = profile.get(key)
+    return float(default if value is None else value)
+
+
 # Weights reflect real-world research on decision factors
 # in hiring, lending, education, insurance, and welfare.
 # Demographic modifiers are intentionally small but present
@@ -41,10 +47,10 @@ def _score_hiring(profile: Mapping[str, Any]) -> float:
       - Gender modifier:     ±0.03
       - Location modifier:   ±0.02
     """
-    raw_score = float(profile.get("score") or 50)
-    raw_exp = float(profile.get("experience") or 0)
-    education = str(profile.get("education") or "").lower()
-    interview = float(profile.get("interview_score") or 50)
+    raw_score = _num(profile, "score", 50)
+    raw_exp = _num(profile, "experience", 0)
+    education = str(profile.get("education") or profile.get("college") or "").lower()
+    interview = _num(profile, "interview_score", 50)
 
     # Skills match: 0–100 normalised to 0–1
     skills_component = raw_score / 100.0
@@ -52,9 +58,10 @@ def _score_hiring(profile: Mapping[str, Any]) -> float:
     exp_component = 1.0 - math.exp(-raw_exp / 10.0)
     # Education level: simple tier mapping
     education_component = (
-        1.0 if "phd" in education or "doctorate" in education
+        1.0 if "phd" in education or "doctorate" in education or "tier 1" in education or "iit" in education or "nit" in education
         else 0.85 if "master" in education
-        else 0.70 if "bachelor" in education
+        else 0.70 if "bachelor" in education or "tier 2" in education
+        else 0.45 if "tier 3" in education
         else 0.40 if "diploma" in education
         else 0.50  # default / unknown
     )
@@ -97,11 +104,11 @@ def _score_lending(profile: Mapping[str, Any]) -> float:
       - Gender modifier:              ±0.03
       - Location modifier:            ±0.02
     """
-    credit = float(profile.get("credit_score") or 600)
-    income = float(profile.get("income") or 5)
-    loan = float(profile.get("loan_amount") or 10)
+    credit = _num(profile, "credit_score", 600)
+    income = _num(profile, "income", 5)
+    loan = _num(profile, "loan_amount", 10)
     employment = str(profile.get("employment_type") or "").lower()
-    employment_years = float(profile.get("employment_years") or 3)
+    employment_years = _num(profile, "employment_years", 3)
     gender = str(profile.get("gender") or "").lower()
     location = str(profile.get("location") or "").lower()
 
@@ -114,12 +121,19 @@ def _score_lending(profile: Mapping[str, Any]) -> float:
     dti_component = _clamp(dti / 10.0, 0.0, 1.0)  # 0 is best, 1 is worst
     # Employment stability: diminishing returns
     emp_stability_component = _clamp(employment_years / 15.0, 0.0, 1.0)
+    employment_type_component = (
+        1.0 if "salaried" in employment or "full" in employment
+        else 0.65 if "self" in employment
+        else 0.45 if "freelance" in employment or "contract" in employment
+        else 0.55
+    )
 
     base = (
-        (0.40 * credit_component)
+        (0.35 * credit_component)
         + (0.25 * income_component)
         - (0.20 * dti_component)
-        + (0.15 * emp_stability_component)
+        + (0.10 * emp_stability_component)
+        + (0.10 * employment_type_component)
     )
 
     # Demographic modifiers — small but present for bias detection
@@ -147,10 +161,12 @@ def _score_education(profile: Mapping[str, Any]) -> float:
       - Gender modifier:               ±0.03
       - Location modifier:             ±0.02
     """
-    entrance = float(profile.get("score") or 50)
-    grade_12 = float(profile.get("grade_12") or 50)
-    extracurricular = float(profile.get("extracurricular") or 5)
+    entrance = _num(profile, "score", 50)
+    grade_12 = _num(profile, "grade_12", 50)
+    extracurricular = _num(profile, "extracurricular", 5)
     college = str(profile.get("college") or "").lower()
+    category = str(profile.get("category") or "general").lower()
+    income_band = str(profile.get("income_band") or "middle").lower()
     gender = str(profile.get("gender") or "").lower()
     location = str(profile.get("location") or "").lower()
 
@@ -167,12 +183,19 @@ def _score_education(profile: Mapping[str, Any]) -> float:
         else 0.35 if "tier 3" in college
         else 0.50  # default
     )
+    income_component = (
+        1.0 if "low" in income_band
+        else 0.70 if "middle" in income_band
+        else 0.40 if "high" in income_band
+        else 0.60
+    )
 
     base = (
-        (0.40 * gpa_component)
-        + (0.30 * entrance_component)
-        + (0.15 * extra_component)
-        + (0.15 * college_tier_component)
+        (0.42 * gpa_component)
+        + (0.33 * entrance_component)
+        + (0.10 * income_component)
+        + (0.08 * extra_component)
+        + (0.07 * college_tier_component)
     )
 
     # Demographic modifiers — small but present for bias detection
@@ -180,8 +203,9 @@ def _score_education(profile: Mapping[str, Any]) -> float:
     location_effect = (
         -0.02 if location in ("rural", "village", "remote", "small town") else 0.0
     )
+    category_effect = -0.02 if category in ("sc", "st", "obc", "ews") else 0.0
 
-    return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+    return round(_clamp(base + gender_effect + location_effect + category_effect, 0.0, 1.0), 6)
 
 
 # ── Insurance ─────────────────────────────────────────────────────────
@@ -200,10 +224,11 @@ def _score_insurance(profile: Mapping[str, Any]) -> float:
       - Gender modifier:               ±0.03
       - Location modifier:             ±0.02
     """
-    claim = float(profile.get("claim_amount") or 2)
-    age = float(profile.get("age") or 40)
+    claim = _num(profile, "claim_amount", 2)
+    age = _num(profile, "age", 40)
     pre_existing = str(profile.get("pre_existing") or "None").lower()
-    coverage = float(profile.get("coverage_amount") or 10)
+    coverage = _num(profile, "coverage_amount", 10)
+    tenure = _num(profile, "policy_tenure", 0)
     gender = str(profile.get("gender") or "").lower()
     city_tier = str(profile.get("city_tier") or "Tier 1").lower()
 
@@ -229,12 +254,15 @@ def _score_insurance(profile: Mapping[str, Any]) -> float:
     claim_component = _clamp(claim / 50.0, 0.0, 1.0)
     # Coverage requested: higher coverage → harder to approve (normalised 0–100 lakhs)
     coverage_component = _clamp(coverage / 100.0, 0.0, 1.0)
+    # Longer tenure with the insurer improves confidence in the claim
+    tenure_component = _clamp(tenure / 10.0, 0.0, 1.0)
 
     base = (
-        (0.35 * health_component)
-        + (0.30 * age_component)
-        - (0.25 * claim_component)
+        (0.32 * health_component)
+        + (0.28 * age_component)
+        - (0.20 * claim_component)
         - (0.10 * coverage_component)
+        + (0.10 * tenure_component)
     )
 
     # Demographic modifiers — small but present for bias detection
@@ -263,10 +291,13 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
       - Gender modifier:                 ±0.03
       - Location modifier:               ±0.02
     """
-    income = float(profile.get("annual_income") or 3)
-    family_size = float(profile.get("family_size") or profile.get("land_holding") or 4)
+    income = _num(profile, "annual_income", 3)
+    family_size = _num(profile, "family_size", 4)
+    land = _num(profile, "land_holding", 0)
     employment_status = str(profile.get("employment_status") or "employed").lower()
     housing = str(profile.get("housing_status") or "owned").lower()
+    category = str(profile.get("category") or "general").lower()
+    aadhaar = str(profile.get("aadhaar_linked") or "").lower()
     gender = str(profile.get("gender") or "").lower()
     state_tier = str(profile.get("state_tier") or "Developed State").lower()
 
@@ -288,12 +319,23 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
         else 0.40 if "shared" in housing
         else 0.15  # owned (least need)
     )
+    # Land ownership reduces means-tested need; it is not a proxy for family size.
+    land_component = 1.0 - _clamp(land / 10.0, 0.0, 1.0)
+    aadhaar_component = 1.0 if aadhaar == "yes" else 0.0
+    category_component = (
+        1.0 if category in ("sc", "st")
+        else 0.85 if category in ("obc", "ews")
+        else 0.45
+    )
 
     base = (
-        (0.40 * income_component)
-        + (0.25 * family_component)
-        + (0.20 * employment_component)
-        + (0.15 * housing_component)
+        (0.30 * income_component)
+        + (0.15 * family_component)
+        + (0.10 * employment_component)
+        + (0.10 * housing_component)
+        + (0.15 * land_component)
+        + (0.10 * aadhaar_component)
+        + (0.10 * category_component)
     )
 
     # Demographic modifiers — small but present for bias detection
@@ -304,6 +346,14 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
     )
 
     return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+
+
+# ── Custom ────────────────────────────────────────────────────────────
+
+def _score_custom(profile: Mapping[str, Any]) -> float:
+    """Generic custom-domain scorer based on a user-supplied 0–100 score."""
+    raw_score = _num(profile, "score", 50)
+    return round(_clamp(raw_score / 100.0, 0.0, 1.0), 6)
 # ── Public API ────────────────────────────────────────────────────────
 
 _DOMAIN_SCORERS = {
@@ -312,6 +362,7 @@ _DOMAIN_SCORERS = {
     "education": _score_education,
     "insurance": _score_insurance,
     "welfare": _score_welfare,
+    "custom": _score_custom,
 }
 
 

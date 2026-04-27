@@ -282,7 +282,12 @@ class AuditService:
 
         # ── 10. Assemble response ────────────────────────────────────
         return AuditResponse(
-            original=OriginalDecision(score=original_score, decision=original_decision),
+            original=OriginalDecision(
+                score=original_score,
+                decision=original_decision,
+                threshold=threshold,
+                confidence_zone=confidence_zone,
+            ),
             threshold_analysis=threshold_analysis,
             variations=variation_output,
             stability_zone=StabilityZoneResult(
@@ -348,6 +353,8 @@ class AuditService:
                 clean = _SAFE_CHARS.sub("", clean).strip()
                 if clean:
                     sanitized[key] = clean
+            elif isinstance(value, bool):
+                sanitized[key] = value
             elif isinstance(value, (int, float)):
                 sanitized[key] = value
         return sanitized
@@ -373,6 +380,16 @@ class AuditService:
         inclusion so user-controlled content cannot influence the LLM.
         """
         safe_profile = AuditService._sanitize_profile_for_llm(validated_profile)
+        safe_variations: list[dict[str, Any]] = []
+        for item in variation_output:
+            copied = dict(item)
+            profile = copied.get("profile")
+            copied["profile"] = (
+                AuditService._sanitize_profile_for_llm(profile)
+                if isinstance(profile, dict)
+                else None
+            )
+            safe_variations.append(copied)
         return {
             "original": {
                 **original_result,
@@ -380,7 +397,7 @@ class AuditService:
             },
             "threshold": threshold,
             "threshold_analysis": threshold_analysis_raw,
-            "variations": variation_output,
+            "variations": safe_variations,
             "analysis": {
                 "instability": instability_report,
                 "bias": bias_report,

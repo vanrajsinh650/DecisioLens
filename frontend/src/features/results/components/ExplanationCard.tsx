@@ -2,13 +2,34 @@ interface ExplanationCardProps {
     explanation: string;
 }
 
-export default function ExplanationCard({ explanation }: ExplanationCardProps) {
-    // Parse structure from explanation text
-    const sentences = explanation.split(/(?<=[.?!])\s+/).filter(s => s.length > 5);
+function parseExplanation(explanation: string) {
+    const summary = explanation.match(/Summary:\s*([\s\S]*?)(?:\n\s*\nKey Reason:|$)/i)?.[1]?.trim();
+    const reasonsBlock = explanation.match(/Key Reason:\s*([\s\S]*?)(?:\n\s*\nRisk:|$)/i)?.[1]?.trim();
+    const recommendation = explanation.match(/Recommendation:\s*([\s\S]*)$/i)?.[1]?.trim();
 
-    const summary = sentences.slice(0, 2).join(" ");
-    const drivers = sentences.slice(2, 5).map(s => s.trim());
-    const recommendation = sentences.slice(5).slice(0, 2).join(" ");
+    const reasons = reasonsBlock
+        ?.split("\n")
+        .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+        .filter(Boolean) ?? [];
+
+    if (summary || reasons.length > 0 || recommendation) {
+        return {
+            summary: summary ?? "No summary available.",
+            drivers: reasons,
+            recommendation: recommendation ?? "Check your profile details and try again.",
+        };
+    }
+
+    const sentences = explanation.split(/(?<=[.?!])\s+/).filter((sentence) => sentence.length > 5);
+    return {
+        summary: sentences.slice(0, 2).join(" ") || "No summary available.",
+        drivers: sentences.slice(2, 5).map((sentence) => sentence.trim()),
+        recommendation: sentences.slice(5).slice(0, 2).join(" ") || "Check your profile details and try again.",
+    };
+}
+
+export default function ExplanationCard({ explanation }: ExplanationCardProps) {
+    const { summary, drivers, recommendation } = parseExplanation(explanation);
 
     const driverColors = [
         "var(--aurora-crimson)",
@@ -61,7 +82,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t2)",
                         }}
                     >
-                        {summary || "No summary available."}
+                        {summary}
                     </p>
                 </div>
 
@@ -144,7 +165,7 @@ export default function ExplanationCard({ explanation }: ExplanationCardProps) {
                             color: "var(--t1)",
                         }}
                     >
-                        {recommendation || "Check your profile details and try again."}
+                        {recommendation}
                     </p>
                 </div>
             </div>

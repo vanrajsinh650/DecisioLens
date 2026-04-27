@@ -19,7 +19,7 @@ from schemas.request import validate_profile
 # ── Variation catalogues per domain ──────────────────────────────────
 
 _HIRING_LOCATIONS = ("Bengaluru", "Mumbai", "Delhi", "Pune", "Hyderabad")
-_HIRING_COLLEGES = ("IIT Bombay", "IIT Delhi", "BITS Pilani", "NIT Trichy", "IISc Bengaluru")
+_HIRING_COLLEGES = ("Tier 1", "Tier 2", "Tier 3")
 _LENDING_LOCATIONS = ("Mumbai", "Pune", "Delhi", "Bengaluru", "Chennai")
 _EDUCATION_LOCATIONS = ("Bengaluru", "Hyderabad", "Mumbai", "Delhi", "Pune")
 _INSURANCE_CITY_TIERS = ("Tier 1", "Tier 2", "Tier 3")
@@ -129,12 +129,22 @@ def _variations_welfare(base: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def _variations_custom(base: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_score = float(base.get("score") if base.get("score") is not None else 50)
+    bumped_score = min(100.0, raw_score + 10.0)
+    return [
+        {"variation": "baseline", "profile": dict(base)},
+        {"variation": "score_bump", "profile": {**base, "score": bumped_score}},
+    ]
+
+
 _DOMAIN_VARIATION_GENERATORS = {
     "hiring": _variations_hiring,
     "lending": _variations_lending,
     "education": _variations_education,
     "insurance": _variations_insurance,
     "welfare": _variations_welfare,
+    "custom": _variations_custom,
 }
 
 

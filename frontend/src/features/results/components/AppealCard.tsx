@@ -11,11 +11,11 @@ interface AppealCardProps {
 type Tab = "appeal" | "explanation";
 
 export default function AppealCard({ appeal, explanationRequest }: AppealCardProps) {
-    const [activeTab, setActiveTab] = useState<Tab>("appeal");
+    const [activeTab, setActiveTab] = useState<Tab>(appeal ? "appeal" : "explanation");
 
     if (!appeal && !explanationRequest) return null;
 
-    const activeText = activeTab === "appeal" ? appeal : (explanationRequest ?? "");
+    const activeText = activeTab === "appeal" && appeal ? appeal : explanationRequest ?? appeal;
 
     const tabStyle = (tab: Tab) => ({
         padding: "8px 16px",
@@ -73,7 +73,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                             style={tabStyle("appeal")}
                             onClick={() => setActiveTab("appeal")}
                         >
-                            Write An Appeal Letter
+                            Write an Appeal Letter
                         </button>
                         <button
                             type="button"
@@ -81,7 +81,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                             style={tabStyle("explanation")}
                             onClick={() => setActiveTab("explanation")}
                         >
-                            Ask For An Explanation
+                            Ask for an Explanation
                         </button>
                     </div>
                 )}

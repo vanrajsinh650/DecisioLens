@@ -6,7 +6,7 @@ export type TrustVerdict = "STABLE" | "UNSTABLE" | "HIGH_RISK";
 
 export type ThemePreference = "dark" | "light";
 
-export type AuditProfile = Record<string, string | number>;
+export type AuditProfile = Record<string, string | number | boolean | null>;
 
 export interface AuditRequest {
   domain: DomainType;
@@ -84,6 +84,7 @@ export interface HumanReview {
 export interface Insights {
   instability: boolean;
   bias_detected: boolean;
+  confidence_zone?: string;
   risk_score: number;
   risk_level?: string;
   reason_tags: string[];

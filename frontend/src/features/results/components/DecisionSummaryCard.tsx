@@ -2,9 +2,9 @@ import Badge from "@/components/shared/Badge";
 import StatPill from "@/components/shared/StatPill";
 import {
     formatDateTime,
+    formatPercent,
     formatRiskLabel,
     formatRiskScore,
-    formatThreshold,
     normalizeDecisionTone,
     normalizeRiskTone,
     shouldRecommendHumanReview,
@@ -54,7 +54,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
             >
                 <StatPill
                     label="Score"
-                    value={formatThreshold(response.original.score)}
+                    value={formatPercent(response.original.score, 1)}
                     tone="neutral"
                 />
 
@@ -117,7 +117,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
             >
                 <StatPill
                     label="Strictness Level"
-                    value={formatThreshold(request.threshold)}
+                    value={formatPercent(request.threshold, 1)}
                     tone="warn"
                 />
                 <StatPill
@@ -168,7 +168,7 @@ export default function DecisionSummaryCard({ session }: DecisionSummaryCardProp
                 <span>·</span>
                 <span>Decision Type: {session.domain}</span>
                 <span>·</span>
-                <span>Passing Bar: {formatThreshold(request.threshold)}</span>
+                <span>Passing Bar: {formatPercent(request.threshold, 1)}</span>
             </div>
         </div>
     );

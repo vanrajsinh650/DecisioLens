@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
 
     # ── Server / CORS ───────────────────────────────────────────────
+    PUBLIC_API_KEY: str = Field(default="", alias="PUBLIC_API_KEY")
+
     # Default to explicit localhost origins — safe for dev.
     # Override via CORS_ORIGINS env var in production deployments.
     CORS_ORIGINS: List[str] = Field(
@@ -44,6 +46,9 @@ class Settings(BaseSettings):
     # ── Cache ───────────────────────────────────────────────────────
     CACHE_TTL_SECONDS: int = Field(default=300)
     CACHE_MAX_SIZE: int = Field(default=256)
+
+    # ── AI network safety ───────────────────────────────────────────
+    AI_CALL_TIMEOUT_SECONDS: float = Field(default=10.0)
 
     @property
     def gemini_api_key_resolved(self) -> str:

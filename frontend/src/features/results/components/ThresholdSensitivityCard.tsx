@@ -1,10 +1,11 @@
-import { formatThreshold } from "@/lib/format";
-import { ThresholdAnalysisItem } from "@/types/audit";
+import { formatPercent } from "@/lib/format";
+import { Decision, ThresholdAnalysisItem } from "@/types/audit";
 
 interface ThresholdSensitivityCardProps {
     rows: ThresholdAnalysisItem[];
     baselineThreshold: number;
     originalScore: number;
+    originalDecision: Decision;
     confidenceZone: string;
 }
 
@@ -12,12 +13,17 @@ export default function ThresholdSensitivityCard({
     rows,
     baselineThreshold,
     originalScore,
+    originalDecision,
     confidenceZone,
 }: ThresholdSensitivityCardProps) {
-    const originalDecision = rows.find(
-        (r) => Math.abs(r.threshold - baselineThreshold) < 0.001
-    )?.decision;
-    const flipPoints = rows.filter((row) => row.decision !== originalDecision).length;
+    const nearestBaselineRow = rows.reduce<ThresholdAnalysisItem | null>((nearest, row) => {
+        if (!nearest) return row;
+        return Math.abs(row.threshold - baselineThreshold) < Math.abs(nearest.threshold - baselineThreshold)
+            ? row
+            : nearest;
+    }, null);
+    const baselineDecision = nearestBaselineRow?.decision ?? originalDecision;
+    const flipPoints = rows.filter((row) => row.decision !== baselineDecision).length;
     const isSensitive = flipPoints > 0;
 
     const clampPercent = (value: number) => Math.min(100, Math.max(0, value));
@@ -45,7 +51,7 @@ export default function ThresholdSensitivityCard({
                         WHAT HAPPENS IF THE BAR IS RAISED?
                     </p>
                     <p className="font-body" style={{ marginTop: "4px", fontSize: "0.875rem", color: "var(--t2)" }}>
-                        We tested what happens if the passing bar was higher or lower. Here is what changed.
+                        We tested what would happen if the passing bar were higher or lower. Here is what changed.
                     </p>
                 </div>
             </div>
@@ -154,7 +160,7 @@ export default function ThresholdSensitivityCard({
                     <thead>
                         <tr style={{ background: "var(--s2)" }}>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
-                                If Passing Score Was
+                                If the passing score were
                             </th>
                             <th className="font-mono uppercase" style={{ padding: "12px 16px", fontSize: "var(--fs-label)", letterSpacing: "0.12em", fontWeight: 600, color: "var(--t2)" }}>
                                 Your Result
@@ -183,7 +189,7 @@ export default function ThresholdSensitivityCard({
                                             color: isBaseline ? "var(--t1)" : "var(--t2)",
                                         }}
                                     >
-                                        {formatThreshold(row.threshold * 100)}
+                                        {formatPercent(row.threshold, 1)}
                                     </td>
                                     <td style={{ padding: "10px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
                                         {isAccept ? (

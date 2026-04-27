@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useMemo, useEffect, useRef, useState } from "react";
 
 import SectionHeader from "@/components/layout/SectionHeader";
 import Badge from "@/components/shared/Badge";
@@ -54,6 +54,14 @@ export default function BatchAuditExperience() {
     const [isRunning, setIsRunning] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [progress, setProgress] = useState({ processed: 0, total: 0 });
+    const abortRef = useRef<AbortController | null>(null);
+
+    // Cleanup on unmount: cancel any in-progress batch
+    useEffect(() => {
+        return () => {
+            abortRef.current?.abort();
+        };
+    }, []);
 
     const previewRows = rows.slice(0, 5);
 
@@ -62,6 +70,11 @@ export default function BatchAuditExperience() {
             setError("Upload a CSV with at least one profile row.");
             return;
         }
+
+        // Abort any previous run
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
 
         setIsRunning(true);
         setError(null);
@@ -72,6 +85,11 @@ export default function BatchAuditExperience() {
 
         try {
             for (let index = 0; index < rows.length; index += 1) {
+                // Check for cancellation before each request
+                if (controller.signal.aborted) {
+                    break;
+                }
+
                 const row = rows[index];
                 const payload: AuditRequest = {
                     domain,
@@ -82,6 +100,12 @@ export default function BatchAuditExperience() {
                 };
 
                 const response = await runAudit(payload);
+
+                // Check again after the async call returns
+                if (controller.signal.aborted) {
+                    break;
+                }
+
                 nextResults.push({
                     index: index + 1,
                     input: row,
@@ -97,11 +121,21 @@ export default function BatchAuditExperience() {
 
                 await sleep(300);
             }
+
+            if (controller.signal.aborted) {
+                setError("Batch processing was cancelled.");
+            }
         } catch (batchError) {
-            setError(batchError instanceof Error ? batchError.message : "Batch audit failed.");
+            if (!controller.signal.aborted) {
+                setError(batchError instanceof Error ? batchError.message : "Batch audit failed.");
+            }
         } finally {
             setIsRunning(false);
         }
+    };
+
+    const cancelBatch = () => {
+        abortRef.current?.abort();
     };
 
     const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -291,6 +325,20 @@ export default function BatchAuditExperience() {
                 >
                     Analyze All Profiles
                 </button>
+
+                {isRunning && (
+                    <button
+                        type="button"
+                        onClick={cancelBatch}
+                        className="dl-btn-ghost"
+                        style={{
+                            color: "var(--aurora-crimson)",
+                            borderColor: "var(--aurora-crimson)",
+                        }}
+                    >
+                        Cancel
+                    </button>
+                )}
 
                 <button
                     type="button"
