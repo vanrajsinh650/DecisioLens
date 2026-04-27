@@ -74,6 +74,11 @@ class Settings(BaseSettings):
     # Safe ceiling = floor(30 / 3) = 10 — keeps AI demand at semaphore capacity
     # with no queuing pressure. Raise only if AI semaphore is raised proportionally.
     AUDIT_MAX_CONCURRENT: int = Field(default=10)
+    # Number of trusted reverse-proxy hops in front of this service (Issue #2 fix).
+    # Used to safely parse X-Forwarded-For by peeling the rightmost N hops.
+    # Set to 0 to always use the direct TCP connection IP (disable XFF trust).
+    # Set to 1 for a standard single-proxy / BFF deployment (default).
+    TRUSTED_PROXY_COUNT: int = Field(default=1)
 
     @property
     def gemini_api_key_resolved(self) -> str:

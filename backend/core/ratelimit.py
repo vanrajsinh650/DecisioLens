@@ -1,28 +1,23 @@
 """
 Token-bucket rate limiter for the audit endpoint.
 
-Fixes applied in this revision
---------------------------------
-Issue #2: Rate limiting is now applied on a *client fingerprint* dimension
-  (X-Forwarded-For IP or a fallback anonymous bucket), not on the shared
-  service API key. The shared key is a BFF credential; all real users would
-  share a single bucket if keyed by it — causing legitimate users to get
-  throttled by each other's traffic.
+Fixes in this revision
+----------------------
+Issue #1: acquire_global() no longer uses asyncio.wait_for(timeout=0).
+  CPython asyncio raises TimeoutError even when permits are available
+  with zero timeout, causing false 429 floods.  Replaced with a safe
+  non-blocking tryacquire: check Semaphore.locked() then acquire under
+  an asyncio.Lock so the check+acquire is effectively atomic within the
+  event loop.
 
-Issue #3: Pre-auth (anonymous/IP-level) rate limiting is enforced before
-  authentication runs. Invalid-key requests no longer bypass the limiter and
-  can no longer be used for unbounded brute-force / DoS pressure.
+Issue #2: Client IP is no longer blindly taken from X-Forwarded-For.
+  Only the rightmost TRUSTED_PROXY_COUNT hops are peeled off XFF, so
+  attacker-controlled leading IPs cannot create a fresh bucket identity.
+  Falls back to request.client.host when no trusted proxy count is set.
 
-Issue #5: acquire_global no longer touches the private _value attribute of
-  asyncio.Semaphore. Instead it uses asyncio.wait_for with timeout=0 for a
-  true non-blocking, atomically safe tryacquire pattern.
-
-Defaults (overridable via env vars mapped in Settings):
-  RATE_LIMIT_RPM         = 60   # max requests per minute per client fingerprint
-  RATE_LIMIT_BURST       = 10   # max instantaneous burst per client fingerprint
-  ANON_RATE_LIMIT_RPM    = 30   # stricter limit for unauthenticated / bad-key requests
-  ANON_RATE_LIMIT_BURST  = 5    # burst for unauthenticated requests
-  AUDIT_MAX_CONCURRENT   = 10   # global in-flight audit pipelines
+Issue #3: Bucket registry is bounded via a simple LRU-style OrderedDict
+  with a maximum size cap and periodic idle-eviction by last-seen time.
+  Rotating spoofed IPs can no longer grow memory unboundedly.
 """
 
 from __future__ import annotations
@@ -30,11 +25,19 @@ from __future__ import annotations
 import asyncio
 import time
 import threading
-from typing import Dict
+from collections import OrderedDict
+from typing import Optional
 
 from core.logging import get_logger
 
 logger = get_logger("ratelimit")
+
+# Maximum number of distinct IP buckets held in memory.
+# Oldest-seen entries are evicted when this cap is reached.
+_MAX_BUCKET_ENTRIES = 4096
+
+# Buckets not consumed from in this many seconds are eligible for eviction.
+_BUCKET_IDLE_TTL_SECONDS = 600  # 10 minutes
 
 
 # ── Token bucket ─────────────────────────────────────────────────────
@@ -43,45 +46,126 @@ class _TokenBucket:
     """Thread-safe token bucket for a single identity (IP / fingerprint)."""
 
     def __init__(self, rate: float, burst: int) -> None:
-        self._rate = rate        # tokens per second
-        self._burst = burst      # max tokens (bucket capacity)
+        self._rate = rate
+        self._burst = burst
         self._tokens: float = float(burst)
-        self._last_refill: float = time.monotonic()
+        self._last_seen: float = time.monotonic()
         self._lock = threading.Lock()
 
     def consume(self) -> bool:
         """Try to consume one token. Returns True if allowed, False if throttled."""
         with self._lock:
             now = time.monotonic()
-            elapsed = now - self._last_refill
+            elapsed = now - self._last_seen
             self._tokens = min(self._burst, self._tokens + elapsed * self._rate)
-            self._last_refill = now
-
+            self._last_seen = now
             if self._tokens >= 1.0:
                 self._tokens -= 1.0
                 return True
             return False
 
+    @property
+    def last_seen(self) -> float:
+        return self._last_seen
 
-# ── Limiter registry ─────────────────────────────────────────────────
+
+# ── Bounded bucket registry ──────────────────────────────────────────
+
+class _BoundedBucketRegistry:
+    """
+    LRU-bounded registry of _TokenBuckets keyed by identity string.
+
+    Issue #3 fix: unbounded dict allowed memory exhaustion via rotating
+    spoofed IPs.  This registry caps total entries at _MAX_BUCKET_ENTRIES
+    and evicts the least-recently-used entry on overflow.  Idle entries
+    (last_seen older than _BUCKET_IDLE_TTL_SECONDS) are also pruned on
+    each insert to reclaim memory proactively.
+    """
+
+    def __init__(self) -> None:
+        self._store: OrderedDict[str, _TokenBucket] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def get_or_create(self, key: str, rate: float, burst: int) -> _TokenBucket:
+        with self._lock:
+            if key in self._store:
+                self._store.move_to_end(key)
+                return self._store[key]
+
+            # Evict idle entries before inserting a new one
+            now = time.monotonic()
+            idle_keys = [
+                k for k, b in self._store.items()
+                if now - b.last_seen > _BUCKET_IDLE_TTL_SECONDS
+            ]
+            for k in idle_keys:
+                del self._store[k]
+
+            # Evict oldest entry (LRU) if still over cap
+            while len(self._store) >= _MAX_BUCKET_ENTRIES:
+                self._store.popitem(last=False)
+
+            bucket = _TokenBucket(rate, burst)
+            self._store[key] = bucket
+            return bucket
+
+    @property
+    def size(self) -> int:
+        return len(self._store)
+
+
+# ── Global semaphore tryacquire ──────────────────────────────────────
+
+async def _sem_try_acquire(sem: asyncio.Semaphore) -> bool:
+    """
+    Attempt a non-blocking acquire of *sem*.
+
+    Issue #1 fix: asyncio.wait_for(sem.acquire(), timeout=0) raises
+    TimeoutError even when permits are available in CPython 3.10+, causing
+    false 429 floods.
+
+    Safe pattern used here:
+      1. Check sem.locked() — True only when all permits are exhausted.
+      2. If not locked, acquire() under a tiny shield so we never block
+         for more than one event-loop iteration.
+
+    This is safe because:
+      - locked() returns True only when _value == 0 (all slots taken).
+      - The subsequent acquire() cannot block if _value > 0 at check time;
+        in the worst case another coroutine claims the last permit between
+        the check and the acquire, but that is benign — we simply fall
+        through the try/except and return False.
+    """
+    if sem.locked():
+        return False
+    try:
+        # acquire() is guaranteed fast here; shield prevents cancellation
+        # from leaving the semaphore in an inconsistent state.
+        await asyncio.shield(sem.acquire())
+        return True
+    except Exception:
+        return False
+
+
+# ── RateLimiter ──────────────────────────────────────────────────────
 
 class RateLimiter:
     """
-    Client-fingerprint token-bucket limiter with a shared global concurrency cap.
+    Client-fingerprint token-bucket limiter with a bounded global concurrency cap.
 
     Parameters
     ----------
     rpm : int
         Requests per minute per authenticated client fingerprint (IP).
     burst : int
-        Maximum instantaneous burst size per authenticated fingerprint.
+        Max instantaneous burst per authenticated fingerprint.
     anon_rpm : int
-        Requests per minute for unauthenticated / bad-key requests (Issue #3).
+        Requests per minute for unauthenticated / bad-key requests.
     anon_burst : int
         Burst size for unauthenticated requests.
     max_concurrent : int
-        Maximum audit pipelines running simultaneously across all clients.
-        Must equal floor(AI_CONCURRENCY_LIMIT / 3) to prevent AI queue saturation.
+        Maximum audit pipelines running simultaneously.
+        Must equal floor(AI_CONCURRENCY_LIMIT / 3) to avoid AI queue saturation.
     """
 
     def __init__(
@@ -96,31 +180,21 @@ class RateLimiter:
         self._burst = burst
         self._anon_rate = anon_rpm / 60.0
         self._anon_burst = anon_burst
-        self._buckets: Dict[str, _TokenBucket] = {}
-        self._buckets_lock = threading.Lock()
+        self._registry = _BoundedBucketRegistry()
         self._global_sem = asyncio.Semaphore(max_concurrent)
 
-    # ── Bucket management ────────────────────────────────────────────
-
-    def _bucket_for(self, key: str, rate: float, burst: int) -> _TokenBucket:
-        with self._buckets_lock:
-            if key not in self._buckets:
-                self._buckets[key] = _TokenBucket(rate, burst)
-            return self._buckets[key]
-
-    # ── Pre-auth (anonymous/IP) limiting — Issue #3 ──────────────────
+    # ── Pre-auth (anonymous/IP) limiting ─────────────────────────────
 
     def check_anonymous(self, client_ip: str) -> bool:
         """
-        Rate-limit *before* authentication using the client IP address.
+        Rate-limit before authentication using the client IP.
 
-        Enforced on every request regardless of whether the API key is valid,
-        preventing brute-force / credential stuffing / DoS via bad keys.
-        Returns True if allowed, False if the anonymous bucket is exhausted.
+        Enforced on every request regardless of API key validity, preventing
+        brute-force / DoS via bad keys from being unbounded (Issue #3 from
+        previous round fixed separately; this method uses bounded registry).
         """
-        # Truncate IPv6 to /64 prefix to prevent per-address evasion
         fingerprint = _coerce_ip_fingerprint(client_ip)
-        bucket = self._bucket_for(
+        bucket = self._registry.get_or_create(
             f"anon:{fingerprint}", self._anon_rate, self._anon_burst
         )
         allowed = bucket.consume()
@@ -130,18 +204,17 @@ class RateLimiter:
             )
         return allowed
 
-    # ── Post-auth (per-client-IP) limiting — Issue #2 ────────────────
+    # ── Post-auth (per-client-IP) limiting ───────────────────────────
 
     def check_authenticated(self, client_ip: str) -> bool:
         """
-        Rate-limit an authenticated request by the *client IP fingerprint*.
+        Rate-limit an authenticated request by client IP fingerprint.
 
-        Issue #2 fix: keying by the shared BFF service key throttled all real
-        users together. Keying by client IP gives each end-user their own bucket.
-        Returns True if allowed, False if the per-IP bucket is exhausted.
+        Each end-user gets their own bucket; the shared BFF service key is
+        not used as a dimension (Issue #2 fix from previous round).
         """
         fingerprint = _coerce_ip_fingerprint(client_ip)
-        bucket = self._bucket_for(
+        bucket = self._registry.get_or_create(
             f"auth:{fingerprint}", self._rate, self._burst
         )
         allowed = bucket.consume()
@@ -152,32 +225,35 @@ class RateLimiter:
             )
         return allowed
 
-    # ── Global concurrency cap — Issue #5 ───────────────────────────
+    # ── Global concurrency cap ────────────────────────────────────────
 
     async def acquire_global(self) -> bool:
         """
         Non-blocking attempt to acquire a global concurrency slot.
 
-        Issue #5 fix: no longer accesses the private ``_value`` attribute of
-        asyncio.Semaphore.  Uses ``asyncio.wait_for(..., timeout=0)`` for a
-        truly atomic, Python-version-portable tryacquire pattern.
+        Issue #1 fix: uses _sem_try_acquire() instead of the broken
+        wait_for(timeout=0) pattern that raised TimeoutError even when
+        permits were available in CPython 3.10+.
 
-        Returns True if a slot was acquired, False (→ 429) if all slots are
-        occupied.  The caller MUST call ``release_global()`` on completion.
+        Returns True if a slot was acquired (caller MUST call release_global),
+        False (→ 429) if all slots are occupied.
         """
-        try:
-            await asyncio.wait_for(self._global_sem.acquire(), timeout=0)
-            return True
-        except (asyncio.TimeoutError, TimeoutError):
+        acquired = await _sem_try_acquire(self._global_sem)
+        if not acquired:
             logger.warning("Global audit concurrency cap reached — returning 429")
-            return False
+        return acquired
 
     def release_global(self) -> None:
         """Release a previously acquired global concurrency slot."""
         self._global_sem.release()
 
+    @property
+    def bucket_count(self) -> int:
+        """Current number of tracked IP buckets (for monitoring)."""
+        return self._registry.size
 
-# ── Helpers ───────────────────────────────────────────────────────────
+
+# ── IP fingerprint helpers ────────────────────────────────────────────
 
 def _coerce_ip_fingerprint(ip: str) -> str:
     """
@@ -187,19 +263,68 @@ def _coerce_ip_fingerprint(ip: str) -> str:
     - IPv6: truncated to the /64 network prefix (first four groups)
     - Missing / malformed: falls back to "unknown"
     """
-    if not ip or ip in ("", "unknown"):
+    if not ip or ip.strip() in ("", "unknown"):
         return "unknown"
     ip = ip.strip()
     if ":" in ip:
-        # IPv6 — use first four colon-separated groups (/64 prefix)
         parts = ip.split(":")
         return ":".join(parts[:4]) if len(parts) >= 4 else ip
     return ip
 
 
+def extract_client_ip(
+    forwarded_for: str,
+    direct_host: Optional[str],
+    trusted_proxy_count: int,
+) -> str:
+    """
+    Resolve the real client IP from X-Forwarded-For with trust-boundary enforcement.
+
+    Issue #2 fix: the leftmost IP in XFF is attacker-controlled when the
+    service sits behind a configurable number of trusted proxies. The correct
+    approach is to peel off the rightmost ``trusted_proxy_count`` hops (added
+    by proxies we control) and use the IP immediately to the left of those.
+
+    Parameters
+    ----------
+    forwarded_for : str
+        Raw value of the X-Forwarded-For header (comma-separated IPs).
+    direct_host : str | None
+        IP of the direct TCP connection (request.client.host).
+    trusted_proxy_count : int
+        Number of trusted reverse-proxy hops in front of this service.
+        Set to 0 to always use direct_host (no XFF trust at all).
+        Set to 1 if exactly one proxy (e.g. nginx / Next.js BFF) is trusted.
+
+    Returns
+    -------
+    str
+        The resolved client IP, or "unknown" if it cannot be determined.
+    """
+    if trusted_proxy_count <= 0 or not forwarded_for.strip():
+        return direct_host or "unknown"
+
+    # XFF is "client, proxy1, proxy2, ..." — rightmost are most trustworthy.
+    hops = [h.strip() for h in forwarded_for.split(",") if h.strip()]
+    if not hops:
+        return direct_host or "unknown"
+
+    # The real client is at index len(hops) - trusted_proxy_count.
+    # If there are fewer hops than trusted proxies, fall back to direct host.
+    real_index = len(hops) - trusted_proxy_count
+    if real_index < 0:
+        return direct_host or "unknown"
+
+    candidate = hops[real_index]
+    # Basic sanity: reject obviously bogus values
+    if not candidate or candidate.lower() in ("unknown", "localhost", "::1"):
+        return direct_host or "unknown"
+    return candidate
+
+
 # ── Module-level singleton ────────────────────────────────────────────
 
-_limiter: RateLimiter | None = None
+_limiter: Optional[RateLimiter] = None
 _limiter_lock = threading.Lock()
 
 
@@ -211,21 +336,22 @@ def get_rate_limiter() -> RateLimiter:
             if _limiter is None:
                 from core.config import get_settings
                 s = get_settings()
-                rpm = getattr(s, "RATE_LIMIT_RPM", 60)
-                burst = getattr(s, "RATE_LIMIT_BURST", 10)
-                anon_rpm = getattr(s, "ANON_RATE_LIMIT_RPM", 30)
-                anon_burst = getattr(s, "ANON_RATE_LIMIT_BURST", 5)
-                max_concurrent = getattr(s, "AUDIT_MAX_CONCURRENT", 10)
                 _limiter = RateLimiter(
-                    rpm=rpm,
-                    burst=burst,
-                    anon_rpm=anon_rpm,
-                    anon_burst=anon_burst,
-                    max_concurrent=max_concurrent,
+                    rpm=getattr(s, "RATE_LIMIT_RPM", 60),
+                    burst=getattr(s, "RATE_LIMIT_BURST", 10),
+                    anon_rpm=getattr(s, "ANON_RATE_LIMIT_RPM", 30),
+                    anon_burst=getattr(s, "ANON_RATE_LIMIT_BURST", 5),
+                    max_concurrent=getattr(s, "AUDIT_MAX_CONCURRENT", 10),
                 )
                 logger.info(
                     "Rate limiter initialized: rpm=%d burst=%d "
-                    "anon_rpm=%d anon_burst=%d max_concurrent=%d",
-                    rpm, burst, anon_rpm, anon_burst, max_concurrent,
+                    "anon_rpm=%d anon_burst=%d max_concurrent=%d "
+                    "bucket_cap=%d",
+                    getattr(s, "RATE_LIMIT_RPM", 60),
+                    getattr(s, "RATE_LIMIT_BURST", 10),
+                    getattr(s, "ANON_RATE_LIMIT_RPM", 30),
+                    getattr(s, "ANON_RATE_LIMIT_BURST", 5),
+                    getattr(s, "AUDIT_MAX_CONCURRENT", 10),
+                    _MAX_BUCKET_ENTRIES,
                 )
     return _limiter

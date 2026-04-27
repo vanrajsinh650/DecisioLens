@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field
 from core.cache import Cache
 from core.config import get_settings
 from core.dependencies import get_cache, get_gemini_service
-from core.ratelimit import get_rate_limiter
+from core.ratelimit import extract_client_ip, get_rate_limiter
 from ai.gemini import GeminiService
 from schemas.response import AuditResponse
 from services.audit_service import AuditService
@@ -50,15 +50,21 @@ def _get_audit_service(
 
 def _client_ip(request: Request) -> str:
     """
-    Extract the real client IP from the request, preferring X-Forwarded-For.
+    Resolve the real client IP using trust-boundary-aware XFF parsing.
 
-    X-Forwarded-For is set by the Next.js BFF / reverse proxy. We take the
-    leftmost (originating) IP. Falls back to the direct connection IP.
+    Issue #2 fix: naive leftmost-XFF extraction is spoofable. We peel off
+    the rightmost TRUSTED_PROXY_COUNT hops (added by proxies we control)
+    to find the actual originating IP. Falls back to the direct TCP host
+    when TRUSTED_PROXY_COUNT is 0 or XFF is absent.
     """
+    trusted_count = getattr(get_settings(), "TRUSTED_PROXY_COUNT", 1)
     forwarded_for = request.headers.get("x-forwarded-for", "")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    direct_host = request.client.host if request.client else None
+    return extract_client_ip(
+        forwarded_for=forwarded_for,
+        direct_host=direct_host,
+        trusted_proxy_count=trusted_count,
+    )
 
 
 async def require_api_key(x_api_key: str | None = Header(default=None)) -> str:

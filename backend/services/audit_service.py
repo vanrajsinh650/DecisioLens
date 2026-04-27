@@ -17,6 +17,7 @@ Performance optimisations
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, Mapping
 
 from ai.gemini import (
@@ -63,6 +64,12 @@ class AuditService:
     def __init__(self, gemini: GeminiService, cache: Cache) -> None:
         self._gemini = gemini
         self._cache = cache
+        # Issue #4 fix: per-key locks for single-flight cache population.
+        # When multiple concurrent requests arrive for the same profile key
+        # with a cold cache, only the first coroutine computes the score;
+        # all others wait at the lock and then read the cached result.
+        self._score_locks: dict[str, asyncio.Lock] = {}
+        self._score_locks_guard = asyncio.Lock()
 
     async def run_audit(
         self,
@@ -92,22 +99,32 @@ class AuditService:
         validated_profile = validate_profile(profile)
         logger.debug("Profile validated", extra={"audit_id": id(validated_profile)})
 
-        # ── 2. Baseline score (cached) ───────────────────────────────
+        # ── 2. Baseline score (cached, single-flight) ────────────────
         import math as _math
         cache_key = score_cache_key(validated_profile)
-        original_score: float | None = self._cache.get(cache_key)
-        if original_score is None:
-            original_score = compute_score_from_validated(validated_profile)
-            # Only cache finite, valid scores — prevents cache poisoning
-            if _math.isfinite(original_score) and 0.0 <= original_score <= 1.0:
-                self._cache.set(cache_key, original_score)
+
+        # Issue #4 fix: single-flight lock prevents thundering herd.
+        # Multiple concurrent requests for the same cold cache key would
+        # each compute the score independently without this guard.
+        async with self._score_locks_guard:
+            if cache_key not in self._score_locks:
+                self._score_locks[cache_key] = asyncio.Lock()
+            key_lock = self._score_locks[cache_key]
+
+        original_score: float | None
+        async with key_lock:
+            original_score = self._cache.get(cache_key)
+            if original_score is None:
+                original_score = compute_score_from_validated(validated_profile)
+                if _math.isfinite(original_score) and 0.0 <= original_score <= 1.0:
+                    self._cache.set(cache_key, original_score)
+                else:
+                    raise ValueError(
+                        f"Scoring produced invalid value {original_score} — refusing to cache"
+                    )
+                logger.debug("Score computed: %.6f", original_score)
             else:
-                raise ValueError(
-                    f"Scoring produced invalid value {original_score} — refusing to cache"
-                )
-            logger.debug("Score computed: %.6f", original_score)
-        else:
-            logger.debug("Score cache hit: %.6f", original_score)
+                logger.debug("Score cache hit: %.6f", original_score)
 
         # ── 3. Original decision ─────────────────────────────────────
         original_decision = make_decision(score=original_score, threshold=threshold)
