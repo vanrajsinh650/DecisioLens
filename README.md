@@ -1,12 +1,20 @@
-# DecisioLens
+<p align="center">
+  <img src="assets/logo.png" alt="DecisioLens Logo" width="120" />
+</p>
 
-**Test whether an AI decision was fair — without needing access to the AI.**
+<h1 align="center">DecisioLens</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.136-teal.svg)](https://fastapi.tiangolo.com)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org)
-[![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-orange.svg)](https://aistudio.google.com)
+<p align="center">
+  <strong>Test whether an AI decision was fair, without needing access to the AI.</strong>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11+-green.svg" alt="Python" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.136-teal.svg" alt="FastAPI" /></a>
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-14-black.svg" alt="Next.js" /></a>
+  <a href="https://aistudio.google.com"><img src="https://img.shields.io/badge/Gemini-2.5_Flash-orange.svg" alt="Gemini" /></a>
+</p>
 
 ---
 
@@ -14,11 +22,11 @@
 
 AI systems decide who gets hired, who gets a loan, who gets admitted, who gets their insurance claim paid, and who qualifies for government benefits. Most of the time, the people affected by these decisions have no visibility into why they were rejected and no clear path to challenge the outcome.
 
-DecisioLens is a simulation tool that tests how a decision behaves under small controlled changes. You enter a profile, set a threshold, and we run the numbers swapping gender, city, caste category, employment type, or age group — and show you whether the outcome holds up or falls apart.
+DecisioLens is a simulation tool that tests how a decision behaves under small controlled changes. You enter a profile, set a threshold, and we run the numbers swapping gender, city, caste category, employment type, or age group, and show you whether the outcome holds up or falls apart.
 
 If the decision flips when only gender changes, that is a problem worth knowing about.
 
-> We don't need access to the original AI system. We build our own domain-specific scoring model, run the same logic across variation profiles, and surface the patterns. It's simulation-based auditing at the individual level — not aggregate dataset analysis.
+> We don't need access to the original AI system. We build our own domain-specific scoring model, run the same logic across variation profiles, and surface the patterns. It's simulation-based auditing at the individual level, not aggregate dataset analysis.
 
 ---
 
@@ -56,7 +64,7 @@ Each step is a separate module. The two Gemini calls run in parallel using `asyn
 | Health Insurance | Patient whose claim was auto-rejected | Age group, pre-existing condition, city tier |
 | Govt. Welfare | Citizen denied PM-KISAN or similar schemes | Social category, region, gender |
 
-Every domain has its own scoring formula where the demographic variables actually affect the output. The bias you detect is not manufactured — it reflects the kinds of penalties these systems apply in practice.
+Every domain has its own scoring formula where the demographic variables actually affect the output. The bias you detect is not manufactured. It reflects the kinds of penalties these systems apply in practice.
 
 ---
 
@@ -196,7 +204,7 @@ echo GEMINI_API_KEY=your_key_here > .env
 python -m uvicorn main:app --reload
 ```
 
-API at `http://127.0.0.1:8000` — Swagger docs at `/docs`
+API at `http://127.0.0.1:8000`. Swagger docs at `/docs`
 
 **Frontend**
 
@@ -272,7 +280,7 @@ A single tool that touches six SDGs is only possible because the underlying prob
 
 ## Google Solution Challenge 2026
 
-Built for the Open Innovation track. The core idea is that AI fairness tools typically require model access, training data, or engineering knowledge. DecisioLens requires none of those — just a profile and a decision. Anyone can use it.
+Built for the Open Innovation track. The core idea is that AI fairness tools typically require model access, training data, or engineering knowledge. DecisioLens requires none of those. Just a profile and a decision. Anyone can use it.
 
 ---
 
@@ -282,4 +290,4 @@ MIT. See [LICENSE](LICENSE).
 
 ---
 
-*DecisioLens — Built for Google Solution Challenge 2026*
+*DecisioLens - Built for Google Solution Challenge 2026*

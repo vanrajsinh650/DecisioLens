@@ -27,7 +27,7 @@ function getStabilityVerdict(
         }
         if (riskScore >= 35) {
             return {
-                label: "This decision was rejected — worth a closer look",
+                label: "This decision was rejected, worth a closer look",
                 tone: "warn",
                 pillLabels: ["Application Rejected", "Close to the Cutoff", "Medium Concern"],
             };
@@ -39,17 +39,17 @@ function getStabilityVerdict(
         };
     }
 
-    // ACCEPT outcomes — shade by risk
+    // ACCEPT outcomes - shade by risk
     if (riskScore >= 70) {
         return {
-            label: "Approved — but this decision may be unfair",
+            label: "Approved, but this decision may be unfair",
             tone: "risk",
             pillLabels: ["Application Approved", "Possible Bias Detected", "High Concern"],
         };
     }
     if (riskScore >= 35) {
         return {
-            label: "Approved — though it's a close call",
+            label: "Approved, though it's a close call",
             tone: "warn",
             pillLabels: ["Application Approved", "Near the Cutoff", "Medium Concern"],
         };

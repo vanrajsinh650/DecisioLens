@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 
 import AuditWorkspace from "@/features/audit/AuditWorkspace";
 
-// Lazy-load ComparisonExperience — only fetched when ?mode=compare is active
+// Lazy-load ComparisonExperience - only fetched when ?mode=compare is active
 const ComparisonExperience = dynamic(
     () => import("@/features/comparison/ComparisonExperience"),
     {

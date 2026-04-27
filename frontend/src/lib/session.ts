@@ -8,7 +8,7 @@ interface AuditDraft {
     threshold: number;
 }
 
-/** All domains the backend supports — must stay in sync with backend SUPPORTED_DOMAINS. */
+/** All domains the backend supports - must stay in sync with backend SUPPORTED_DOMAINS. */
 const SUPPORTED_STORED_DOMAINS = new Set<DomainType>([
     "hiring", "lending", "education", "insurance", "welfare", "custom",
 ]);

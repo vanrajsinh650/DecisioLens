@@ -172,7 +172,7 @@ export default function ComparisonExperience() {
     const activeProfileFieldsB = useMemo(() => getDomainConfig(formB.domain).fields, [formB.domain, formB.customFields]);
 
     const updateDomain = (slot: "A" | "B", domain: DomainType) => {
-        // Sync both slots to the same domain — cross-domain comparison produces meaningless results
+        // Sync both slots to the same domain - cross-domain comparison produces meaningless results
         const nextConfig = getDomainConfig(domain);
         const updater = (current: ComparisonFormState): ComparisonFormState => ({
             ...current,

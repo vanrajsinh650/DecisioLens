@@ -34,15 +34,14 @@ export default function TopBar() {
             }}>
                 {/* Logo */}
                 <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
-                    <span
-                        aria-hidden="true"
-                        className="dl-pulse-dot"
+                    <img
+                        src="/logo.png"
+                        alt="DecisioLens logo"
+                        width={28}
+                        height={28}
                         style={{
-                            width: "7px",
-                            height: "7px",
-                            borderRadius: "50%",
-                            background: "var(--aurora-amber)",
-                            boxShadow: "0 0 10px var(--aurora-amber)",
+                            filter: "invert(1) hue-rotate(180deg)",
+                            objectFit: "contain",
                         }}
                     />
                     <span
@@ -58,7 +57,7 @@ export default function TopBar() {
                     </span>
                 </Link>
 
-                {/* Desktop nav — centered pill group */}
+                {/* Desktop nav - centered pill group */}
                 <nav className="dl-nav-desktop" aria-label="Primary">
                     <div className="topbar-nav-group">
                         {NAV_LINKS.map((link) => {
@@ -67,7 +66,6 @@ export default function TopBar() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    prefetch={true}
                                     className="topbar-nav-link font-mono"
                                     data-active={isActive ? "true" : undefined}
                                 >
@@ -80,7 +78,7 @@ export default function TopBar() {
 
                 {/* Right side: CTA */}
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <Link href="/audit" prefetch={true} className="topbar-cta-btn dl-nav-desktop">
+                    <Link href="/audit" className="topbar-cta-btn dl-nav-desktop">
                         <span className="topbar-cta-shine" />
                         Test a Decision →
                     </Link>
@@ -139,7 +137,6 @@ export default function TopBar() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    prefetch={true}
                                     onClick={() => setMobileOpen(false)}
                                     className="font-mono uppercase"
                                     style={{
@@ -160,7 +157,6 @@ export default function TopBar() {
                         <div style={{ padding: "16px 24px" }}>
                             <Link
                                 href="/audit"
-                                prefetch={true}
                                 onClick={() => setMobileOpen(false)}
                                 className="topbar-cta-btn"
                                 style={{ display: "block", textAlign: "center" }}

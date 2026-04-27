@@ -34,17 +34,26 @@ export default function Footer() {
                     gap: "16px",
                 }}
             >
-                <p
-                    className="font-mono"
-                    style={{
-                        fontSize: "0.7rem",
-                        letterSpacing: "0.08em",
-                        color: "var(--t3)",
-                        margin: 0,
-                    }}
-                >
-                    DecisioLens · Decision Integrity Lab · 2026
-                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <img
+                        src="/logo.png"
+                        alt="DecisioLens"
+                        width={20}
+                        height={20}
+                        style={{ filter: "invert(1) hue-rotate(180deg)", objectFit: "contain" }}
+                    />
+                    <p
+                        className="font-mono"
+                        style={{
+                            fontSize: "0.7rem",
+                            letterSpacing: "0.08em",
+                            color: "var(--t3)",
+                            margin: 0,
+                        }}
+                    >
+                        DecisioLens · Decision Integrity Lab · 2026
+                    </p>
+                </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <span

@@ -118,7 +118,7 @@ export default function HeroSection() {
                     {/* Subcopy */}
                     <p className="hero-stagger-3 font-body hero-subcopy">
                         We test what happens when small details change.
-                        If the answer flips, the system isn't being fair — and you get a clear report you can actually use.
+                        If the answer flips, the system isn't being fair, and you get a clear report you can actually use.
                     </p>
 
                     {/* CTAs */}
@@ -166,7 +166,7 @@ export default function HeroSection() {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN — 3D orbit scene */}
+                {/* RIGHT COLUMN - 3D orbit scene */}
                 <div
                     className="hero-orbit-col"
                     style={{

@@ -17,9 +17,9 @@ export default function ThresholdControl({
     const isExtremelyLow = value <= 0.10;
     const isExtremelyHigh = value >= 0.90;
     const extremeWarning = isExtremelyLow
-        ? "⚠ The bar is set so low that almost everyone will pass — this result may not be meaningful."
+        ? "⚠ The bar is set so low that almost everyone will pass. This result may not be meaningful."
         : isExtremelyHigh
-            ? "⚠ The bar is set so high that almost no one will pass — this result may not be meaningful."
+            ? "⚠ The bar is set so high that almost no one will pass. This result may not be meaningful."
             : null;
 
     return (

@@ -7,7 +7,7 @@ const STEPS = [
         num: "01",
         label: "CAPTURE",
         title: "Enter a profile",
-        description: "Give us the basics — age, income, location, education. Just one person's details.",
+        description: "Give us the basics: age, income, location, education. Just one person's details.",
         icon: "◈",
     },
     {

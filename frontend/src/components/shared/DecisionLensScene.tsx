@@ -16,7 +16,7 @@ const PALETTE_HEX = [
 ];
 
 /* ════════════════════════════════════════════════════════════════
-   FloatingBalls — ~45 small glowing spheres + proximity lines
+   FloatingBalls - ~45 small glowing spheres + proximity lines
    ════════════════════════════════════════════════════════════════ */
 function FloatingBalls({ count, speedMul }: { count: number; speedMul: number }) {
     const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -142,7 +142,7 @@ function FloatingBalls({ count, speedMul }: { count: number; speedMul: number })
 }
 
 /* ════════════════════════════════════════════════════════════════
-   ParallaxRig — smooth mouse-follow tilt
+   ParallaxRig - smooth mouse-follow tilt
    ════════════════════════════════════════════════════════════════ */
 function ParallaxRig({ children }: { children: React.ReactNode }) {
     const group = useRef<THREE.Group>(null);
@@ -160,7 +160,7 @@ function ParallaxRig({ children }: { children: React.ReactNode }) {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   DecisionLensScene — public component
+   DecisionLensScene - public component
    ════════════════════════════════════════════════════════════════ */
 export default function DecisionLensScene() {
     const [hovered, setHovered] = useState(false);

@@ -548,7 +548,7 @@ export default function AuditWorkspace() {
                     />
                 </div>
 
-                {/* Score Preview — compact inline */}
+                {/* Score Preview - compact inline */}
                 <RiskPreview threshold={threshold} score={currentScore} />
 
                 {error ? (
