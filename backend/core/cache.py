@@ -83,7 +83,14 @@ def profile_cache_key(profile: Mapping[str, Any]) -> str:
 
 # Fields that are actually consumed by domain scorers in core/model.py.
 # name is intentionally excluded — it is PII and has no effect on scoring.
-# Any field not in this set is a non-scorer field and must not affect cache locality.
+#
+# Issue #6 fix: gender and location are also excluded.
+# Production scorers zero out demographic effects (Issue #1 fix), so these
+# fields produce zero delta on the output score. Including them in the cache key
+# only reduces hit rate for profiles that differ only in demographics while
+# producing identical scores — exactly the false-uniqueness we must avoid.
+# Counterfactual variation profiles are scored independently via evaluate_variations
+# and are never cached through this path, so bias detection is unaffected.
 _SCORER_FIELDS: frozenset[str] = frozenset({
     "domain",
     # hiring
@@ -97,8 +104,7 @@ _SCORER_FIELDS: frozenset[str] = frozenset({
     # welfare
     "annual_income", "land_holding", "aadhaar_linked", "state_tier",
     "family_size", "employment_status", "housing_status",
-    # counterfactual variation fields (gender/location used in swapped profiles)
-    "gender", "location",
+    # NOTE: gender and location intentionally omitted — scorers zero their effect.
 })
 
 

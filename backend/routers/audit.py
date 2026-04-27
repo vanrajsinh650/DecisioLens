@@ -4,6 +4,13 @@ Audit API router — thin async controller.
 All business logic lives in ``services.audit_service.AuditService``.
 This module only wires HTTP concerns: request parsing, dependency
 injection, and response model enforcement.
+
+Rate limiting strategy (issues #2, #3):
+- Pre-auth IP-level check runs BEFORE authentication on every request,
+  blocking brute-force / bad-key DoS before any auth work is done.
+- Post-auth IP-level check uses a separate (higher) bucket per authenticated
+  client IP, so legitimate users each get their own quota rather than sharing
+  one bucket keyed by the shared BFF service key.
 """
 
 from __future__ import annotations
@@ -11,7 +18,7 @@ from __future__ import annotations
 import hmac
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from core.cache import Cache
@@ -41,13 +48,26 @@ def _get_audit_service(
     return AuditService(gemini=gemini, cache=cache)
 
 
+def _client_ip(request: Request) -> str:
+    """
+    Extract the real client IP from the request, preferring X-Forwarded-For.
+
+    X-Forwarded-For is set by the Next.js BFF / reverse proxy. We take the
+    leftmost (originating) IP. Falls back to the direct connection IP.
+    """
+    forwarded_for = request.headers.get("x-forwarded-for", "")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 async def require_api_key(x_api_key: str | None = Header(default=None)) -> str:
     """Reject unauthenticated audit runs before any AI work is scheduled.
 
     The expected key must be supplied by a trusted server-side caller (for
     example the Next.js API proxy), never by browser JavaScript.
 
-    Returns the validated key so callers can use it for per-key rate limiting.
+    Returns the validated key so downstream handlers can confirm auth succeeded.
     """
     expected_key = get_settings().audit_api_key_resolved
     if not expected_key:
@@ -59,8 +79,8 @@ async def require_api_key(x_api_key: str | None = Header(default=None)) -> str:
 
 @router.post("/run", response_model=AuditResponse)
 async def run_audit_endpoint(
-    request: AuditRequest,
-    api_key: str = Depends(require_api_key),
+    request: Request,
+    body: AuditRequest,
     service: AuditService = Depends(_get_audit_service),
 ) -> AuditResponse:
     """
@@ -70,20 +90,41 @@ async def run_audit_endpoint(
     audit result including the original decision, threshold analysis,
     counterfactual variations, risk insights, explanation, and appeal.
 
-    Issue #6 fix: enforces per-key token-bucket rate limiting and a global
-    concurrency cap before scheduling any scoring or AI work.
+    Rate-limiting order (issues #2, #3, #4, #5):
+    1. Pre-auth IP bucket  — blocks DoS/brute-force before auth runs
+    2. Authentication      — rejects invalid keys (401)
+    3. Post-auth IP bucket — per-client quota after successful auth
+    4. Global concurrency  — atomic tryacquire; no _value inspection
     """
     limiter = get_rate_limiter()
+    client_ip = _client_ip(request)
 
-    # Per-key rate check (token bucket) — fast, synchronous
-    if not limiter.check(api_key):
+    # ── 1. Pre-auth IP-level throttle (Issue #3) ─────────────────────
+    # Runs BEFORE authentication so bad-key requests are also rate-limited.
+    if not limiter.check_anonymous(client_ip):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests from this IP — please retry later.",
+            headers={"Retry-After": "15"},
+        )
+
+    # ── 2. Authentication ─────────────────────────────────────────────
+    api_key = await require_api_key(
+        x_api_key=request.headers.get("x-api-key")
+    )
+
+    # ── 3. Post-auth per-client-IP throttle (Issue #2) ───────────────
+    # Keyed by client IP so each end-user has their own bucket,
+    # not a shared bucket for the entire BFF service key.
+    if not limiter.check_authenticated(client_ip):
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded — please slow down and retry.",
             headers={"Retry-After": "10"},
         )
 
-    # Global concurrency cap — reject early before expensive pipeline runs
+    # ── 4. Global concurrency cap (Issues #4, #5) ────────────────────
+    # Uses asyncio.wait_for(timeout=0) — atomic, no private _value access.
     slot_acquired = await limiter.acquire_global()
     if not slot_acquired:
         raise HTTPException(
@@ -93,12 +134,10 @@ async def run_audit_endpoint(
         )
 
     try:
-        # Inject domain into the profile dict so the scoring layer can dispatch
-        profile_with_domain = {**request.profile, "domain": request.domain}
+        profile_with_domain = {**body.profile, "domain": body.domain}
         return await service.run_audit(
             profile=profile_with_domain,
-            threshold=request.threshold,
+            threshold=body.threshold,
         )
     finally:
         limiter.release_global()
-

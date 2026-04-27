@@ -320,28 +320,32 @@ def compute_stability_zone(
         zones   - list of {start, end, label, inclusive_start, inclusive_end}
         summary - one-line human-readable sentence
     """
-    boundary = round(_normalize_score(score, "score"), 4)
-    # ACCEPT band: [0, boundary] inclusive on both ends.
-    # REJECT band: (boundary, 1] exclusive on the left — boundary belongs to ACCEPT only.
+    # Issue #1 fix: keep full float precision for zone boundary logic.
+    # Rounding to 4 decimals for display only — never for comparisons.
+    # Example: score=0.50004 must produce boundary=0.50004 so that a
+    # threshold=0.50003 is correctly classified as ACCEPT (0.50003 <= 0.50004),
+    # not REJECT (which rounded 0.5000 would imply for that threshold).
+    boundary = _normalize_score(score, "score")          # full precision for logic
+    display_boundary = round(boundary, 4)                # rounded only for display
     zones = [
         {
             "start": 0.0,
             "end": boundary,
             "label": "ACCEPT",
             "inclusive_start": True,
-            "inclusive_end": True,
+            "inclusive_end": True,   # threshold <= score → ACCEPT
         },
         {
             "start": boundary,
             "end": 1.0,
             "label": "REJECT",
-            "inclusive_start": False,
+            "inclusive_start": False,  # threshold > score → REJECT (exclusive)
             "inclusive_end": True,
         },
     ]
     summary = (
-        f"Result is ACCEPT at thresholds <= {score:.2f} "
-        f"and REJECT at thresholds > {score:.2f}."
+        f"Result is ACCEPT at thresholds <= {display_boundary} "
+        f"and REJECT at thresholds > {display_boundary}."
     )
 
     return {"zones": zones, "summary": summary}
