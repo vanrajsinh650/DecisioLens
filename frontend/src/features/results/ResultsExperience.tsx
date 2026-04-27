@@ -180,25 +180,42 @@ export default function ResultsExperience() {
                 overline={`${session.domain?.toUpperCase() ?? "TEST"} · YOUR RESULT`}
                 title="Decision Trust Report"
                 subtitle="This report shows whether the AI decision was fair, consistent, and trustworthy."
-                actions={
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <label htmlFor="report-lang" className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)", letterSpacing: "0.08em" }}>
-                            Display Language
-                        </label>
-                        <select
-                            id="report-lang"
-                            value={reportLanguage}
-                            onChange={(e) => setReportLanguage(e.target.value as any)}
-                            className="dl-select"
-                            style={{ minWidth: "140px", padding: "6px 12px", fontSize: "0.8rem" }}
-                        >
-                            <option value="both">Both (En + Regional)</option>
-                            <option value="en">English Only</option>
-                            <option value="regional">Regional Only</option>
-                        </select>
-                    </div>
-                }
             />
+
+            {/* Language Selector Bar */}
+            <div 
+                className="dl-reveal"
+                style={{ 
+                    display: "flex", 
+                    justifyContent: "flex-end", 
+                    alignItems: "center", 
+                    gap: "12px",
+                    marginTop: "-32px",
+                    paddingBottom: "16px",
+                    borderBottom: "1px solid var(--rim)"
+                }}
+            >
+                <span className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)", letterSpacing: "0.1em" }}>
+                    Select Report Language
+                </span>
+                <select
+                    id="report-lang"
+                    value={reportLanguage}
+                    onChange={(e) => setReportLanguage(e.target.value as any)}
+                    className="dl-select"
+                    style={{ 
+                        minWidth: "160px", 
+                        padding: "4px 8px", 
+                        fontSize: "0.75rem",
+                        background: "transparent",
+                        border: "1px solid var(--rim)"
+                    }}
+                >
+                    <option value="both">English + Regional</option>
+                    <option value="en">English Only</option>
+                    <option value="regional">Regional Only</option>
+                </select>
+            </div>
 
             {/* Section 1 Verdict Hero */}
             <div className="print-section">
