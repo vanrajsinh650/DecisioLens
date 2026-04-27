@@ -9,6 +9,13 @@ export const educationDomain: DomainConfig = {
         { key: "name", label: "Student Name", type: "text", placeholder: "Enter student name" },
         { key: "score", label: "Entrance Score", type: "number", min: 0, max: 100 },
         { key: "grade_12", label: "Class 12 %", type: "number", min: 0, max: 100 },
+        { key: "extracurricular", label: "Extracurricular Score", type: "number", min: 0, max: 10 },
+        {
+            key: "college",
+            label: "College Tier",
+            type: "select",
+            options: ["Tier 1", "Tier 2", "Tier 3"],
+        },
         {
             key: "income_band",
             label: "Family Income Band",
@@ -33,6 +40,8 @@ export const educationDomain: DomainConfig = {
         name: "",
         score: "",
         grade_12: "",
+        extracurricular: "",
+        college: "",
         income_band: "",
         category: "",
         gender: "",

@@ -3,23 +3,11 @@ import { AuditRequest, AuditResponse, Decision } from "@/types/audit";
 const REQUEST_TIMEOUT_MS = 30_000;
 
 /**
- * Lazily resolve API config at call time, not import time.
- * This prevents Next.js SSG prerendering from crashing when
- * client-side env vars are unavailable during static generation.
+ * Browser requests go through a same-origin Next.js route handler. That server
+ * route attaches the backend-only X-API-Key, so no API secret is shipped in the
+ * client bundle.
  */
-function getApiConfig(): { base: string; key: string } {
-  const base = process.env.NEXT_PUBLIC_API_BASE;
-  const key = process.env.NEXT_PUBLIC_API_KEY;
-
-  if (!base) {
-    throw new Error("NEXT_PUBLIC_API_BASE is required");
-  }
-  if (!key) {
-    throw new Error("NEXT_PUBLIC_API_KEY is required");
-  }
-
-  return { base, key };
-}
+const AUDIT_PROXY_ENDPOINT = "/api/audit/run";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -254,17 +242,15 @@ const normalizeAuditResponse = (raw: unknown): AuditResponse => {
 };
 
 export async function runAudit(payload: AuditRequest): Promise<AuditResponse> {
-  const { base: API_BASE, key: API_KEY } = getApiConfig();
   const backendPayload = buildBackendPayload(payload);
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${API_BASE.replace(/\/+$/, "")}/audit/run`, {
+    const response = await fetch(AUDIT_PROXY_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": API_KEY,
       },
       body: JSON.stringify(backendPayload),
       signal: controller.signal,

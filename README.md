@@ -50,7 +50,7 @@ Risk score (0-100) + confidence zone classification
 Gemini 2.5 Flash writes the explanation and appeal letter
 ```
 
-Each step is a separate module. The two Gemini calls run in parallel using `asyncio.gather`.
+Each step is a separate module. The Gemini explanation, appeal, and right-to-explanation calls run in parallel, while circuit-breaker failures are counted once per audit request.
 
 ---
 
@@ -200,8 +200,16 @@ decisiolens/
 cd backend
 python -m venv venv && venv\Scripts\activate
 pip install -r requirements.txt
-echo GEMINI_API_KEY=your_key_here > .env
 python -m uvicorn main:app --reload
+```
+
+Create `backend/.env` before starting the API:
+
+```env
+GEMINI_API_KEY=your_key_here
+AUDIT_API_KEY=replace-with-a-server-only-secret
+# Optional: keep ingress/proxy limits aligned with this value
+MAX_REQUEST_BODY_BYTES=131072
 ```
 
 API at `http://127.0.0.1:8000`. Swagger docs at `/docs`
@@ -211,8 +219,18 @@ API at `http://127.0.0.1:8000`. Swagger docs at `/docs`
 ```bash
 cd frontend
 npm install
+copy .env.local.example .env.local
 npm run dev
 ```
+
+Set `frontend/.env.local` to the backend URL and the same server-only audit key:
+
+```env
+BACKEND_API_BASE=http://127.0.0.1:8000
+AUDIT_API_KEY=replace-with-a-server-only-secret
+```
+
+The browser never receives the audit API key. Client calls go to the same-origin Next.js route (`/api/audit/run`), and that server route attaches `X-API-Key` when forwarding to FastAPI.
 
 Open `http://localhost:3000`
 
@@ -224,6 +242,8 @@ Open `http://localhost:3000`
 POST /audit/run
 ```
 
+Direct backend calls must include the backend-only header `X-API-Key: <AUDIT_API_KEY>`. Browser clients should call the frontend proxy route instead: `POST /api/audit/run`.
+
 ```json
 {
   "domain": "hiring",
@@ -232,6 +252,7 @@ POST /audit/run
     "name": "Riya Shah",
     "score": 66,
     "experience": 3,
+    "interview_score": 72,
     "gender": "Female",
     "location": "Mumbai",
     "college": "Tier 1"
@@ -239,7 +260,18 @@ POST /audit/run
 }
 ```
 
-For other domains, send the fields that domain expects (age and claim_amount for insurance, annual_income and category for welfare, etc.). The backend schema accepts any profile shape.
+The backend enforces domain-critical fields before scoring; incomplete profiles are rejected instead of being scored from defaults. All profile values must be primitive JSON values (`string`, `number`, `boolean`, or `null`) — nested objects and arrays are rejected.
+
+| Domain | Required business fields |
+|---|---|
+| Hiring | `score`, `experience`, `interview_score`, plus `college` or `education` |
+| Lending | `credit_score`, `income`, `loan_amount`, `employment_type`, `employment_years` |
+| Education | `score`, `grade_12`, `income_band`, `category`, `extracurricular`, `college` |
+| Insurance | `age`, `claim_amount`, `policy_tenure`, `city_tier`, `pre_existing`, `coverage_amount` |
+| Welfare | `annual_income`, `family_size`, `land_holding`, `employment_status`, `housing_status`, `aadhaar_linked`, `state_tier`, `category` |
+| Custom | `score` plus any primitive top-level custom fields |
+
+Request bodies are capped before JSON parsing by backend middleware (`MAX_REQUEST_BODY_BYTES`, default `131072`). Mirror this limit at Cloud Run/API Gateway/load-balancer ingress for production deployments.
 
 ```
 GET /health  ->  { "status": "ok" }

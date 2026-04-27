@@ -8,6 +8,7 @@ injection, and response model enforcement.
 
 from __future__ import annotations
 
+import hmac
 from typing import Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -40,11 +41,15 @@ def _get_audit_service(
 
 
 async def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
-    """Reject unauthenticated audit runs before any AI work is scheduled."""
-    expected_key = get_settings().PUBLIC_API_KEY
+    """Reject unauthenticated audit runs before any AI work is scheduled.
+
+    The expected key must be supplied by a trusted server-side caller (for
+    example the Next.js API proxy), never by browser JavaScript.
+    """
+    expected_key = get_settings().audit_api_key_resolved
     if not expected_key:
         raise HTTPException(status_code=503, detail="Audit API key is not configured")
-    if x_api_key != expected_key:
+    if not x_api_key or not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 

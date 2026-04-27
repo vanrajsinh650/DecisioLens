@@ -25,6 +25,11 @@ _MAX_STRING_FIELD_LENGTH = 500
 # Maximum total serialized payload size (bytes) — ~64 KB
 _MAX_PAYLOAD_SIZE = 65_536
 
+# Maximum number of top-level profile fields accepted. Custom domains may add
+# arbitrary fields, but they must still stay bounded and JSON-primitive.
+_MAX_PROFILE_FIELDS = 64
+_MAX_FIELD_NAME_LENGTH = 80
+
 # Per-domain allowlists of accepted profile fields.
 # IMPORTANT: Every field consumed by a domain scorer in core/model.py
 # MUST appear here — otherwise it is silently stripped before scoring.
@@ -59,6 +64,30 @@ _DOMAIN_ALLOWED_FIELDS: dict[str, set[str]] = {
 }
 # Union of all allowed fields for initial acceptance before domain is resolved
 _ALL_ALLOWED_FIELDS = set().union(*_DOMAIN_ALLOWED_FIELDS.values())
+
+# Per-domain business inputs that must be supplied by clients. Scorers retain
+# defensive defaults for internal safety, but external requests must provide the
+# decision-critical inputs explicitly so the API cannot fabricate decisions from
+# silent fallback values.
+_DOMAIN_REQUIRED_FIELDS: dict[str, set[str]] = {
+    "hiring": {"score", "experience", "interview_score"},
+    "lending": {"credit_score", "income", "loan_amount", "employment_type", "employment_years"},
+    "education": {"score", "grade_12", "income_band", "category", "extracurricular", "college"},
+    "insurance": {"age", "claim_amount", "policy_tenure", "city_tier", "pre_existing", "coverage_amount"},
+    "welfare": {
+        "annual_income", "family_size", "land_holding", "employment_status",
+        "housing_status", "aadhaar_linked", "state_tier", "category",
+    },
+    "custom": {"score"},
+}
+
+_DOMAIN_REQUIRED_FIELD_GROUPS: dict[str, list[tuple[str, ...]]] = {
+    # Hiring accepts either the legacy "education" field or the UI-facing
+    # "college" tier field for the education component of the scorer.
+    "hiring": [("education", "college")],
+}
+
+_PRIMITIVE_VALUE_TYPES = (str, int, float, bool, type(None))
 
 
 class ProfileSchema(BaseModel):
@@ -108,7 +137,68 @@ def _coerce_number(value: Any, field: str) -> float:
     return result
 
 
+def _validate_top_level_shape(data: Mapping[str, Any]) -> None:
+    """Reject oversized profiles and non-primitive leaf values early."""
+    if len(data) > _MAX_PROFILE_FIELDS:
+        raise ValueError(
+            f"Profile has too many fields ({len(data)}, max {_MAX_PROFILE_FIELDS})"
+        )
+
+    for key, value in data.items():
+        if not isinstance(key, str):
+            raise ValueError("profile field names must be strings")
+        if not key.strip():
+            raise ValueError("profile field names cannot be blank")
+        if len(key) > _MAX_FIELD_NAME_LENGTH:
+            raise ValueError(
+                f"profile field name '{key[:20]}...' exceeds {_MAX_FIELD_NAME_LENGTH} characters"
+            )
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            if not math.isfinite(float(value)):
+                raise ValueError(f"Field '{key}' must be a finite number")
+        if not isinstance(value, _PRIMITIVE_VALUE_TYPES):
+            raise ValueError(
+                f"Field '{key}' must be a primitive JSON value "
+                "(string, number, boolean, or null); nested objects/lists are not allowed"
+            )
+
+
+def _validate_required_fields(domain: str, normalized: Mapping[str, Any]) -> None:
+    """Ensure every business-critical input for the selected domain exists."""
+    required = _DOMAIN_REQUIRED_FIELDS.get(domain, set())
+    missing: list[str] = []
+
+    for field in sorted(required):
+        if field not in normalized or normalized[field] is None:
+            missing.append(field)
+            continue
+
+        value = normalized[field]
+        if isinstance(value, str) and not value.strip():
+            missing.append(field)
+
+    for group in _DOMAIN_REQUIRED_FIELD_GROUPS.get(domain, []):
+        has_value = False
+        for field in group:
+            value = normalized.get(field)
+            if value is None:
+                continue
+            if isinstance(value, str) and not value.strip():
+                continue
+            has_value = True
+            break
+        if not has_value:
+            missing.append(" or ".join(group))
+
+    if missing:
+        raise ValueError(
+            f"Missing required {domain} profile field(s): {', '.join(missing)}"
+        )
+
+
 def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
+    _validate_top_level_shape(data)
+
     # ── Payload size guard ───────────────────────────────────────
     import json as _json
     raw_size = len(_json.dumps(dict(data), default=str))
@@ -184,6 +274,8 @@ def _normalize_profile(data: Mapping[str, Any]) -> dict[str, Any]:
                     f"{field} must be between {lo} and {hi}, got {val}"
                 )
 
+    _validate_required_fields(domain, normalized)
+
     return normalized
 
 
@@ -202,7 +294,9 @@ def validate_profile(data: Mapping[str, Any]) -> dict[str, Any]:
 
     normalized = _normalize_profile(data)
 
-    # Determine domain-specific allowed fields
+    # Determine domain-specific allowed fields. Custom domains may keep arbitrary
+    # top-level keys, but _normalize_profile has already enforced that every
+    # value is primitive and response-schema safe.
     domain = normalized.get("domain", "hiring")
     allowed = set(normalized.keys()) if domain == "custom" else _DOMAIN_ALLOWED_FIELDS.get(domain, _ALL_ALLOWED_FIELDS)
 

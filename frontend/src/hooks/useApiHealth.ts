@@ -9,16 +9,11 @@ export function useApiHealth(): ApiHealthStatus {
 
     useEffect(() => {
         let active = true;
-        const base = process.env.NEXT_PUBLIC_API_BASE;
-        if (!base) {
-            setStatus("unavailable");
-            return;
-        }
 
         const controller = new AbortController();
         const timer = window.setTimeout(() => controller.abort(), 5_000);
 
-        fetch(`${base.replace(/\/+$/, "")}/health`, {
+        fetch("/api/health", {
             cache: "no-store",
             signal: controller.signal,
         })

@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import threading
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Mapping
 
@@ -52,6 +53,24 @@ _CIRCUIT_BREAKER_MAX_PROBE_DELAY_S = 30
 _CIRCUIT_BREAKER_HALF_OPEN_MAX_PROBES = 2
 
 _APPLICANT_NAME_PLACEHOLDER = "{{APPLICANT_NAME}}"
+
+
+@dataclass
+class _CircuitAttempt:
+    """Request-level circuit accounting for fan-out AI calls."""
+
+    successes: int = 0
+    failures: int = 0
+
+    def record(self, success: bool) -> None:
+        if success:
+            self.successes += 1
+        else:
+            self.failures += 1
+
+    @property
+    def total(self) -> int:
+        return self.successes + self.failures
 
 
 # ── AIService ────────────────────────────────────────────────────────
@@ -144,7 +163,13 @@ class GeminiService:
 
     # ── Public async API ─────────────────────────────────────────────
 
-    async def generate_explanation(self, context: Mapping[str, Any]) -> str:
+    async def generate_explanation(
+        self,
+        context: Mapping[str, Any],
+        *,
+        _use_circuit: bool = True,
+        _circuit_attempt: _CircuitAttempt | None = None,
+    ) -> str:
         """Generate a structured explanation (one AI call + fallback)."""
         prompt = (
             "You are an AI audit assistant. Return a structured explanation for judges.\n"
@@ -171,12 +196,20 @@ class GeminiService:
             prompt=prompt,
             max_output_tokens=400,
             temperature=0.2,
+            use_circuit=_use_circuit,
+            circuit_attempt=_circuit_attempt,
         )
         if output and _looks_structured_explanation(output):
             return output
         return _fallback_explanation(context)
 
-    async def generate_appeal(self, context: Mapping[str, Any]) -> str:
+    async def generate_appeal(
+        self,
+        context: Mapping[str, Any],
+        *,
+        _use_circuit: bool = True,
+        _circuit_attempt: _CircuitAttempt | None = None,
+    ) -> str:
         """Generate a formal appeal draft (one AI call + fallback)."""
         prompt = (
             "Draft a formal appeal letter requesting manual review of an automated decision.\n"
@@ -193,10 +226,18 @@ class GeminiService:
             prompt=prompt,
             max_output_tokens=500,
             temperature=0.2,
+            use_circuit=_use_circuit,
+            circuit_attempt=_circuit_attempt,
         )
         return output if output is not None else _fallback_appeal(context)
 
-    async def generate_explanation_request(self, context: Mapping[str, Any]) -> str:
+    async def generate_explanation_request(
+        self,
+        context: Mapping[str, Any],
+        *,
+        _use_circuit: bool = True,
+        _circuit_attempt: _CircuitAttempt | None = None,
+    ) -> str:
         """Generate a formal right-to-explanation request letter (GDPR/DPDP-aligned)."""
         profile = context.get("original", {}).get("profile", {})
         domain = str(profile.get("domain", "this decision"))
@@ -223,8 +264,70 @@ class GeminiService:
             prompt=prompt,
             max_output_tokens=400,
             temperature=0.1,
+            use_circuit=_use_circuit,
+            circuit_attempt=_circuit_attempt,
         )
         return output if output is not None else _fallback_explanation_request(context)
+
+    async def generate_audit_artifacts(self, context: Mapping[str, Any]) -> tuple[str, str, str]:
+        """Generate explanation, appeal, and explanation-request as one circuit attempt.
+
+        One audit fans out into three provider calls. The circuit breaker should
+        therefore count the audit request as a single success/failure event, not
+        three independent failures that can open the breaker after only two bad
+        user requests.
+        """
+        allowed, half_open_probe = await self._reserve_circuit_slot()
+        if not allowed:
+            return (
+                _fallback_explanation(context),
+                _fallback_appeal(context),
+                _fallback_explanation_request(context),
+            )
+
+        attempt = _CircuitAttempt()
+        task_failed_before_provider = False
+
+        try:
+            results = await asyncio.gather(
+                self.generate_explanation(
+                    context,
+                    _use_circuit=False,
+                    _circuit_attempt=attempt,
+                ),
+                self.generate_appeal(
+                    context,
+                    _use_circuit=False,
+                    _circuit_attempt=attempt,
+                ),
+                self.generate_explanation_request(
+                    context,
+                    _use_circuit=False,
+                    _circuit_attempt=attempt,
+                ),
+                return_exceptions=True,
+            )
+
+            task_failed_before_provider = any(not isinstance(item, str) for item in results)
+
+            explanation = results[0] if isinstance(results[0], str) else _fallback_explanation(context)
+            appeal = results[1] if isinstance(results[1], str) else _fallback_appeal(context)
+            explanation_request = results[2] if isinstance(results[2], str) else _fallback_explanation_request(context)
+
+            return explanation, appeal, explanation_request
+        finally:
+            if task_failed_before_provider:
+                attempt.record(False)
+
+            if attempt.total > 0:
+                await self._record_circuit_result(
+                    success=attempt.failures == 0,
+                    half_open_probe=half_open_probe,
+                )
+            elif half_open_probe:
+                # Release the half-open probe slot even if no provider call was
+                # attempted (for example, local semaphore saturation).
+                await self._record_circuit_result(success=False, half_open_probe=True)
 
     # ── Private helpers ──────────────────────────────────────────────
 
@@ -235,6 +338,8 @@ class GeminiService:
         prompt: str,
         max_output_tokens: int,
         temperature: float,
+        use_circuit: bool = True,
+        circuit_attempt: _CircuitAttempt | None = None,
     ) -> str | None:
         """Make a single AI generation call on a background thread.
 
@@ -245,6 +350,7 @@ class GeminiService:
         """
         call_fn = self._call_groq if self._provider == "groq" else self._call_gemini
         half_open_probe = False
+        allowed = False
         result: str | None = None
 
         try:
@@ -254,9 +360,12 @@ class GeminiService:
             return None
 
         try:
-            allowed, half_open_probe = await self._reserve_circuit_slot()
-            if not allowed:
-                return None
+            if use_circuit:
+                allowed, half_open_probe = await self._reserve_circuit_slot()
+                if not allowed:
+                    return None
+            else:
+                allowed = True
 
             try:
                 result = await call_fn(
@@ -272,10 +381,14 @@ class GeminiService:
             return result
         finally:
             self._semaphore.release()
-            if half_open_probe or result is not None:
-                await self._record_circuit_result(success=result is not None, half_open_probe=half_open_probe)
-            elif 'allowed' in locals() and allowed:
-                await self._record_circuit_result(success=False, half_open_probe=False)
+            if circuit_attempt is not None and allowed:
+                circuit_attempt.record(result is not None)
+
+            if use_circuit:
+                if half_open_probe or result is not None:
+                    await self._record_circuit_result(success=result is not None, half_open_probe=half_open_probe)
+                elif allowed:
+                    await self._record_circuit_result(success=False, half_open_probe=False)
 
     async def _reserve_circuit_slot(self) -> tuple[bool, bool]:
         """Return whether an AI call may run and whether it is a probe."""

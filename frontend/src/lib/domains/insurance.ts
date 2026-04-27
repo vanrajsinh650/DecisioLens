@@ -26,7 +26,8 @@ export const insuranceDomain: DomainConfig = {
             type: "select",
             options: ["None", "Diabetes", "Hypertension", "Both"],
         },
-        { key: "claim_amount", label: "Claim Amount (₹L)", type: "number", min: 1, max: 50 },
+        { key: "claim_amount", label: "Claim Amount (₹)", type: "number", min: 0, placeholder: "e.g. 50000" },
+        { key: "coverage_amount", label: "Coverage Amount (₹)", type: "number", min: 0, placeholder: "e.g. 500000" },
         { key: "policy_tenure", label: "Policy Tenure (years)", type: "number", min: 0, max: 30 },
     ],
     defaultProfile: {
@@ -36,6 +37,7 @@ export const insuranceDomain: DomainConfig = {
         city_tier: "",
         pre_existing: "",
         claim_amount: "",
+        coverage_amount: "",
         policy_tenure: "",
     },
     variationLabels: {

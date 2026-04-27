@@ -31,7 +31,9 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = Field(default="llama-3.3-70b-versatile")
 
     # ── Server / CORS ───────────────────────────────────────────────
-    PUBLIC_API_KEY: str = Field(default="", alias="PUBLIC_API_KEY")
+    # Backend-only API key expected from a trusted server/BFF. Do not expose this
+    # through NEXT_PUBLIC_* or any client-side bundle.
+    AUDIT_API_KEY: str = Field(default="", alias="AUDIT_API_KEY")
 
     # Default to explicit localhost origins — safe for dev.
     # Override via CORS_ORIGINS env var in production deployments.
@@ -39,6 +41,10 @@ class Settings(BaseSettings):
         default=["http://localhost:5173", "http://localhost:3000"]
     )
     DEBUG: bool = Field(default=False)
+
+    # Reject large request bodies before FastAPI/Pydantic parse JSON into memory.
+    # Keep this above the per-profile 64 KB guard to allow envelope overhead.
+    MAX_REQUEST_BODY_BYTES: int = Field(default=131_072)
 
     # ── Logging ─────────────────────────────────────────────────────
     LOG_LEVEL: str = Field(default="INFO")
@@ -54,6 +60,11 @@ class Settings(BaseSettings):
     def gemini_api_key_resolved(self) -> str:
         """Return whichever Gemini key is available."""
         return self.GEMINI_API_KEY or self.GOOGLE_API_KEY
+
+    @property
+    def audit_api_key_resolved(self) -> str:
+        """Return the backend-only audit API key."""
+        return self.AUDIT_API_KEY
 
     @model_validator(mode="after")
     def _reject_wildcard_credentials_in_production(self) -> "Settings":

@@ -7,9 +7,10 @@ export const lendingDomain: DomainConfig = {
     defaultThreshold: 0.58,
     fields: [
         { key: "name", label: "Applicant Name", type: "text", placeholder: "Enter applicant name" },
-        { key: "income", label: "Annual Income (₹L)", type: "number", min: 1, max: 500 },
+        { key: "income", label: "Annual Income (₹)", type: "number", min: 0, placeholder: "e.g. 80000" },
         { key: "credit_score", label: "Credit Score", type: "number", min: 300, max: 900 },
-        { key: "loan_amount", label: "Loan Amount (₹L)", type: "number", min: 1, max: 200 },
+        { key: "loan_amount", label: "Loan Amount (₹)", type: "number", min: 1, placeholder: "e.g. 250000" },
+        { key: "employment_years", label: "Employment Years", type: "number", min: 0, max: 50 },
         {
             key: "employment_type",
             label: "Employment Type",
@@ -29,6 +30,7 @@ export const lendingDomain: DomainConfig = {
         income: "",
         credit_score: "",
         loan_amount: "",
+        employment_years: "",
         employment_type: "",
         gender: "",
         location: "",

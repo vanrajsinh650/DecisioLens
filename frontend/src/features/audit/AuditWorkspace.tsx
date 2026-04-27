@@ -70,6 +70,8 @@ function deriveTrustVerdict(riskScore: number): TrustVerdict {
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
+const RUPEES_PER_LAKH = 100_000;
+
 const profileNumber = (profile: AuditProfile, key: string, fallback: number): number => {
     const value = profile[key];
     const numeric = typeof value === "number" ? value : Number(value);
@@ -104,14 +106,14 @@ function computePreviewScore(domain: DomainType, profile: AuditProfile): number 
 
     if (domain === "lending") {
         const credit = profileNumber(profile, "credit_score", 600);
-        const income = profileNumber(profile, "income", 5);
-        const loan = profileNumber(profile, "loan_amount", 10);
+        const income = profileNumber(profile, "income", 5 * RUPEES_PER_LAKH);
+        const loan = profileNumber(profile, "loan_amount", 10 * RUPEES_PER_LAKH);
         const employment = String(profile.employment_type ?? "").toLowerCase();
         const employmentYears = profileNumber(profile, "employment_years", 3);
         const location = String(profile.location ?? "").toLowerCase();
         const creditComponent = clamp01((credit - 300) / 600);
-        const incomeComponent = clamp01(income / 30);
-        const dtiComponent = clamp01((loan / Math.max(income, 0.5)) / 10);
+        const incomeComponent = clamp01(income / (30 * RUPEES_PER_LAKH));
+        const dtiComponent = clamp01((loan / Math.max(income, 0.5 * RUPEES_PER_LAKH)) / 10);
         const stabilityComponent = clamp01(employmentYears / 15);
         const employmentComponent = employment.includes("salaried") || employment.includes("full") ? 1 : employment.includes("self") ? 0.65 : employment.includes("freelance") || employment.includes("contract") ? 0.45 : 0.55;
         const locationEffect = ["rural", "remote", "village", "small town"].includes(location) ? -0.02 : 0;
@@ -134,20 +136,20 @@ function computePreviewScore(domain: DomainType, profile: AuditProfile): number 
     }
 
     if (domain === "insurance") {
-        const claim = profileNumber(profile, "claim_amount", 2);
+        const claim = profileNumber(profile, "claim_amount", 2 * RUPEES_PER_LAKH);
         const age = profileNumber(profile, "age", 40);
         const preExisting = String(profile.pre_existing ?? "None").toLowerCase();
-        const coverage = profileNumber(profile, "coverage_amount", 10);
+        const coverage = profileNumber(profile, "coverage_amount", 10 * RUPEES_PER_LAKH);
         const tenure = profileNumber(profile, "policy_tenure", 0);
         const cityTier = String(profile.city_tier ?? "Tier 1").toLowerCase();
         const healthComponent = preExisting.includes("both") ? 0.3 : preExisting === "diabetes" || preExisting === "hypertension" ? 0.5 : 1;
         const ageComponent = age < 25 ? 0.6 : age < 35 ? 0.85 : age <= 50 ? 1 : age <= 60 ? 0.7 : 0.4;
         const locationEffect = cityTier.includes("tier 3") || cityTier.includes("rural") ? -0.02 : 0;
-        return clamp01((0.32 * healthComponent) + (0.28 * ageComponent) - (0.20 * clamp01(claim / 50)) - (0.10 * clamp01(coverage / 100)) + (0.10 * clamp01(tenure / 10)) + genderEffect + locationEffect);
+        return clamp01((0.32 * healthComponent) + (0.28 * ageComponent) - (0.20 * clamp01(claim / (50 * RUPEES_PER_LAKH))) - (0.10 * clamp01(coverage / (100 * RUPEES_PER_LAKH))) + (0.10 * clamp01(tenure / 10)) + genderEffect + locationEffect);
     }
 
     if (domain === "welfare") {
-        const income = profileNumber(profile, "annual_income", 3);
+        const income = profileNumber(profile, "annual_income", 3 * RUPEES_PER_LAKH);
         const familySize = profileNumber(profile, "family_size", 4);
         const land = profileNumber(profile, "land_holding", 0);
         const stateTier = String(profile.state_tier ?? "Developed State").toLowerCase();
@@ -155,7 +157,7 @@ function computePreviewScore(domain: DomainType, profile: AuditProfile): number 
         const aadhaar = String(profile.aadhaar_linked ?? "").toLowerCase();
         const employmentStatus = String(profile.employment_status ?? "employed").toLowerCase();
         const housing = String(profile.housing_status ?? "owned").toLowerCase();
-        const incomeComponent = clamp01(1 - (income / 15));
+        const incomeComponent = clamp01(1 - (income / (15 * RUPEES_PER_LAKH)));
         const categoryComponent = category === "sc" || category === "st" ? 1 : category === "obc" || category === "ews" ? 0.85 : 0.45;
         const employmentComponent = employmentStatus.includes("unemploy") ? 1 : employmentStatus.includes("part") || employmentStatus.includes("casual") || employmentStatus.includes("daily") ? 0.75 : employmentStatus.includes("self") ? 0.40 : 0.20;
         const housingComponent = housing.includes("homeless") || housing.includes("shelter") ? 1 : housing.includes("rent") ? 0.80 : housing.includes("shared") ? 0.40 : 0.15;

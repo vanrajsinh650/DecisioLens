@@ -26,6 +26,9 @@ def _num(profile: Mapping[str, Any], key: str, default: float) -> float:
     return float(default if value is None else value)
 
 
+_RUPEES_PER_LAKH = 100_000.0
+
+
 # Weights reflect real-world research on decision factors
 # in hiring, lending, education, insurance, and welfare.
 # Demographic modifiers are intentionally small but present
@@ -105,8 +108,8 @@ def _score_lending(profile: Mapping[str, Any]) -> float:
       - Location modifier:            ±0.02
     """
     credit = _num(profile, "credit_score", 600)
-    income = _num(profile, "income", 5)
-    loan = _num(profile, "loan_amount", 10)
+    income = _num(profile, "income", 5 * _RUPEES_PER_LAKH)
+    loan = _num(profile, "loan_amount", 10 * _RUPEES_PER_LAKH)
     employment = str(profile.get("employment_type") or "").lower()
     employment_years = _num(profile, "employment_years", 3)
     gender = str(profile.get("gender") or "").lower()
@@ -114,10 +117,10 @@ def _score_lending(profile: Mapping[str, Any]) -> float:
 
     # Credit score: map 300–900 → 0–1
     credit_component = _clamp((credit - 300) / 600.0, 0.0, 1.0)
-    # Annual income: normalise with soft cap
-    income_component = _clamp(income / 30.0, 0.0, 1.0)
+    # Annual income is accepted in rupees; normalize with soft cap at ₹30L.
+    income_component = _clamp(income / (30.0 * _RUPEES_PER_LAKH), 0.0, 1.0)
     # Debt-to-income ratio: higher = worse (inverted)
-    dti = loan / max(income, 0.5)
+    dti = loan / max(income, 0.5 * _RUPEES_PER_LAKH)
     dti_component = _clamp(dti / 10.0, 0.0, 1.0)  # 0 is best, 1 is worst
     # Employment stability: diminishing returns
     emp_stability_component = _clamp(employment_years / 15.0, 0.0, 1.0)
@@ -224,10 +227,10 @@ def _score_insurance(profile: Mapping[str, Any]) -> float:
       - Gender modifier:               ±0.03
       - Location modifier:             ±0.02
     """
-    claim = _num(profile, "claim_amount", 2)
+    claim = _num(profile, "claim_amount", 2 * _RUPEES_PER_LAKH)
     age = _num(profile, "age", 40)
     pre_existing = str(profile.get("pre_existing") or "None").lower()
-    coverage = _num(profile, "coverage_amount", 10)
+    coverage = _num(profile, "coverage_amount", 10 * _RUPEES_PER_LAKH)
     tenure = _num(profile, "policy_tenure", 0)
     gender = str(profile.get("gender") or "").lower()
     city_tier = str(profile.get("city_tier") or "Tier 1").lower()
@@ -250,10 +253,10 @@ def _score_insurance(profile: Mapping[str, Any]) -> float:
     else:
         age_component = 0.40
 
-    # Claim history: higher past claims → worse (normalised 0–50 lakhs)
-    claim_component = _clamp(claim / 50.0, 0.0, 1.0)
-    # Coverage requested: higher coverage → harder to approve (normalised 0–100 lakhs)
-    coverage_component = _clamp(coverage / 100.0, 0.0, 1.0)
+    # Claim history is accepted in rupees; higher past claims → worse (₹0–₹50L).
+    claim_component = _clamp(claim / (50.0 * _RUPEES_PER_LAKH), 0.0, 1.0)
+    # Coverage requested is accepted in rupees; higher coverage → harder to approve (₹0–₹100L).
+    coverage_component = _clamp(coverage / (100.0 * _RUPEES_PER_LAKH), 0.0, 1.0)
     # Longer tenure with the insurer improves confidence in the claim
     tenure_component = _clamp(tenure / 10.0, 0.0, 1.0)
 
@@ -291,7 +294,7 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
       - Gender modifier:                 ±0.03
       - Location modifier:               ±0.02
     """
-    income = _num(profile, "annual_income", 3)
+    income = _num(profile, "annual_income", 3 * _RUPEES_PER_LAKH)
     family_size = _num(profile, "family_size", 4)
     land = _num(profile, "land_holding", 0)
     employment_status = str(profile.get("employment_status") or "employed").lower()
@@ -301,8 +304,8 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
     gender = str(profile.get("gender") or "").lower()
     state_tier = str(profile.get("state_tier") or "Developed State").lower()
 
-    # Lower income = higher eligibility (inverted, normalised by poverty line ~15 LPA)
-    income_component = _clamp(1.0 - (income / 15.0), 0.0, 1.0)
+    # Lower income = higher eligibility (input in rupees, normalized by ~₹15L/year).
+    income_component = _clamp(1.0 - (income / (15.0 * _RUPEES_PER_LAKH)), 0.0, 1.0)
     # Larger family = higher need (normalised by 10 members)
     family_component = _clamp(family_size / 10.0, 0.0, 1.0)
     # Employment status: unemployed scores highest for eligibility

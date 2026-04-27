@@ -17,14 +17,10 @@ Performance optimisations
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any, Mapping
 
 from ai.gemini import (
     GeminiService,
-    _fallback_appeal,
-    _fallback_explanation,
-    _fallback_explanation_request,
 )
 from core.analysis import (
     build_reason_tags,
@@ -240,16 +236,7 @@ class AuditService:
             ai_jury_view=ai_jury_view.model_dump(),
         )
 
-        gemini_results = await asyncio.gather(
-            self._gemini.generate_explanation(context),
-            self._gemini.generate_appeal(context),
-            self._gemini.generate_explanation_request(context),
-            return_exceptions=True,
-        )
-        # If any call raised, treat the result as fallback-worthy
-        explanation = gemini_results[0] if isinstance(gemini_results[0], str) else _fallback_explanation(context)
-        appeal = gemini_results[1] if isinstance(gemini_results[1], str) else _fallback_appeal(context)
-        explanation_request = gemini_results[2] if isinstance(gemini_results[2], str) else _fallback_explanation_request(context)
+        explanation, appeal, explanation_request = await self._gemini.generate_audit_artifacts(context)
 
         # Deterministically format the applicant name after generation. The LLM
         # sees only sanitized context and is asked to use a structured placeholder;
