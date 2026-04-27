@@ -65,7 +65,7 @@ export default function HowItWorks() {
                         lineHeight: 1.08,
                     }}
                 >
-                    Three steps inside the chamber.
+                    Three steps inside the audit workflow.
                 </h2>
 
                 <p

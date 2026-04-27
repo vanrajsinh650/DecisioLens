@@ -328,16 +328,32 @@ class AuditService:
         """
         import re
 
-        # Fields safe to send to external LLM (no PII, no free text)
+        # Fields safe to send to external LLM (no PII, no free text).  Free-text
+        # fields such as name/location are not forwarded; structured strings are
+        # only included when they match known enum-style values.
         _SAFE_FIELDS = {
-            "domain", "gender", "score", "experience", "location", "college",
+            "domain", "gender", "score", "experience", "college",
             "credit_score", "income", "loan_amount", "employment_type",
             "grade_12", "category", "income_band", "age", "claim_amount",
             "policy_tenure", "city_tier", "pre_existing", "annual_income",
             "land_holding", "aadhaar_linked", "state_tier",
-            "education", "interview_score", "employment_years",
+            "interview_score", "employment_years",
             "extracurricular", "coverage_amount", "family_size",
             "employment_status", "housing_status",
+        }
+        _SAFE_STRING_VALUES = {
+            "domain": {"hiring", "lending", "education", "insurance", "welfare", "custom"},
+            "gender": {"male", "female", "m", "f", "man", "woman", "other", "non-binary", "prefer not to say"},
+            "college": {"tier 1", "tier 2", "tier 3", "iit", "nit"},
+            "employment_type": {"salaried", "self-employed", "self employed", "freelancer", "contract", "full-time", "full time"},
+            "category": {"general", "obc", "sc", "st", "ews"},
+            "income_band": {"low", "middle", "high"},
+            "city_tier": {"tier 1", "tier 2", "tier 3"},
+            "pre_existing": {"none", "diabetes", "hypertension", "both"},
+            "aadhaar_linked": {"yes", "no"},
+            "state_tier": {"metro state", "developed state", "developing state", "remote region"},
+            "employment_status": {"employed", "self-employed", "self employed", "daily wage", "part-time", "part time", "casual", "unemployed"},
+            "housing_status": {"owns home", "owned", "renting", "homeless", "shared", "shelter"},
         }
         # Aggressive character stripping regex —
         # Only allow alphanumeric, spaces, hyphens, periods, commas
@@ -351,7 +367,8 @@ class AuditService:
                 # Truncate, strip injection markers, and allow only safe chars
                 clean = value[:80]
                 clean = _SAFE_CHARS.sub("", clean).strip()
-                if clean:
+                allowed_values = _SAFE_STRING_VALUES.get(key)
+                if clean and allowed_values and clean.lower() in allowed_values:
                     sanitized[key] = clean
             elif isinstance(value, bool):
                 sanitized[key] = value

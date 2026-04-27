@@ -17,10 +17,10 @@ const PARTICLE_COUNT = 400;
 const PARALLAX_RANGE = 18; // ±18px max shift
 const LERP_SPEED = 0.04;
 
-// Color distribution: 60% white-gray, 25% aurora-violet, 15% aurora-teal
+// Color distribution: 60% white-gray, 25% safety orange, 15% industrial silver
 const COLOR_WHITE_GRAY = new THREE.Color("#C8D0E0");
-const COLOR_AURORA_VIOLET = new THREE.Color().setHSL(265 / 360, 0.65, 0.70);
-const COLOR_AURORA_TEAL = new THREE.Color().setHSL(172 / 360, 0.60, 0.55);
+const COLOR_AURORA_VIOLET = new THREE.Color("#FF4500");
+const COLOR_AURORA_TEAL = new THREE.Color("#9E9E9E");
 
 function lerp(current: number, target: number, factor: number): number {
     return current + (target - current) * factor;
@@ -56,8 +56,8 @@ export default function ParticleCanvas() {
         if (!container) return;
 
         const dpr = Math.min(window.devicePixelRatio, 2);
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        let width = window.innerWidth;
+        let height = window.innerHeight;
 
         // Scene
         const scene = new THREE.Scene();
@@ -93,12 +93,17 @@ export default function ParticleCanvas() {
         const sizes = new Float32Array(PARTICLE_COUNT);
         const opacities = new Float32Array(PARTICLE_COUNT);
 
-        for (let i = 0; i < PARTICLE_COUNT; i++) {
-            // Random position across entire viewport
-            positions[i * 3] = (Math.random() - 0.5) * width * 1.2;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * height * 1.2;
-            positions[i * 3 + 2] = 0;
+        const regeneratePositions = (w: number, h: number) => {
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * w * 1.2;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * h * 1.2;
+                positions[i * 3 + 2] = 0;
+            }
+        };
 
+        regeneratePositions(width, height);
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
             // Size: 0.3–1.5px
             sizes[i] = 0.3 + Math.random() * 1.2;
 
@@ -213,14 +218,17 @@ export default function ParticleCanvas() {
 
         // Resize handler
         const handleResize = () => {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
-            camera.left = -w / 2;
-            camera.right = w / 2;
-            camera.top = h / 2;
-            camera.bottom = -h / 2;
+            width = window.innerWidth;
+            height = window.innerHeight;
+            camera.left = -width / 2;
+            camera.right = width / 2;
+            camera.top = height / 2;
+            camera.bottom = -height / 2;
             camera.updateProjectionMatrix();
-            renderer.setSize(w, h);
+            renderer.setSize(width, height);
+            regeneratePositions(width, height);
+            const positionAttribute = geometry.getAttribute("position") as THREE.BufferAttribute;
+            positionAttribute.needsUpdate = true;
         };
         window.addEventListener("resize", handleResize);
 

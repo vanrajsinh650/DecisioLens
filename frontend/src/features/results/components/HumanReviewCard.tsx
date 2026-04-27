@@ -13,7 +13,7 @@ const CONFIG = {
         icon: "⚠",
     },
     RECOMMENDED: {
-        label: "A Real Person Should Look At This",
+        label: "A real person should look at this",
         color: "var(--aurora-amber)",
         surface: "var(--aurora-amber-surface)",
         border: "hsl(35, 70%, 24%)",

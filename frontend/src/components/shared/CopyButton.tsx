@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 
 interface CopyButtonProps {
     id?: string;
@@ -16,12 +16,31 @@ export default function CopyButton({
     copiedLabel = "✓ Copied",
 }: CopyButtonProps) {
     const [copied, setCopied] = useState(false);
+    const resetTimerRef = useRef<number | null>(null);
+
+    const scheduleReset = useCallback(() => {
+        if (resetTimerRef.current !== null) {
+            window.clearTimeout(resetTimerRef.current);
+        }
+        resetTimerRef.current = window.setTimeout(() => {
+            setCopied(false);
+            resetTimerRef.current = null;
+        }, 1800);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (resetTimerRef.current !== null) {
+                window.clearTimeout(resetTimerRef.current);
+            }
+        };
+    }, []);
 
     const handleCopy = useCallback(async () => {
         try {
             await navigator.clipboard.writeText(value);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1800);
+            scheduleReset();
         } catch {
             // Fallback
             const textarea = document.createElement("textarea");
@@ -31,15 +50,21 @@ export default function CopyButton({
             document.execCommand("copy");
             document.body.removeChild(textarea);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1800);
+            scheduleReset();
         }
-    }, [value]);
+    }, [scheduleReset, value]);
+
+    const handleClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void handleCopy();
+    }, [handleCopy]);
 
     return (
         <button
             id={id}
             type="button"
-            onClick={handleCopy}
+            onClick={handleClick}
             className="dl-btn-ghost"
             style={{
                 fontSize: "var(--fs-micro)",

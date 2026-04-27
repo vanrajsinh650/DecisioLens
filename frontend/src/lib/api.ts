@@ -41,10 +41,6 @@ const toStringArray = (value: unknown, fallback: string[] = []): string[] => {
   return value.filter((item): item is string => typeof item === "string");
 };
 
-const toDecision = (value: unknown, fallback: Decision = "REJECT"): Decision => {
-  return value === "ACCEPT" || value === "REJECT" ? value : fallback;
-};
-
 const toProfilePatch = (value: unknown): AuditResponse["variations"][number]["profile"] => {
   if (!isRecord(value)) return undefined;
 
@@ -106,7 +102,7 @@ const requireDecision = (value: unknown, label: string): Decision => {
   throw new Error(`Invalid audit response from server: invalid ${label}`);
 };
 
-const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditResponse => {
+const normalizeAuditResponse = (raw: unknown): AuditResponse => {
   const payload = requireRecord(raw, "payload");
 
   if (
@@ -120,11 +116,10 @@ const normalizeAuditResponse = (raw: unknown, request: AuditRequest): AuditRespo
     throw new Error("Invalid audit response from server");
   }
 
-  const requestProfile = request.profile;
   const originalRaw = requireRecord(payload.original, "original");
   const originalScore = requireNumber(originalRaw.score, "original.score");
   const originalDecision = requireDecision(originalRaw.decision, "original.decision");
-  const originalThreshold = toNumber(originalRaw.threshold, request.threshold);
+  const originalThreshold = requireNumber(originalRaw.threshold, "original.threshold");
   const confidenceZone = toString(originalRaw.confidence_zone, toString(payload.confidence_zone));
 
   const thresholdRowsRaw = requireArray(payload.threshold_analysis, "threshold_analysis");
@@ -281,7 +276,7 @@ export async function runAudit(payload: AuditRequest): Promise<AuditResponse> {
     }
 
     const raw = (await response.json()) as unknown;
-    return normalizeAuditResponse(raw, payload);
+    return normalizeAuditResponse(raw);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error("Audit request timed out. Please try again.");

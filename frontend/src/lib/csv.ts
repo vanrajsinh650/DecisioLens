@@ -1,26 +1,41 @@
 /**
- * RFC 4180-compliant CSV parser that correctly handles:
+ * RFC 4180-aware CSV parser/exporter that correctly handles:
  * - Quoted fields containing commas, newlines, and escaped quotes
  * - Empty fields
  * - Mixed quoted/unquoted fields
+ * - Spreadsheet formula escaping on export
  *
  * Issue #42 fix: The previous naive split(",") broke on quoted CSV
  * fields like `"New York, NY"` which contain commas.
  */
 
-function parseCsvLine(line: string): string[] {
-    const fields: string[] = [];
+function parseCsvRows(raw: string): string[][] {
+    const rows: string[][] = [];
+    let row: string[] = [];
     let current = "";
     let inQuotes = false;
     let i = 0;
 
-    while (i < line.length) {
-        const char = line[i];
+    const pushField = () => {
+        row.push(current.trim());
+        current = "";
+    };
+
+    const pushRow = () => {
+        pushField();
+        if (row.some((field) => field.length > 0)) {
+            rows.push(row);
+        }
+        row = [];
+    };
+
+    while (i < raw.length) {
+        const char = raw[i];
 
         if (inQuotes) {
             if (char === '"') {
                 // Check for escaped quote (double-quote inside quoted field)
-                if (i + 1 < line.length && line[i + 1] === '"') {
+                if (i + 1 < raw.length && raw[i + 1] === '"') {
                     current += '"';
                     i += 2;
                     continue;
@@ -42,8 +57,24 @@ function parseCsvLine(line: string): string[] {
         }
 
         if (char === ",") {
-            fields.push(current.trim());
-            current = "";
+            pushField();
+            i += 1;
+            continue;
+        }
+
+        if (char === "\n") {
+            pushRow();
+            i += 1;
+            continue;
+        }
+
+        if (char === "\r") {
+            if (raw[i + 1] === "\n") {
+                pushRow();
+                i += 2;
+                continue;
+            }
+            pushRow();
             i += 1;
             continue;
         }
@@ -52,32 +83,38 @@ function parseCsvLine(line: string): string[] {
         i += 1;
     }
 
-    fields.push(current.trim());
-    return fields;
+    if (current.length > 0 || row.length > 0) {
+        pushRow();
+    }
+
+    return rows;
 }
 
 export function parseCSV(raw: string): Record<string, string>[] {
-    const lines = raw.trim().split(/\r?\n/);
-    if (lines.length === 0) return [];
+    const rows = parseCsvRows(raw);
+    if (rows.length === 0) return [];
 
-    const headers = parseCsvLine(lines[0]);
+    const headers = rows[0];
 
-    return lines
+    return rows
         .slice(1)
-        .filter((row) => row.trim().length > 0)
-        .map((row) => {
-            const values = parseCsvLine(row);
+        .filter((row) => row.some((cell) => cell.trim().length > 0))
+        .map((values) => {
             return Object.fromEntries(
                 headers.map((header, index) => [header, values[index] ?? ""]),
             );
         });
 }
 
-export function escapeCsvField(value: string): string {
-    if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-        return `"${value.replace(/"/g, '""')}"`;
+export function escapeCsvField(value: unknown): string {
+    let text = String(value ?? "");
+    if (/^[=+\-@]/.test(text)) {
+        text = `'${text}`;
     }
-    return value;
+    if (/[",\n\r]/.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
+    }
+    return text;
 }
 
 export function recordsToCSV(records: Record<string, unknown>[]): string {
@@ -87,9 +124,7 @@ export function recordsToCSV(records: Record<string, unknown>[]): string {
 
     const headers = Object.keys(records[0]);
     const headerLine = headers.map((h) => escapeCsvField(h)).join(",");
-    const rows = records.map((record) =>
-        headers.map((header) => escapeCsvField(String(record[header] ?? ""))).join(","),
-    );
+    const rows = records.map((record) => headers.map((header) => escapeCsvField(record[header])).join(","));
     return [headerLine, ...rows].join("\n");
 }
 

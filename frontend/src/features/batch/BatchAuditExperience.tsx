@@ -17,11 +17,12 @@ import { AuditRequest, AuditResponse, DomainType, TrustVerdict } from "@/types/a
 interface BatchResultRow {
     index: number;
     input: Record<string, string>;
-    verdict: TrustVerdict;
+    verdict: TrustVerdict | "ERROR";
     risk_level: string;
     decision: string;
     bias_detected: boolean;
-    risk_score: number;
+    risk_score: number | null;
+    error?: string;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -43,8 +44,9 @@ function toNumberMaybe(value: string): number | string {
 function buildTemplate(domain: DomainType): string {
     const config = getDomainConfig(domain);
     const headers = config.fields.map((field) => field.key);
-    const exampleValues = headers.map((header) => String(config.defaultProfile[header] ?? ""));
-    return `${headers.join(",")}\n${exampleValues.join(",")}`;
+    return recordsToCSV([
+        Object.fromEntries(headers.map((header) => [header, config.defaultProfile[header] ?? ""])),
+    ]);
 }
 
 export default function BatchAuditExperience() {
@@ -91,30 +93,48 @@ export default function BatchAuditExperience() {
                 }
 
                 const row = rows[index];
-                const payload: AuditRequest = {
-                    domain,
-                    threshold: getDomainConfig(domain).defaultThreshold,
-                    profile: Object.fromEntries(
-                        Object.entries(row).map(([key, value]) => [key, toNumberMaybe(value)]),
-                    ),
-                };
 
-                const response = await runAudit(payload);
+                try {
+                    const payload: AuditRequest = {
+                        domain,
+                        threshold: getDomainConfig(domain).defaultThreshold,
+                        profile: Object.fromEntries(
+                            Object.entries(row).map(([key, value]) => [key, toNumberMaybe(value)]),
+                        ),
+                    };
 
-                // Check again after the async call returns
-                if (controller.signal.aborted) {
-                    break;
+                    const response = await runAudit(payload);
+
+                    // Check again after the async call returns
+                    if (controller.signal.aborted) {
+                        break;
+                    }
+
+                    nextResults.push({
+                        index: index + 1,
+                        input: row,
+                        verdict: deriveTrustVerdict(response),
+                        risk_level: response.insights.risk_level ?? "Unknown",
+                        decision: response.original.decision,
+                        bias_detected: response.insights.bias_detected,
+                        risk_score: response.insights.risk_score,
+                    });
+                } catch (rowError) {
+                    if (controller.signal.aborted) {
+                        break;
+                    }
+
+                    nextResults.push({
+                        index: index + 1,
+                        input: row,
+                        verdict: "ERROR",
+                        risk_level: "Error",
+                        decision: "ERROR",
+                        bias_detected: false,
+                        risk_score: null,
+                        error: rowError instanceof Error ? rowError.message : "Row failed to process.",
+                    });
                 }
-
-                nextResults.push({
-                    index: index + 1,
-                    input: row,
-                    verdict: deriveTrustVerdict(response),
-                    risk_level: response.insights.risk_level ?? "Unknown",
-                    decision: response.original.decision,
-                    bias_detected: response.insights.bias_detected,
-                    risk_score: response.insights.risk_score,
-                });
 
                 setResults([...nextResults]);
                 setProgress({ processed: index + 1, total: rows.length });
@@ -163,9 +183,10 @@ export default function BatchAuditExperience() {
             ...result.input,
             trust_verdict: result.verdict,
             risk_level: result.risk_level,
-            risk_score: Math.round(result.risk_score),
+            risk_score: result.risk_score === null ? "" : Math.round(result.risk_score),
             decision: result.decision,
             bias_detected: result.bias_detected ? "yes" : "no",
+            error: result.error ?? "",
         }));
     }, [results]);
 
@@ -236,7 +257,7 @@ export default function BatchAuditExperience() {
                         </span>
                         <input
                             type="file"
-                            accept=".csv,text/csv,.txt,.pdf,.doc,.docx"
+                            accept=".csv,text/csv"
                             onChange={onFileChange}
                             className="dl-input"
                             style={{ padding: "8px" }}
@@ -361,6 +382,7 @@ export default function BatchAuditExperience() {
                                 <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Risk</th>
                                 <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Decision</th>
                                 <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Bias</th>
+                                <th className="font-mono uppercase" style={{ padding: "12px 16px", textAlign: "left", fontSize: "var(--fs-micro)", letterSpacing: "0.08em", color: "var(--t3)" }}>Error</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -370,13 +392,14 @@ export default function BatchAuditExperience() {
                                     <td style={{ padding: "12px 16px" }}>
                                         <Badge
                                             label={result.verdict}
-                                            tone={result.verdict === "HIGH_RISK" ? "risk" : result.verdict === "UNSTABLE" ? "caution" : "stable"}
+                                            tone={result.verdict === "ERROR" || result.verdict === "HIGH_RISK" ? "risk" : result.verdict === "UNSTABLE" ? "caution" : "stable"}
                                             dot
                                         />
                                     </td>
-                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.risk_level} ({formatNumber(result.risk_score, 0)})</td>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.risk_score === null ? result.risk_level : `${result.risk_level} (${formatNumber(result.risk_score, 0)})`}</td>
                                     <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.decision}</td>
                                     <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-mono)", color: "var(--t2)" }}>{result.bias_detected ? "Yes" : "No"}</td>
+                                    <td className="font-mono" style={{ padding: "12px 16px", fontSize: "var(--fs-micro)", color: result.error ? "var(--aurora-crimson)" : "var(--t3)", maxWidth: "320px" }}>{result.error ?? "—"}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 
@@ -10,8 +10,8 @@ const BOUND = { x: 2.4, y: 2.4, z: 1.6 };
 /* ── Palette: weighted toward amber ──────────────────────────── */
 const PALETTE_HEX = [
     "#D97706", "#D97706", "#D97706", // amber ×3
-    "#7C3AED",                        // violet
-    "#0D9488",                        // teal
+    "#FF4500",                        // safety orange
+    "#9E9E9E",                        // industrial silver
     "#ffffff",                        // white
 ];
 
@@ -164,6 +164,21 @@ function ParallaxRig({ children }: { children: React.ReactNode }) {
    ════════════════════════════════════════════════════════════════ */
 export default function DecisionLensScene() {
     const [hovered, setHovered] = useState(false);
+    const [reduceMotion, setReduceMotion] = useState(
+        () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+
+    useEffect(() => {
+        const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const sync = () => setReduceMotion(media.matches);
+        sync();
+        media.addEventListener("change", sync);
+        return () => media.removeEventListener("change", sync);
+    }, []);
+
+    if (reduceMotion) {
+        return null;
+    }
 
     return (
         <div
@@ -194,12 +209,12 @@ export default function DecisionLensScene() {
             />
             <Canvas
                 camera={{ position: [0, 0, 7], fov: 50 }}
-                gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-                dpr={[1, 2]}
+                gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
+                dpr={[1, 1]}
                 style={{ background: "transparent", width: "100%", height: "100%" }}
             >
                 <ParallaxRig>
-                    <FloatingBalls count={45} speedMul={hovered ? 1.6 : 1} />
+                    <FloatingBalls count={24} speedMul={hovered ? 1.25 : 0.85} />
                 </ParallaxRig>
             </Canvas>
         </div>

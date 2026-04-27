@@ -25,7 +25,7 @@ export default function RecourseCard({ recourse, originalDecision }: RecourseCar
                     className="font-body"
                     style={{ fontSize: "var(--fs-body)", color: "var(--t3)" }}
                 >
-                    The decision was in your favour. No action needed.
+                    The decision was in your favor. No action needed.
                 </p>
             </div>
         );

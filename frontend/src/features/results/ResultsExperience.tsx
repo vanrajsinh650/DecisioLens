@@ -48,7 +48,7 @@ export default function ResultsExperience() {
                 ?? null;
 
             if (!fromHistory) {
-                setError("The selected history record could not be found.");
+                setError("The selected local history record could not be found in this browser.");
                 setSession(null);
                 setReadOnly(true);
                 setIsSessionReady(true);

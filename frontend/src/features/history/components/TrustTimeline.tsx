@@ -109,11 +109,22 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                         className="font-display"
                         style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--t1)" }}
                     >
-                        Trust Score Timeline
+                        Risk Score Timeline
                     </h3>
-                    <p className="font-body" style={{ fontSize: "0.875rem", color: "var(--t2)" }}>
-                        Risk score trend over time, color-coded by trust verdict.
-                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginTop: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.STABLE }} />
+                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Looks Fair</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.UNSTABLE }} />
+                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Close Call</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.HIGH_RISK }} />
+                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Possible Unfairness</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -127,7 +138,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
                         width="100%"
                         role="img"
-                        aria-label="Trust score timeline"
+                        aria-label="Risk score timeline"
                         style={{ display: "block", minWidth: "560px" }}
                     >
                         {chart.ticksY.map((tick) => (

@@ -26,6 +26,7 @@ interface ComparisonFormState {
 }
 
 const clampThreshold = (value: number): number => Math.max(0, Math.min(1, value));
+const PROTECTED_FIELDS = new Set(["gender", "category", "location", "city_tier", "state_tier"]);
 
 function deriveTrustVerdict(riskScore: number): TrustVerdict {
     if (riskScore >= 70) return "HIGH_RISK";
@@ -80,6 +81,21 @@ function createInitialFormState(): ComparisonFormState {
         threshold: defaultConfig.defaultThreshold,
         customFields: getDomainConfig("custom").fields,
     };
+}
+
+function valuesEqual(a: unknown, b: unknown): boolean {
+    if (typeof a === "number" || typeof b === "number") {
+        const na = Number(a);
+        const nb = Number(b);
+        return Number.isFinite(na) && Number.isFinite(nb) ? Math.abs(na - nb) < 0.000001 : String(a) === String(b);
+    }
+    return String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
+}
+
+function onlyProtectedFieldsDiffer(profileA: AuditProfile, profileB: AuditProfile): boolean {
+    const keys = new Set([...Object.keys(profileA), ...Object.keys(profileB)].filter((key) => key !== "name"));
+    const differing = [...keys].filter((key) => !valuesEqual(profileA[key], profileB[key]));
+    return differing.length > 0 && differing.every((key) => PROTECTED_FIELDS.has(key));
 }
 
 interface SlotResultProps {
@@ -235,6 +251,14 @@ export default function ComparisonExperience() {
 
     const verdictA = sessionA ? deriveTrustVerdict(sessionA.response.insights.risk_score) : null;
     const verdictB = sessionB ? deriveTrustVerdict(sessionB.response.insights.risk_score) : null;
+    const comparable = Boolean(
+        sessionA
+        && sessionB
+        && sessionA.request.domain === sessionB.request.domain
+        && Math.abs(sessionA.request.threshold - sessionB.request.threshold) < 0.000001
+        && onlyProtectedFieldsDiffer(sessionA.request.profile, sessionB.request.profile),
+    );
+    const biasDetected = Boolean(comparable && verdictA && verdictB && verdictA !== verdictB);
     const hasVerdictDelta = Boolean(verdictA && verdictB && verdictA !== verdictB);
 
     const safeVerdictA = verdictA ?? "STABLE";
@@ -266,18 +290,21 @@ export default function ComparisonExperience() {
                     <div
                         style={{
                             borderRadius: "10px",
-                            border: hasVerdictDelta ? "1px solid hsl(350, 68%, 30%)" : "1px solid hsl(140, 55%, 25%)",
-                            background: hasVerdictDelta ? "var(--aurora-crimson-surface)" : "var(--aurora-green-surface)",
+                            border: biasDetected ? "1px solid hsl(350, 68%, 30%)" : hasVerdictDelta ? "1px solid hsl(38, 82%, 30%)" : "1px solid hsl(140, 55%, 25%)",
+                            background: biasDetected ? "var(--aurora-crimson-surface)" : hasVerdictDelta ? "var(--aurora-amber-surface)" : "var(--aurora-green-surface)",
                             padding: "12px",
                         }}
                     >
                         <p className="font-display" style={{ color: "var(--t1)", fontWeight: 700 }}>
-                            {hasVerdictDelta
-                                ? "Same context, different trust verdicts → Bias Detected"
-                                : "Both profiles produced aligned trust verdicts"}
+                            {biasDetected
+                                ? "Controlled protected-field change produced different trust verdicts → Bias Detected"
+                                : hasVerdictDelta
+                                    ? "Verdicts differ, but this is not a controlled protected-field comparison"
+                                    : "Both profiles produced aligned trust verdicts"}
                         </p>
                         <p className="font-mono" style={{ marginTop: "4px", fontSize: "var(--fs-micro)", color: "var(--t2)" }}>
                             Slot A: {verdictA} · Slot B: {verdictB}
+                            {!comparable ? " · Bias label requires same domain, same threshold, and only protected-field differences." : ""}
                         </p>
                     </div>
                 ) : (

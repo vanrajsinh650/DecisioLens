@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { useApiHealth } from "@/hooks/useApiHealth";
 
 const DecisionLensScene = dynamic(
     () => import("@/components/shared/DecisionLensScene"),
@@ -13,6 +14,17 @@ const TOP_DOMAIN_LABELS = ["Hiring", "Lending", "Insurance", "Education", "Welfa
 
 export default function HeroSection() {
     const sectionRef = useRef<HTMLElement>(null);
+    const healthStatus = useApiHealth();
+    const statusLabel = healthStatus === "online"
+        ? "system online"
+        : healthStatus === "checking"
+            ? "checking system"
+            : "system unavailable";
+    const statusColor = healthStatus === "online"
+        ? "var(--aurora-green)"
+        : healthStatus === "checking"
+            ? "var(--aurora-amber)"
+            : "var(--aurora-crimson)";
 
     useEffect(() => {
         const el = sectionRef.current;
@@ -85,11 +97,11 @@ export default function HeroSection() {
                                 className="dl-pulse-dot"
                                 style={{
                                     width: "6px", height: "6px", borderRadius: "50%",
-                                    background: "var(--aurora-green)",
-                                    boxShadow: "0 0 8px var(--aurora-green)",
+                                    background: statusColor,
+                                    boxShadow: `0 0 8px ${statusColor}`,
                                 }}
                             />
-                            system online
+                            {statusLabel}
                         </span>
                         <span style={{ color: "var(--t4)" }}>·</span>
                         <span>decision integrity engine</span>

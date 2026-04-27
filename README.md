@@ -160,7 +160,7 @@ decisiolens/
 |   |   |-- cache.py              LRU cache (256 slots, 5-min TTL)
 |   |   `-- config.py             Pydantic settings via .env
 |   |-- schemas/
-|   |   |-- request.py            Flexible multi-domain input (extra="allow")
+|   |   |-- request.py            Flexible multi-domain input (extra="forbid")
 |   |   `-- response.py           Typed AuditResponse
 |   |-- services/audit_service.py Full pipeline orchestrator
 |   `-- routers/audit.py          HTTP layer only

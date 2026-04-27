@@ -117,44 +117,56 @@ export default function TopBar() {
 
             {/* Mobile drawer */}
             {mobileOpen && (
-                <nav className="dl-mobile-nav" aria-label="Mobile navigation">
-                    {NAV_LINKS.map((link) => {
-                        const isActive =
-                            link.href === "/"
-                                ? pathname === "/"
-                                : pathname.startsWith(link.href);
-                        return (
+                <>
+                    <div
+                        onClick={() => setMobileOpen(false)}
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            background: "rgba(0,0,0,0.5)",
+                            backdropFilter: "blur(4px)",
+                            zIndex: 45,
+                        }}
+                    />
+                    <nav className="dl-mobile-nav" aria-label="Mobile navigation" style={{ zIndex: 50 }}>
+                        {NAV_LINKS.map((link) => {
+                            const isActive =
+                                link.href === "/"
+                                    ? pathname === "/"
+                                    : pathname.startsWith(link.href);
+                            return (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="font-mono uppercase"
+                                    style={{
+                                        display: "block",
+                                        padding: "15px 24px",
+                                        fontSize: "0.8rem",
+                                        letterSpacing: "0.1em",
+                                        color: isActive ? "var(--aurora-amber)" : "var(--t2)",
+                                        background: isActive ? "rgba(245,124,0,0.06)" : "transparent",
+                                        borderBottom: "1px solid rgba(255,255,255,0.06)",
+                                        transition: "all 0.15s ease",
+                                    }}
+                                >
+                                    {link.label}
+                                </Link>
+                            );
+                        })}
+                        <div style={{ padding: "16px 24px" }}>
                             <Link
-                                key={link.href}
-                                href={link.href}
+                                href="/audit"
                                 onClick={() => setMobileOpen(false)}
-                                className="font-mono uppercase"
-                                style={{
-                                    display: "block",
-                                    padding: "15px 24px",
-                                    fontSize: "0.8rem",
-                                    letterSpacing: "0.1em",
-                                    color: isActive ? "var(--aurora-amber)" : "var(--t2)",
-                                    background: isActive ? "rgba(245,124,0,0.06)" : "transparent",
-                                    borderBottom: "1px solid rgba(255,255,255,0.06)",
-                                    transition: "all 0.15s ease",
-                                }}
+                                className="topbar-cta-btn"
+                                style={{ display: "block", textAlign: "center" }}
                             >
-                                {link.label}
+                                Test a Decision →
                             </Link>
-                        );
-                    })}
-                    <div style={{ padding: "16px 24px" }}>
-                        <Link
-                            href="/audit"
-                            onClick={() => setMobileOpen(false)}
-                            className="topbar-cta-btn"
-                            style={{ display: "block", textAlign: "center" }}
-                        >
-                            Test a Decision →
-                        </Link>
-                    </div>
-                </nav>
+                        </div>
+                    </nav>
+                </>
             )}
         </header>
     );

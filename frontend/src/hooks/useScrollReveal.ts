@@ -23,6 +23,8 @@ export function useScrollReveal() {
             return;
         }
 
+        const staggerTimers: number[] = [];
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -30,9 +32,12 @@ export function useScrollReveal() {
                         const el = entry.target as HTMLElement;
                         const delay = el.dataset.staggerDelay;
                         if (delay) {
-                            setTimeout(() => {
-                                el.classList.add("revealed");
+                            const timer = window.setTimeout(() => {
+                                if (el.isConnected) {
+                                    el.classList.add("revealed");
+                                }
                             }, parseFloat(delay) * 1000);
+                            staggerTimers.push(timer);
                         } else {
                             el.classList.add("revealed");
                         }
@@ -47,6 +52,7 @@ export function useScrollReveal() {
         elements.forEach((el) => observer.observe(el));
 
         return () => {
+            staggerTimers.forEach((timer) => window.clearTimeout(timer));
             observer.disconnect();
         };
     }, []);

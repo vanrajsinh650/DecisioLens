@@ -1,4 +1,20 @@
+"use client";
+
+import { useApiHealth } from "@/hooks/useApiHealth";
+
 export default function Footer() {
+    const healthStatus = useApiHealth();
+    const statusLabel = healthStatus === "online"
+        ? "System online"
+        : healthStatus === "checking"
+            ? "Checking system status"
+            : "System unavailable";
+    const statusColor = healthStatus === "online"
+        ? "var(--aurora-green)"
+        : healthStatus === "checking"
+            ? "var(--aurora-amber)"
+            : "var(--aurora-crimson)";
+
     return (
         <footer
             className="landing-footer"
@@ -38,7 +54,7 @@ export default function Footer() {
                             width: "5px",
                             height: "5px",
                             borderRadius: "50%",
-                            background: "var(--aurora-green)",
+                            background: statusColor,
                         }}
                     />
                     <span
@@ -50,7 +66,7 @@ export default function Footer() {
                             textTransform: "uppercase",
                         }}
                     >
-                        All systems operational
+                        {statusLabel}
                     </span>
                 </div>
             </div>

@@ -59,7 +59,13 @@ export default function HistoryPage() {
 
     const openHistoryResult = (entry: StoredAuditSession) => {
         setSelectedHistoryAuditId(entry.id);
-        router.push(`/results?id=${encodeURIComponent(entry.id)}`);
+        router.push("/results");
+    };
+
+    const confirmClearHistory = () => {
+        if (window.confirm("Delete all audit history? This cannot be undone.")) {
+            clear();
+        }
     };
 
     return (
@@ -71,7 +77,7 @@ export default function HistoryPage() {
                 actions={
                     <button
                         type="button"
-                        onClick={clear}
+                        onClick={confirmClearHistory}
                         className="dl-btn-ghost"
                         style={{
                             color: "var(--aurora-crimson)",

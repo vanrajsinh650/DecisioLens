@@ -9,7 +9,7 @@ import "./globals.css";
 export const metadata: Metadata = {
     title: `${APP_NAME} · Decision Integrity Scanner`,
     description:
-        "DecisioLens stress-tests algorithmic decisions revealing threshold fragility, scenario bias, and confidence gaps before they become consequences.",
+        "DecisioLens stress-tests algorithmic decisions, revealing threshold fragility, scenario bias, and confidence gaps before they become consequences.",
 };
 
 interface RootLayoutProps {

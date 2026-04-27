@@ -44,7 +44,7 @@ export default function CTASection() {
                         lineHeight: 1.75,
                     }}
                 >
-                    Enter a simple profile, pick a category (hiring, lending, insurance, education, or welfare), and we show you if the result would change if any small detail was different.
+                    Enter a simple profile, pick a category (hiring, lending, insurance, education, or welfare), and we’ll show you whether the result would change if any small detail was different.
                 </p>
 
                 <Link

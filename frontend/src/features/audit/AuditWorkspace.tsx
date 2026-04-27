@@ -153,10 +153,14 @@ function computePreviewScore(domain: DomainType, profile: AuditProfile): number 
         const stateTier = String(profile.state_tier ?? "Developed State").toLowerCase();
         const category = String(profile.category ?? "general").toLowerCase();
         const aadhaar = String(profile.aadhaar_linked ?? "").toLowerCase();
+        const employmentStatus = String(profile.employment_status ?? "employed").toLowerCase();
+        const housing = String(profile.housing_status ?? "owned").toLowerCase();
         const incomeComponent = clamp01(1 - (income / 15));
         const categoryComponent = category === "sc" || category === "st" ? 1 : category === "obc" || category === "ews" ? 0.85 : 0.45;
+        const employmentComponent = employmentStatus.includes("unemploy") ? 1 : employmentStatus.includes("part") || employmentStatus.includes("casual") || employmentStatus.includes("daily") ? 0.75 : employmentStatus.includes("self") ? 0.40 : 0.20;
+        const housingComponent = housing.includes("homeless") || housing.includes("shelter") ? 1 : housing.includes("rent") ? 0.80 : housing.includes("shared") ? 0.40 : 0.15;
         const locationEffect = stateTier.includes("remote") || stateTier.includes("developing") ? -0.02 : 0;
-        return clamp01((0.30 * incomeComponent) + (0.15 * clamp01(familySize / 10)) + (0.10 * 0.2) + (0.10 * 0.15) + (0.15 * (1 - clamp01(land / 10))) + (0.10 * (aadhaar === "yes" ? 1 : 0)) + (0.10 * categoryComponent) + genderEffect + locationEffect);
+        return clamp01((0.30 * incomeComponent) + (0.15 * clamp01(familySize / 10)) + (0.10 * employmentComponent) + (0.10 * housingComponent) + (0.15 * (1 - clamp01(land / 10))) + (0.10 * (aadhaar === "yes" ? 1 : 0)) + (0.10 * categoryComponent) + genderEffect + locationEffect);
     }
 
     return clamp01(profileNumber(profile, "score", 50) / 100);
