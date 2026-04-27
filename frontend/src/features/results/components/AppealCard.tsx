@@ -6,16 +6,25 @@ import { useState } from "react";
 interface AppealCardProps {
     appeal: string;
     explanationRequest?: string;
+    displayLanguage?: "en" | "regional" | "both";
 }
 
 type Tab = "appeal" | "explanation";
 
-export default function AppealCard({ appeal, explanationRequest }: AppealCardProps) {
+export default function AppealCard({ 
+    appeal, 
+    explanationRequest, 
+    displayLanguage = "both" 
+}: AppealCardProps) {
     const [activeTab, setActiveTab] = useState<Tab>(appeal ? "appeal" : "explanation");
 
     if (!appeal && !explanationRequest) return null;
 
     const activeText = activeTab === "appeal" && appeal ? appeal : explanationRequest ?? appeal;
+    const parts = activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---");
+    const englishText = parts[0]?.trim();
+    const regionalText = parts[1]?.trim();
+    const hasRegional = !!regionalText;
 
     const tabStyle = (tab: Tab) => ({
         padding: "8px 16px",
@@ -99,7 +108,7 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
             >
                 {/* Copy button */}
                 <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                    <CopyButton value={activeText} />
+                    <CopyButton value={displayLanguage === "en" ? englishText : displayLanguage === "regional" ? (regionalText || englishText) : activeText} />
                 </div>
 
                 {/* Letter text */}
@@ -113,11 +122,27 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                         paddingRight: "80px",
                     }}
                 >
-                    {activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---")[0]}
-                    {activeText.includes("--- REGIONAL LANGUAGE TRANSLATION ---") && (
-                        <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px dashed var(--s3)" }}>
-                            <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>REGIONAL LANGUAGE VERSION</p>
-                            {activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---")[1]}
+                    {(displayLanguage === "en" || displayLanguage === "both") && (
+                        <div>{englishText}</div>
+                    )}
+                    
+                    {hasRegional && (displayLanguage === "regional" || displayLanguage === "both") && (
+                        <div style={{ 
+                            marginTop: displayLanguage === "both" ? "32px" : "0", 
+                            paddingTop: displayLanguage === "both" ? "32px" : "0", 
+                            borderTop: displayLanguage === "both" ? "1px dashed var(--s3)" : "none" 
+                        }}>
+                            <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>
+                                REGIONAL LANGUAGE VERSION
+                            </p>
+                            {regionalText}
+                        </div>
+                    )}
+
+                    {!hasRegional && displayLanguage === "regional" && (
+                        <div style={{ color: "var(--t3)", fontStyle: "italic", fontSize: "0.9rem" }}>
+                            Regional translation not available for this location. Showing English version.
+                            <div style={{ marginTop: "16px", color: "var(--t2)", fontStyle: "normal" }}>{englishText}</div>
                         </div>
                     )}
                 </div>

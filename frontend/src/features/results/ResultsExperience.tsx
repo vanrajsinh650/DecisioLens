@@ -38,6 +38,7 @@ export default function ResultsExperience() {
     const [error, setError] = useState<string | null>(null);
     const [readOnly, setReadOnly] = useState(false);
     const [isSessionReady, setIsSessionReady] = useState(false);
+    const [reportLanguage, setReportLanguage] = useState<"en" | "regional" | "both">("both");
     const revealContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -179,6 +180,24 @@ export default function ResultsExperience() {
                 overline={`${session.domain?.toUpperCase() ?? "TEST"} · YOUR RESULT`}
                 title="Decision Trust Report"
                 subtitle="This report shows whether the AI decision was fair, consistent, and trustworthy."
+                actions={
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <label htmlFor="report-lang" className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)", letterSpacing: "0.08em" }}>
+                            Display Language
+                        </label>
+                        <select
+                            id="report-lang"
+                            value={reportLanguage}
+                            onChange={(e) => setReportLanguage(e.target.value as any)}
+                            className="dl-select"
+                            style={{ minWidth: "140px", padding: "6px 12px", fontSize: "0.8rem" }}
+                        >
+                            <option value="both">Both (En + Regional)</option>
+                            <option value="en">English Only</option>
+                            <option value="regional">Regional Only</option>
+                        </select>
+                    </div>
+                }
             />
 
             {/* Section 1 Verdict Hero */}
@@ -263,6 +282,7 @@ export default function ResultsExperience() {
                 <AppealCard
                     appeal={session.response.appeal}
                     explanationRequest={session.response.explanation_request}
+                    displayLanguage={reportLanguage}
                 />
             </div>
 
