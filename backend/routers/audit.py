@@ -146,4 +146,4 @@ async def run_audit_endpoint(
             threshold=body.threshold,
         )
     finally:
-        limiter.release_global()
+        await limiter.release_global()

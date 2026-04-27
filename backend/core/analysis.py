@@ -159,7 +159,23 @@ def detect_bias_patterns(
 ) -> dict[str, Any]:
     """
     Compare counterfactual outcomes and flag suspicious differences.
+
+    Issue #4 fix: only protected-attribute counterfactual families are
+    considered for bias flags.  Non-demographic perturbations like
+    ``score_bump`` test stability, not fairness, and must not inflate
+    the bias flag count or trigger unnecessary manual reviews.
     """
+
+    # Variations that test protected / sensitive attributes (fairness).
+    # Everything else (e.g. score_bump) is a stability perturbation.
+    _PROTECTED_VARIATIONS = {
+        "gender_swap",
+        "location_change",
+        "college_change",
+        "category_change",
+        "age_change",
+        "employment_change",
+    }
 
     original_decision = _normalize_decision(
         original.get("decision"), "original.decision"
@@ -189,7 +205,9 @@ def detect_bias_patterns(
             "is_suspicious": suspicious,
         }
         compared.append(row)
-        if suspicious:
+
+        # Only count protected-attribute variations as fairness flags
+        if suspicious and name in _PROTECTED_VARIATIONS:
             suspicious_patterns.append(row)
 
     return {

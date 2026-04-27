@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import json
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Mapping
@@ -85,6 +86,16 @@ class GeminiService:
         self._provider = settings.AI_PROVIDER.lower()
         self._timeout_seconds = float(settings.AI_CALL_TIMEOUT_SECONDS or _AI_CALL_TIMEOUT_SECONDS)
         self._semaphore = asyncio.Semaphore(_AI_CONCURRENCY_LIMIT)
+
+        # Issue #5 fix: dedicated bounded executor for AI calls.
+        # Timed-out asyncio.to_thread() calls leave orphaned threads running
+        # in the default executor. Under sustained provider slowness this
+        # exhausts the global thread pool, degrading ALL async paths.
+        # A dedicated pool caps damage to AI threads only.
+        self._ai_executor = ThreadPoolExecutor(
+            max_workers=_AI_CONCURRENCY_LIMIT,
+            thread_name_prefix="ai-provider",
+        )
 
         # Circuit breaker state
         self._consecutive_failures = 0
@@ -475,15 +486,18 @@ class GeminiService:
             return None
 
         try:
+            loop = asyncio.get_running_loop()
             response = await asyncio.wait_for(
-                asyncio.to_thread(
-                    self._gemini_client.models.generate_content,
-                    model=self._gemini_model,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        systemInstruction=system_instruction,
-                        temperature=temperature,
-                        maxOutputTokens=max_output_tokens,
+                loop.run_in_executor(
+                    self._ai_executor,
+                    lambda: self._gemini_client.models.generate_content(
+                        model=self._gemini_model,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(
+                            systemInstruction=system_instruction,
+                            temperature=temperature,
+                            maxOutputTokens=max_output_tokens,
+                        ),
                     ),
                 ),
                 timeout=self._timeout_seconds,
@@ -515,16 +529,19 @@ class GeminiService:
             return None
 
         try:
+            loop = asyncio.get_running_loop()
             response = await asyncio.wait_for(
-                asyncio.to_thread(
-                    self._groq_client.chat.completions.create,
-                    model=self._groq_model,
-                    messages=[
-                        {"role": "system", "content": system_instruction},
-                        {"role": "user", "content": prompt},
-                    ],
-                    temperature=temperature,
-                    max_tokens=max_output_tokens,
+                loop.run_in_executor(
+                    self._ai_executor,
+                    lambda: self._groq_client.chat.completions.create(
+                        model=self._groq_model,
+                        messages=[
+                            {"role": "system", "content": system_instruction},
+                            {"role": "user", "content": prompt},
+                        ],
+                        temperature=temperature,
+                        max_tokens=max_output_tokens,
+                    ),
                 ),
                 timeout=self._timeout_seconds,
             )

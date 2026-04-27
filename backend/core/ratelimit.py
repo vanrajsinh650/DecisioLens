@@ -116,35 +116,34 @@ class _BoundedBucketRegistry:
 
 # ── Global semaphore tryacquire ──────────────────────────────────────
 
-async def _sem_try_acquire(sem: asyncio.Semaphore) -> bool:
+class _AtomicConcurrencyGate:
+    """Truly non-blocking concurrency gate — no TOCTOU race.
+
+    Issue #2 fix: the previous pattern `if not sem.locked(): await
+    sem.acquire()` had a TOCTOU race where another coroutine could
+    consume the last permit between the check and acquire, causing
+    unexpected blocking.
+
+    This replacement maintains an explicit in-flight counter under an
+    asyncio.Lock so the check-and-claim is atomic within the event loop.
     """
-    Attempt a non-blocking acquire of *sem*.
 
-    Issue #1 fix: asyncio.wait_for(sem.acquire(), timeout=0) raises
-    TimeoutError even when permits are available in CPython 3.10+, causing
-    false 429 floods.
+    def __init__(self, max_concurrent: int) -> None:
+        self._max = max_concurrent
+        self._in_flight = 0
+        self._lock = asyncio.Lock()
 
-    Safe pattern used here:
-      1. Check sem.locked() — True only when all permits are exhausted.
-      2. If not locked, acquire() under a tiny shield so we never block
-         for more than one event-loop iteration.
+    async def try_acquire(self) -> bool:
+        """Return True if a slot was claimed, False (→ 429) immediately."""
+        async with self._lock:
+            if self._in_flight >= self._max:
+                return False
+            self._in_flight += 1
+            return True
 
-    This is safe because:
-      - locked() returns True only when _value == 0 (all slots taken).
-      - The subsequent acquire() cannot block if _value > 0 at check time;
-        in the worst case another coroutine claims the last permit between
-        the check and the acquire, but that is benign — we simply fall
-        through the try/except and return False.
-    """
-    if sem.locked():
-        return False
-    try:
-        # acquire() is guaranteed fast here; shield prevents cancellation
-        # from leaving the semaphore in an inconsistent state.
-        await asyncio.shield(sem.acquire())
-        return True
-    except Exception:
-        return False
+    async def release(self) -> None:
+        async with self._lock:
+            self._in_flight = max(0, self._in_flight - 1)
 
 
 # ── RateLimiter ──────────────────────────────────────────────────────
@@ -181,7 +180,7 @@ class RateLimiter:
         self._anon_rate = anon_rpm / 60.0
         self._anon_burst = anon_burst
         self._registry = _BoundedBucketRegistry()
-        self._global_sem = asyncio.Semaphore(max_concurrent)
+        self._global_gate = _AtomicConcurrencyGate(max_concurrent)
 
     # ── Pre-auth (anonymous/IP) limiting ─────────────────────────────
 
@@ -231,21 +230,21 @@ class RateLimiter:
         """
         Non-blocking attempt to acquire a global concurrency slot.
 
-        Issue #1 fix: uses _sem_try_acquire() instead of the broken
-        wait_for(timeout=0) pattern that raised TimeoutError even when
-        permits were available in CPython 3.10+.
+        Issue #2 fix: uses _AtomicConcurrencyGate instead of the TOCTOU-prone
+        locked()+acquire() pattern.  The gate maintains an explicit counter
+        under an asyncio.Lock so the check-and-claim is truly atomic.
 
         Returns True if a slot was acquired (caller MUST call release_global),
         False (→ 429) if all slots are occupied.
         """
-        acquired = await _sem_try_acquire(self._global_sem)
+        acquired = await self._global_gate.try_acquire()
         if not acquired:
             logger.warning("Global audit concurrency cap reached — returning 429")
         return acquired
 
-    def release_global(self) -> None:
+    async def release_global(self) -> None:
         """Release a previously acquired global concurrency slot."""
-        self._global_sem.release()
+        await self._global_gate.release()
 
     @property
     def bucket_count(self) -> int:
@@ -309,9 +308,11 @@ def extract_client_ip(
     if not hops:
         return direct_host or "unknown"
 
-    # The real client is at index len(hops) - trusted_proxy_count.
-    # If there are fewer hops than trusted proxies, fall back to direct host.
-    real_index = len(hops) - trusted_proxy_count
+    # Issue #1 fix: the real client is the hop *left of* trusted proxies.
+    # With XFF "client, proxy1" and trusted_proxy_count=1, the client is
+    # at index len(hops) - trusted_proxy_count - 1 = 0.
+    # The old formula omitted the "-1", returning the proxy itself.
+    real_index = len(hops) - trusted_proxy_count - 1
     if real_index < 0:
         return direct_host or "unknown"
 

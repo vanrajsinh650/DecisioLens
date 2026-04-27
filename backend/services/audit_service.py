@@ -58,6 +58,28 @@ from schemas.response import (
 
 logger = get_logger("audit_service")
 
+# Issue #3 fix: single-flight lock map is module-level, not per-instance.
+# AuditService is instantiated per-request via FastAPI DI, so per-instance
+# state is useless for cross-request deduplication.  These singletons are
+# shared by all AuditService instances within the same process.
+_SCORE_LOCKS: dict[str, asyncio.Lock] = {}
+_SCORE_LOCKS_GUARD = asyncio.Lock()
+_SCORE_LOCKS_MAX = 512  # LRU cap to prevent unbounded growth
+
+
+async def _get_score_lock(cache_key: str) -> asyncio.Lock:
+    """Return a shared per-key lock, evicting oldest if at capacity."""
+    async with _SCORE_LOCKS_GUARD:
+        if cache_key in _SCORE_LOCKS:
+            return _SCORE_LOCKS[cache_key]
+        # Evict oldest entries when at capacity
+        while len(_SCORE_LOCKS) >= _SCORE_LOCKS_MAX:
+            oldest_key = next(iter(_SCORE_LOCKS))
+            del _SCORE_LOCKS[oldest_key]
+        lock = asyncio.Lock()
+        _SCORE_LOCKS[cache_key] = lock
+        return lock
+
 
 class AuditService:
     """Stateless audit pipeline orchestrator."""
@@ -65,12 +87,6 @@ class AuditService:
     def __init__(self, gemini: GeminiService, cache: Cache) -> None:
         self._gemini = gemini
         self._cache = cache
-        # Issue #4 fix: per-key locks for single-flight cache population.
-        # When multiple concurrent requests arrive for the same profile key
-        # with a cold cache, only the first coroutine computes the score;
-        # all others wait at the lock and then read the cached result.
-        self._score_locks: dict[str, asyncio.Lock] = {}
-        self._score_locks_guard = asyncio.Lock()
 
     async def run_audit(
         self,
@@ -104,13 +120,9 @@ class AuditService:
         import math as _math
         cache_key = score_cache_key(validated_profile)
 
-        # Issue #4 fix: single-flight lock prevents thundering herd.
-        # Multiple concurrent requests for the same cold cache key would
-        # each compute the score independently without this guard.
-        async with self._score_locks_guard:
-            if cache_key not in self._score_locks:
-                self._score_locks[cache_key] = asyncio.Lock()
-            key_lock = self._score_locks[cache_key]
+        # Issue #3 fix: use module-level single-flight lock (shared across
+        # all per-request AuditService instances) to prevent thundering herd.
+        key_lock = await _get_score_lock(cache_key)
 
         original_score: float | None
         async with key_lock:
