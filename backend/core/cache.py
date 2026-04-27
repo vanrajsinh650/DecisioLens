@@ -79,3 +79,43 @@ def profile_cache_key(profile: Mapping[str, Any]) -> str:
     """
     canonical = json.dumps(profile, sort_keys=True, default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+# Fields that are actually consumed by domain scorers in core/model.py.
+# name is intentionally excluded — it is PII and has no effect on scoring.
+# Any field not in this set is a non-scorer field and must not affect cache locality.
+_SCORER_FIELDS: frozenset[str] = frozenset({
+    "domain",
+    # hiring
+    "score", "experience", "education", "college", "interview_score",
+    # lending
+    "credit_score", "income", "loan_amount", "employment_type", "employment_years",
+    # education
+    "grade_12", "category", "income_band", "extracurricular",
+    # insurance
+    "age", "claim_amount", "pre_existing", "coverage_amount", "policy_tenure", "city_tier",
+    # welfare
+    "annual_income", "land_holding", "aadhaar_linked", "state_tier",
+    "family_size", "employment_status", "housing_status",
+    # counterfactual variation fields (gender/location used in swapped profiles)
+    "gender", "location",
+})
+
+
+def score_cache_key(profile: Mapping[str, Any]) -> str:
+    """
+    Produce a cache key from **scoring-relevant fields only**.
+
+    ``name`` and any other non-scorer fields are excluded so that
+    semantically identical profiles (same domain + same scoring inputs)
+    always map to the same cache slot, regardless of the applicant name
+    or any other PII-adjacent metadata field.
+
+    This fixes the cache-locality bug where 1,000 requests with identical
+    scoring inputs but different names produced 1,000 distinct cache entries.
+    """
+    scorer_subset = {
+        k: v for k, v in profile.items() if k in _SCORER_FIELDS
+    }
+    canonical = json.dumps(scorer_subset, sort_keys=True, default=str)
+    return hashlib.sha256(canonical.encode()).hexdigest()

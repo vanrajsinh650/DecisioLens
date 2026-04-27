@@ -61,6 +61,16 @@ class Settings(BaseSettings):
     # ── AI network safety ───────────────────────────────────────────
     AI_CALL_TIMEOUT_SECONDS: float = Field(default=10.0)
 
+    # ── Rate limiting (Issue #6 fix) ────────────────────────────────
+    # Per-key token bucket: allows up to RATE_LIMIT_BURST in one burst,
+    # then refills at RATE_LIMIT_RPM / 60 tokens per second.
+    RATE_LIMIT_RPM: int = Field(default=60)   # requests per minute per API key
+    RATE_LIMIT_BURST: int = Field(default=10)  # max instantaneous burst per key
+    # Global in-flight audit pipeline cap across all keys (Issue #3 backpressure).
+    # At 3 AI calls per audit and semaphore limit 30, this keeps AI demand <= 60
+    # concurrent calls — well within the semaphore ceiling.
+    AUDIT_MAX_CONCURRENT: int = Field(default=20)
+
     @property
     def gemini_api_key_resolved(self) -> str:
         """Return whichever Gemini key is available."""

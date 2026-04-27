@@ -53,9 +53,16 @@ class VariationResult(BaseModel):
 class StabilityZone(BaseModel):
     """One range band in the decision stability map."""
 
+    model_config = {"extra": "ignore"}
+
     start: float
     end: float
     label: str = Field(description="ACCEPT or REJECT")
+    # Issue #5 fix: non-overlapping boundary semantics.
+    # inclusive_start/end encode which endpoint the band owns so the boundary
+    # value cannot simultaneously belong to both ACCEPT and REJECT.
+    inclusive_start: bool = Field(default=True)
+    inclusive_end: bool = Field(default=True)
 
 
 class StabilityZoneResult(BaseModel):

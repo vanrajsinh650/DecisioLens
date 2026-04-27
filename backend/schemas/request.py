@@ -113,7 +113,13 @@ def _normalize_gender(value: Any) -> str | None:
     if value is None:
         return None
     if not isinstance(value, str):
-        return None
+        # Issue #4 fix: silently coercing non-string values (e.g. True, 42) to None
+        # masked malformed payloads and caused inconsistent bias-check outcomes.
+        # Reject with a clear error so clients send well-typed data.
+        raise ValueError(
+            f"gender must be a string or null, got {type(value).__name__!r} — "
+            "valid examples: \"male\", \"female\", \"other\", null"
+        )
     cleaned = value.strip().lower().replace("_", "-")
     return cleaned or None
 

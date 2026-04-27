@@ -78,17 +78,16 @@ def _score_hiring(profile: Mapping[str, Any]) -> float:
         + (0.15 * interview_component)
     )
 
-    # Demographic modifiers — small but present for bias detection
-    gender = str(profile.get("gender") or "").lower()
-    location = str(profile.get("location") or "").lower()
+    # Demographic variables are recorded for counterfactual/bias analysis only.
+    # They MUST NOT modify the production decision score — doing so creates
+    # illegal discrimination and direct legal exposure in hiring decisions.
+    # gender_effect and location_effect are intentionally held at 0.0 here.
+    # The bias-detection layer (detect_bias_patterns) scores swapped profiles
+    # independently, which is the correct place to surface demographic sensitivity.
+    _ = profile.get("gender")    # accessed only in counterfactual variations
+    _ = profile.get("location")  # accessed only in counterfactual variations
 
-    gender_effect = -0.03 if gender in ("female", "f") else 0.0
-    location_effect = (
-        -0.02 if location in ("nagpur", "jaipur", "lucknow", "patna", "bhopal", "rural", "village")
-        else 0.0
-    )
-
-    return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+    return round(_clamp(base, 0.0, 1.0), 6)
 
 
 # ── Lending ───────────────────────────────────────────────────────────
@@ -139,13 +138,11 @@ def _score_lending(profile: Mapping[str, Any]) -> float:
         + (0.10 * employment_type_component)
     )
 
-    # Demographic modifiers — small but present for bias detection
-    gender_effect = -0.03 if gender in ("female", "f") else 0.0
-    location_effect = (
-        -0.02 if location in ("rural", "remote", "village", "small town") else 0.0
-    )
+    # Demographic variables are recorded for counterfactual/bias analysis only.
+    # They MUST NOT modify the production decision score.
+    # gender and location are read above but their effect is zeroed here.
 
-    return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+    return round(_clamp(base, 0.0, 1.0), 6)
 
 
 # ── Education ─────────────────────────────────────────────────────────
@@ -201,14 +198,11 @@ def _score_education(profile: Mapping[str, Any]) -> float:
         + (0.07 * college_tier_component)
     )
 
-    # Demographic modifiers — small but present for bias detection
-    gender_effect = -0.03 if gender in ("female", "f") else 0.0
-    location_effect = (
-        -0.02 if location in ("rural", "village", "remote", "small town") else 0.0
-    )
-    category_effect = -0.02 if category in ("sc", "st", "obc", "ews") else 0.0
+    # Demographic variables are recorded for counterfactual/bias analysis only.
+    # They MUST NOT modify the production decision score.
+    # gender, location, category are read above but their effect is zeroed here.
 
-    return round(_clamp(base + gender_effect + location_effect + category_effect, 0.0, 1.0), 6)
+    return round(_clamp(base, 0.0, 1.0), 6)
 
 
 # ── Insurance ─────────────────────────────────────────────────────────
@@ -268,14 +262,11 @@ def _score_insurance(profile: Mapping[str, Any]) -> float:
         + (0.10 * tenure_component)
     )
 
-    # Demographic modifiers — small but present for bias detection
-    gender_effect = -0.03 if gender in ("female", "f") else 0.0
-    location_effect = (
-        -0.02 if "tier 3" in city_tier or "rural" in city_tier
-        else 0.0
-    )
+    # Demographic variables are recorded for counterfactual/bias analysis only.
+    # They MUST NOT modify the production decision score.
+    # gender and city_tier are read above but their effect is zeroed here.
 
-    return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+    return round(_clamp(base, 0.0, 1.0), 6)
 
 
 # ── Welfare ───────────────────────────────────────────────────────────
@@ -341,14 +332,11 @@ def _score_welfare(profile: Mapping[str, Any]) -> float:
         + (0.10 * category_component)
     )
 
-    # Demographic modifiers — small but present for bias detection
-    gender_effect = -0.03 if gender in ("female", "f") else 0.0
-    location_effect = (
-        -0.02 if "remote" in state_tier or "developing" in state_tier
-        else 0.0
-    )
+    # Demographic variables are recorded for counterfactual/bias analysis only.
+    # They MUST NOT modify the production decision score.
+    # gender and state_tier are read above but their effect is zeroed here.
 
-    return round(_clamp(base + gender_effect + location_effect, 0.0, 1.0), 6)
+    return round(_clamp(base, 0.0, 1.0), 6)
 
 
 # ── Custom ────────────────────────────────────────────────────────────

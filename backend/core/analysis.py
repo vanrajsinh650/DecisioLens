@@ -306,22 +306,43 @@ def compute_stability_zone(
     Convert a score into continuous ACCEPT / REJECT threshold bands.
 
     The exact decision boundary is the score itself: thresholds at or below
-    the score accept, while thresholds above the score reject. The sampled
-    sweep is accepted for API compatibility but is not used as the source of
-    truth for the boundary.
+    the score accept, while thresholds strictly above the score reject.
+
+    Issue #5 fix: each zone now carries ``inclusive_start`` and
+    ``inclusive_end`` flags instead of relying on shared numeric boundaries.
+    This eliminates the ambiguity where the boundary value appeared in both
+    bands, causing disagreement between the UI visualization and the threshold
+    sensitivity table near exact-threshold cases (e.g. score=0.50).
 
     Returns
     -------
     dict with keys:
-        zones   – list of {start, end, label} range bands
-        summary – one-line human-readable sentence
+        zones   - list of {start, end, label, inclusive_start, inclusive_end}
+        summary - one-line human-readable sentence
     """
     boundary = round(_normalize_score(score, "score"), 4)
+    # ACCEPT band: [0, boundary] inclusive on both ends.
+    # REJECT band: (boundary, 1] exclusive on the left — boundary belongs to ACCEPT only.
     zones = [
-        {"start": 0.0, "end": boundary, "label": "ACCEPT"},
-        {"start": boundary, "end": 1.0, "label": "REJECT"},
+        {
+            "start": 0.0,
+            "end": boundary,
+            "label": "ACCEPT",
+            "inclusive_start": True,
+            "inclusive_end": True,
+        },
+        {
+            "start": boundary,
+            "end": 1.0,
+            "label": "REJECT",
+            "inclusive_start": False,
+            "inclusive_end": True,
+        },
     ]
-    summary = f"Result is ACCEPT at thresholds <= {score:.2f} and REJECT above {score:.2f}."
+    summary = (
+        f"Result is ACCEPT at thresholds <= {score:.2f} "
+        f"and REJECT at thresholds > {score:.2f}."
+    )
 
     return {"zones": zones, "summary": summary}
 

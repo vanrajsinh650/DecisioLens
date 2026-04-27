@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from core.cache import Cache
 from core.config import get_settings
 from core.dependencies import get_cache, get_gemini_service
+from core.ratelimit import get_rate_limiter
 from ai.gemini import GeminiService
 from schemas.response import AuditResponse
 from services.audit_service import AuditService
@@ -40,22 +41,26 @@ def _get_audit_service(
     return AuditService(gemini=gemini, cache=cache)
 
 
-async def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
+async def require_api_key(x_api_key: str | None = Header(default=None)) -> str:
     """Reject unauthenticated audit runs before any AI work is scheduled.
 
     The expected key must be supplied by a trusted server-side caller (for
     example the Next.js API proxy), never by browser JavaScript.
+
+    Returns the validated key so callers can use it for per-key rate limiting.
     """
     expected_key = get_settings().audit_api_key_resolved
     if not expected_key:
         raise HTTPException(status_code=503, detail="Audit API key is not configured")
     if not x_api_key or not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
+    return x_api_key
 
 
-@router.post("/run", response_model=AuditResponse, dependencies=[Depends(require_api_key)])
+@router.post("/run", response_model=AuditResponse)
 async def run_audit_endpoint(
     request: AuditRequest,
+    api_key: str = Depends(require_api_key),
     service: AuditService = Depends(_get_audit_service),
 ) -> AuditResponse:
     """
@@ -64,12 +69,36 @@ async def run_audit_endpoint(
     Accepts a domain, profile dict, and threshold; returns a structured
     audit result including the original decision, threshold analysis,
     counterfactual variations, risk insights, explanation, and appeal.
-    """
-    # Inject domain into the profile dict so the scoring layer can dispatch
-    profile_with_domain = {**request.profile, "domain": request.domain}
 
-    return await service.run_audit(
-        profile=profile_with_domain,
-        threshold=request.threshold,
-    )
+    Issue #6 fix: enforces per-key token-bucket rate limiting and a global
+    concurrency cap before scheduling any scoring or AI work.
+    """
+    limiter = get_rate_limiter()
+
+    # Per-key rate check (token bucket) — fast, synchronous
+    if not limiter.check(api_key):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded — please slow down and retry.",
+            headers={"Retry-After": "10"},
+        )
+
+    # Global concurrency cap — reject early before expensive pipeline runs
+    slot_acquired = await limiter.acquire_global()
+    if not slot_acquired:
+        raise HTTPException(
+            status_code=429,
+            detail="Server is at maximum audit capacity — please retry shortly.",
+            headers={"Retry-After": "5"},
+        )
+
+    try:
+        # Inject domain into the profile dict so the scoring layer can dispatch
+        profile_with_domain = {**request.profile, "domain": request.domain}
+        return await service.run_audit(
+            profile=profile_with_domain,
+            threshold=request.threshold,
+        )
+    finally:
+        limiter.release_global()
 

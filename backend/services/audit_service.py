@@ -33,7 +33,7 @@ from core.analysis import (
     detect_bias_patterns,
     detect_instability,
 )
-from core.cache import Cache, profile_cache_key
+from core.cache import Cache, score_cache_key
 from core.logging import get_logger
 from core.model import compute_score_from_validated
 from core.scenario import evaluate_variations, generate_variations
@@ -94,7 +94,7 @@ class AuditService:
 
         # ── 2. Baseline score (cached) ───────────────────────────────
         import math as _math
-        cache_key = profile_cache_key(validated_profile)
+        cache_key = score_cache_key(validated_profile)
         original_score: float | None = self._cache.get(cache_key)
         if original_score is None:
             original_score = compute_score_from_validated(validated_profile)
