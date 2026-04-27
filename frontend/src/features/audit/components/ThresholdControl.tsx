@@ -14,6 +14,14 @@ export default function ThresholdControl({
     const boundaryPoints = formatNumber(value * 100, 2);
     const normalizedThreshold = formatThreshold(value);
 
+    const isExtremelyLow = value <= 0.10;
+    const isExtremelyHigh = value >= 0.90;
+    const extremeWarning = isExtremelyLow
+        ? "⚠ The bar is set so low that almost everyone will pass — this result may not be meaningful."
+        : isExtremelyHigh
+            ? "⚠ The bar is set so high that almost no one will pass — this result may not be meaningful."
+            : null;
+
     return (
         <div
             id="threshold-control"
@@ -91,6 +99,24 @@ export default function ThresholdControl({
                     Passing bar · Higher means stricter selection
                 </span>
             </div>
+
+            {extremeWarning && (
+                <p
+                    className="font-body"
+                    style={{
+                        margin: 0,
+                        fontSize: "var(--fs-micro)",
+                        color: "var(--aurora-amber)",
+                        background: "var(--aurora-amber-surface)",
+                        border: "1px solid hsl(38, 82%, 24%)",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                        lineHeight: 1.5,
+                    }}
+                >
+                    {extremeWarning}
+                </p>
+            )}
         </div>
     );
 }

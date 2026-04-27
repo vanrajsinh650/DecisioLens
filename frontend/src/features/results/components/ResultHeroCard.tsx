@@ -1,5 +1,5 @@
 import { formatDateTime, formatPercent, formatSignedNumber, signalClasses, SignalTone } from "@/lib/format";
-import { AuditSession } from "@/types/audit";
+import { AuditSession, Decision } from "@/types/audit";
 
 interface ResultHeroCardProps {
     session: AuditSession;
@@ -8,27 +8,56 @@ interface ResultHeroCardProps {
     readOnly?: boolean;
 }
 
-function getStabilityVerdict(riskScore: number): {
+function getStabilityVerdict(
+    decision: Decision,
+    riskScore: number,
+): {
     label: string;
     tone: SignalTone;
     pillLabels: string[];
 } {
-    if (riskScore >= 70)
+    // Decision is the primary signal. Risk score adds nuance within each outcome.
+    if (decision === "REJECT") {
+        if (riskScore >= 70) {
+            return {
+                label: "This decision was rejected and may be unfair",
+                tone: "risk",
+                pillLabels: ["Application Rejected", "Possible Bias Detected", "High Concern"],
+            };
+        }
+        if (riskScore >= 35) {
+            return {
+                label: "This decision was rejected — worth a closer look",
+                tone: "warn",
+                pillLabels: ["Application Rejected", "Close to the Cutoff", "Medium Concern"],
+            };
+        }
         return {
-            label: "This decision may be unfair",
-            tone: "risk",
-            pillLabels: ["Result Changes Easily", "A Human Should Check This", "High Concern"],
-        };
-    if (riskScore >= 35)
-        return {
-            label: "This decision is not fully clear",
+            label: "This application was not approved",
             tone: "warn",
-            pillLabels: ["Close Call", "Worth Checking", "Medium Concern"],
+            pillLabels: ["Application Rejected", "Result Looks Consistent", "Low Concern"],
         };
+    }
+
+    // ACCEPT outcomes — shade by risk
+    if (riskScore >= 70) {
+        return {
+            label: "Approved — but this decision may be unfair",
+            tone: "risk",
+            pillLabels: ["Application Approved", "Possible Bias Detected", "High Concern"],
+        };
+    }
+    if (riskScore >= 35) {
+        return {
+            label: "Approved — though it's a close call",
+            tone: "warn",
+            pillLabels: ["Application Approved", "Near the Cutoff", "Medium Concern"],
+        };
+    }
     return {
-        label: "This decision looks stable",
+        label: "This decision looks stable and fair",
         tone: "safe",
-        pillLabels: ["Looks Good", "No Issues Found", "Low Concern"],
+        pillLabels: ["Application Approved", "No Issues Found", "Low Concern"],
     };
 }
 
@@ -39,7 +68,7 @@ export default function ResultHeroCard({
     readOnly = false,
 }: ResultHeroCardProps) {
     const { request, response } = session;
-    const verdict = getStabilityVerdict(response.insights.risk_score);
+    const verdict = getStabilityVerdict(response.original.decision, response.insights.risk_score);
     const palette = signalClasses[verdict.tone];
 
     const originalScore = response.original.score;

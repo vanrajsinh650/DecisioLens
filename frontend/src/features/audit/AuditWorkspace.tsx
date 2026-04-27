@@ -278,7 +278,7 @@ function RiskPreview({ threshold, score }: { threshold: number; score: number })
             >
                 <span>0</span>
                 <span style={{ color: dotColor }}>
-                    {formatSignedNumber(distance, 0, " pts margin")}
+                    {formatSignedNumber(distance, 1, " pts margin")}
                 </span>
                 <span>100</span>
             </div>
@@ -299,6 +299,7 @@ export default function AuditWorkspace() {
     const [profile, setProfile] = useState<AuditProfile>({ ...DEFAULT_PROFILE });
     const [threshold, setThreshold] = useState<number>(getDomainConfig(DEFAULT_DOMAIN).defaultThreshold);
     const [customFields, setCustomFields] = useState<DomainFieldConfig[]>(getDomainConfig("custom").fields);
+    const [draftRestored, setDraftRestored] = useState(false);
     const [lastSubmission, setLastSubmission] = useState<{
         domain: DomainType;
         request: AuditRequest;
@@ -315,6 +316,7 @@ export default function AuditWorkspace() {
         setDomain(draft.domain);
         setProfile(alignProfileWithDomain(draft.domain, draft.profile));
         setThreshold(draft.threshold);
+        setDraftRestored(true);
     }, []);
 
     const activeDomainConfig = useMemo(() => {
@@ -403,6 +405,7 @@ export default function AuditWorkspace() {
         setDomain(DEFAULT_DOMAIN);
         setProfile(nextProfile);
         setThreshold(getDomainConfig(DEFAULT_DOMAIN).defaultThreshold);
+        setDraftRestored(false);
         clearAuditDraft();
         clearCurrentResult();
     };
@@ -494,6 +497,35 @@ export default function AuditWorkspace() {
 
             {/* Single-column instrument panel */}
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
+
+                {draftRestored && (
+                    <div
+                        className="font-body"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "12px",
+                            padding: "12px 16px",
+                            background: "var(--aurora-teal-surface)",
+                            border: "1px solid hsl(172, 60%, 24%)",
+                            borderRadius: "8px",
+                            fontSize: "var(--fs-micro)",
+                            color: "var(--aurora-teal)",
+                        }}
+                    >
+                        <span>📋 Your previous test data has been restored. You can continue where you left off, or start fresh.</span>
+                        <button
+                            type="button"
+                            onClick={resetDraft}
+                            className="dl-btn-ghost"
+                            style={{ padding: "4px 10px", fontSize: "var(--fs-micro)", flexShrink: 0 }}
+                        >
+                            Start Fresh
+                        </button>
+                    </div>
+                )}
+
                 <div className="dl-card">
                     <AuditForm
                         domain={domain}

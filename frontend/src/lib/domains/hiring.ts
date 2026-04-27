@@ -9,6 +9,7 @@ export const hiringDomain: DomainConfig = {
         { key: "name", label: "Candidate Name", type: "text", placeholder: "Alex Kumar" },
         { key: "score", label: "Skills Score", type: "number", min: 0, max: 100 },
         { key: "experience", label: "Years of Experience", type: "number", min: 0, max: 50 },
+        { key: "interview_score", label: "Interview Score", type: "number", min: 0, max: 100 },
         {
             key: "gender",
             label: "Gender",
@@ -27,6 +28,7 @@ export const hiringDomain: DomainConfig = {
         name: "Alex Kumar",
         score: 72,
         experience: 4,
+        interview_score: 65,
         gender: "Male",
         location: "Bengaluru",
         college: "Tier 1",
@@ -47,6 +49,7 @@ export const hiringDomain: DomainConfig = {
                 name: "Riya Shah",
                 score: 66,
                 experience: 3,
+                interview_score: 60,
                 gender: "Female",
                 location: "Mumbai",
                 college: "Tier 1",
@@ -54,3 +57,4 @@ export const hiringDomain: DomainConfig = {
         },
     ],
 };
+

@@ -147,6 +147,24 @@ export default function AuditForm({
                 />
             </div>
 
+            {!canSubmit && (
+                <p
+                    className="font-body"
+                    style={{
+                        fontSize: "var(--fs-micro)",
+                        color: "var(--aurora-amber)",
+                        background: "var(--aurora-amber-surface)",
+                        border: "1px solid hsl(38, 82%, 24%)",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                        lineHeight: 1.5,
+                        marginTop: "8px",
+                    }}
+                >
+                    ⚠ Please select a valid decision type before running the test.
+                </p>
+            )}
+
             <SubmitAuditButton isLoading={isLoading} disabled={!canSubmit} />
         </form>
     );

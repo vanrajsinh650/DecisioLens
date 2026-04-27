@@ -152,7 +152,7 @@ export default function ResultsExperience() {
             <EmptyState
                 title="No results yet"
                 description="Run a test first to see if an AI decision was fair."
-                ctaLabel="Test a Decision"
+                ctaLabel="Test This Decision →"
                 ctaHref="/audit"
             />
         );

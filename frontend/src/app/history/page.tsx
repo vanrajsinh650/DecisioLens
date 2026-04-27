@@ -27,6 +27,12 @@ function verdictTone(verdict: StoredAuditSession["trustVerdict"]): "stable" | "c
     return "stable";
 }
 
+const VERDICT_LABELS: Record<StoredAuditSession["trustVerdict"], string> = {
+    HIGH_RISK: "Possible Unfairness",
+    UNSTABLE: "Close Call",
+    STABLE: "Looks Fair",
+};
+
 function isWithinRange(entry: StoredAuditSession, range: TimeRangeFilter): boolean {
     if (range === "all") {
         return true;
@@ -183,7 +189,7 @@ export default function HistoryPage() {
                                         <Badge label={entry.domain} tone="info" />
                                     </td>
                                     <td style={{ padding: "12px" }}>
-                                        <Badge label={entry.trustVerdict} tone={verdictTone(entry.trustVerdict)} dot />
+                                        <Badge label={VERDICT_LABELS[entry.trustVerdict]} tone={verdictTone(entry.trustVerdict)} dot />
                                     </td>
                                     <td className="font-mono" style={{ padding: "12px", color: "var(--t1)", fontSize: "var(--fs-mono)" }}>
                                         {formatNumber(entry.response.insights.risk_score, 0)}/100
