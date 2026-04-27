@@ -6,7 +6,7 @@ export const hiringDomain: DomainConfig = {
     description: "Candidate screening and recruitment decision auditing",
     defaultThreshold: 0.5,
     fields: [
-        { key: "name", label: "Candidate Name", type: "text", placeholder: "Alex Kumar" },
+        { key: "name", label: "Candidate Name", type: "text", placeholder: "Enter candidate name" },
         { key: "score", label: "Skills Score", type: "number", min: 0, max: 100 },
         { key: "experience", label: "Years of Experience", type: "number", min: 0, max: 50 },
         { key: "interview_score", label: "Interview Score", type: "number", min: 0, max: 100 },
@@ -16,7 +16,7 @@ export const hiringDomain: DomainConfig = {
             type: "select",
             options: ["Female", "Male", "Non-binary", "Prefer not to say"],
         },
-        { key: "location", label: "Location", type: "text", placeholder: "Bengaluru" },
+        { key: "location", label: "Location", type: "text", placeholder: "Enter location" },
         {
             key: "college",
             label: "College Tier",
@@ -25,13 +25,13 @@ export const hiringDomain: DomainConfig = {
         },
     ],
     defaultProfile: {
-        name: "Alex Kumar",
-        score: 72,
-        experience: 4,
-        interview_score: 65,
-        gender: "Male",
-        location: "Bengaluru",
-        college: "Tier 1",
+        name: "",
+        score: "",
+        experience: "",
+        interview_score: "",
+        gender: "",
+        location: "",
+        college: "",
     },
     variationLabels: {
         baseline: "Original Candidate",
@@ -39,22 +39,5 @@ export const hiringDomain: DomainConfig = {
         location_change: "Location Changed",
         college_change: "College Tier Changed",
     },
-    presets: [
-        {
-            id: "borderline-hiring",
-            title: "Borderline Hiring Case",
-            description: "Near-boundary score where small threshold shifts may flip the decision.",
-            threshold: 0.5,
-            profile: {
-                name: "Riya Shah",
-                score: 66,
-                experience: 3,
-                interview_score: 60,
-                gender: "Female",
-                location: "Mumbai",
-                college: "Tier 1",
-            },
-        },
-    ],
+    presets: [],
 };
-

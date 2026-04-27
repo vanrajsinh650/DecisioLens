@@ -6,7 +6,7 @@ export const insuranceDomain: DomainConfig = {
     description: "Health insurance claim approval and rejection simulation",
     defaultThreshold: 0.52,
     fields: [
-        { key: "name", label: "Applicant Name", type: "text", placeholder: "Sunita Verma" },
+        { key: "name", label: "Applicant Name", type: "text", placeholder: "Enter applicant name" },
         { key: "age", label: "Age", type: "number", min: 18, max: 90 },
         {
             key: "gender",
@@ -30,13 +30,13 @@ export const insuranceDomain: DomainConfig = {
         { key: "policy_tenure", label: "Policy Tenure (years)", type: "number", min: 0, max: 30 },
     ],
     defaultProfile: {
-        name: "Sunita Verma",
-        age: 54,
-        gender: "Female",
-        city_tier: "Tier 2",
-        pre_existing: "Diabetes",
-        claim_amount: 4,
-        policy_tenure: 3,
+        name: "",
+        age: "",
+        gender: "",
+        city_tier: "",
+        pre_existing: "",
+        claim_amount: "",
+        policy_tenure: "",
     },
     variationLabels: {
         baseline: "Original Applicant",
@@ -44,36 +44,5 @@ export const insuranceDomain: DomainConfig = {
         location_change: "City Tier Changed",
         age_change: "Age Group Changed",
     },
-    presets: [
-        {
-            id: "senior-claim-rejection",
-            title: "Senior Citizen Claim",
-            description: "Older patient with a pre-existing condition sitting near the approval cutoff. Tests whether age and health history affect the outcome.",
-            threshold: 0.52,
-            profile: {
-                name: "Ramesh Sharma",
-                age: 67,
-                gender: "Male",
-                city_tier: "Tier 3",
-                pre_existing: "Hypertension",
-                claim_amount: 6,
-                policy_tenure: 2,
-            },
-        },
-        {
-            id: "young-claim-stable",
-            title: "Young Urban Applicant",
-            description: "Younger metro applicant with no pre-existing conditions. Useful as a clean baseline to compare against higher-risk profiles.",
-            threshold: 0.52,
-            profile: {
-                name: "Priya Iyer",
-                age: 30,
-                gender: "Female",
-                city_tier: "Tier 1",
-                pre_existing: "None",
-                claim_amount: 2,
-                policy_tenure: 5,
-            },
-        },
-    ],
+    presets: [],
 };

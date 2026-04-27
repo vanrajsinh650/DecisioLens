@@ -6,7 +6,7 @@ export const educationDomain: DomainConfig = {
     description: "Admissions and scholarship decision auditing",
     defaultThreshold: 0.52,
     fields: [
-        { key: "name", label: "Student Name", type: "text", placeholder: "Neha Rao" },
+        { key: "name", label: "Student Name", type: "text", placeholder: "Enter student name" },
         { key: "score", label: "Entrance Score", type: "number", min: 0, max: 100 },
         { key: "grade_12", label: "Class 12 %", type: "number", min: 0, max: 100 },
         {
@@ -27,16 +27,16 @@ export const educationDomain: DomainConfig = {
             type: "select",
             options: ["Female", "Male", "Other"],
         },
-        { key: "location", label: "City", type: "text", placeholder: "Hyderabad" },
+        { key: "location", label: "City", type: "text", placeholder: "Enter city" },
     ],
     defaultProfile: {
-        name: "Neha Rao",
-        score: 88,
-        grade_12: 92,
-        income_band: "Middle",
-        category: "General",
-        gender: "Female",
-        location: "Hyderabad",
+        name: "",
+        score: "",
+        grade_12: "",
+        income_band: "",
+        category: "",
+        gender: "",
+        location: "",
     },
     variationLabels: {
         baseline: "Original Applicant",
@@ -44,21 +44,5 @@ export const educationDomain: DomainConfig = {
         location_change: "City Changed",
         category_change: "Category Changed",
     },
-    presets: [
-        {
-            id: "stable-education",
-            title: "Stable High Merit",
-            description: "Strong applicant profile expected to be robust under minor changes.",
-            threshold: 0.52,
-            profile: {
-                name: "Ananya Gupta",
-                score: 90,
-                grade_12: 94,
-                income_band: "Middle",
-                category: "General",
-                gender: "Female",
-                location: "Bengaluru",
-            },
-        },
-    ],
+    presets: [],
 };

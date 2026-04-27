@@ -3,9 +3,9 @@ import { DomainConfig, DomainFieldConfig } from "@/lib/domains";
 export const CUSTOM_DOMAIN_CONFIG_KEY = "decisiolens:custom-domain-config";
 
 export const defaultCustomFields: DomainFieldConfig[] = [
-    { key: "name", label: "Profile Name", type: "text", placeholder: "Case A" },
+    { key: "name", label: "Profile Name", type: "text", placeholder: "Enter profile name" },
     { key: "score", label: "Model Score", type: "number", min: 0, max: 100 },
-    { key: "group", label: "Group", type: "text", placeholder: "Group 1" },
+    { key: "group", label: "Group", type: "text", placeholder: "Enter group" },
 ];
 
 export const defaultCustomDomain: DomainConfig = {
@@ -15,9 +15,9 @@ export const defaultCustomDomain: DomainConfig = {
     defaultThreshold: 0.5,
     fields: defaultCustomFields,
     defaultProfile: {
-        name: "Case A",
-        score: 50,
-        group: "Group 1",
+        name: "",
+        score: "",
+        group: "",
     },
     variationLabels: {
         baseline: "Original Profile",
@@ -27,17 +27,7 @@ export const defaultCustomDomain: DomainConfig = {
 
 function buildDefaultProfile(fields: DomainFieldConfig[]): Record<string, string | number> {
     return fields.reduce<Record<string, string | number>>((profile, field) => {
-        if (field.type === "number") {
-            profile[field.key] = Number.isFinite(field.min) ? (field.min as number) : 0;
-            return profile;
-        }
-
-        if (field.type === "select") {
-            profile[field.key] = field.options?.[0] ?? "";
-            return profile;
-        }
-
-        profile[field.key] = field.placeholder ?? "";
+        profile[field.key] = "";
         return profile;
     }, {});
 }
@@ -89,7 +79,7 @@ export function sanitizeCustomFields(input: unknown): DomainFieldConfig[] {
 
     const next = [...normalized];
     if (!hasName) {
-        next.unshift({ key: "name", label: "Profile Name", type: "text", placeholder: "Case A" });
+        next.unshift({ key: "name", label: "Profile Name", type: "text", placeholder: "Enter profile name" });
     }
     if (!hasScore) {
         next.push({ key: "score", label: "Model Score", type: "number", min: 0, max: 100 });

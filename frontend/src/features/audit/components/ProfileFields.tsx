@@ -33,8 +33,9 @@ export default function ProfileFields({
         >
             {fields.map((field) => {
                 const value = profile[field.key] ?? "";
-                const required = field.key === "name";
+                const required = true;
                 const isInvalid = required && String(value).trim().length === 0;
+                const showInlineRequiredMessage = field.key === "name" && isInvalid;
 
                 return (
                     <label
@@ -66,6 +67,9 @@ export default function ProfileFields({
                                 aria-invalid={isInvalid}
                                 className="dl-select"
                             >
+                                <option value="" disabled>
+                                    Select {field.label}
+                                </option>
                                 {field.options?.map((opt) => (
                                     <option key={opt} value={opt}>
                                         {opt}
@@ -97,7 +101,7 @@ export default function ProfileFields({
                                 className="dl-input"
                             />
                         )}
-                        {isInvalid ? (
+                        {showInlineRequiredMessage ? (
                             <span className="font-body" style={{ fontSize: "var(--fs-micro)", color: "var(--aurora-crimson)" }}>
                                 {field.label} is required.
                             </span>

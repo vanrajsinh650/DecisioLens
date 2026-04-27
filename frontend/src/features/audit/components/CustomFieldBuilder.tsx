@@ -18,7 +18,7 @@ function createField(index: number): DomainFieldConfig {
         key: `field_${index}`,
         label: `Field ${index}`,
         type: "text",
-        placeholder: "Value",
+        placeholder: "Enter value",
     };
 }
 
@@ -209,7 +209,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                                 })
                             }
                             disabled={disabled}
-                            placeholder="Option A, Option B"
+                            placeholder="Option 1, Option 2"
                             className="dl-input"
                             style={{ fontSize: "0.75rem", gridColumn: "2 / 5" }}
                         />

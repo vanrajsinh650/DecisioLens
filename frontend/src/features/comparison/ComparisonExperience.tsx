@@ -35,10 +35,14 @@ function deriveTrustVerdict(riskScore: number): TrustVerdict {
 }
 
 function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string | number {
+    if (value === undefined || value === null || value === "") {
+        return "";
+    }
+
     if (field.type === "number") {
         const numeric = Number(value);
         if (!Number.isFinite(numeric)) {
-            return field.min ?? 0;
+            return "";
         }
 
         const withMin = typeof field.min === "number" ? Math.max(field.min, numeric) : numeric;
@@ -48,10 +52,14 @@ function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string
 
     const text = typeof value === "string" ? value : String(value ?? "");
     if (field.type === "select") {
+        if (text.trim().length === 0) {
+            return "";
+        }
+
         if ((field.options ?? []).includes(text)) {
             return text;
         }
-        return field.options?.[0] ?? "";
+        return "";
     }
 
     return text;
@@ -60,7 +68,7 @@ function normalizeProfileValue(field: DomainFieldConfig, value: unknown): string
 function buildProfileFromFields(fields: DomainFieldConfig[], seed: AuditProfile): AuditProfile {
     return fields.reduce<AuditProfile>((profile, field) => {
         const seedValue = seed[field.key];
-        profile[field.key] = normalizeProfileValue(field, seedValue ?? field.placeholder ?? "");
+        profile[field.key] = normalizeProfileValue(field, seedValue);
         return profile;
     }, {});
 }

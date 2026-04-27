@@ -10,7 +10,7 @@ export const AUDIT_WALKTHROUGH_STEPS: WalkthroughStep[] = [
     {
         targetId: "profile-fields",
         title: "Step 2: Enter a Profile",
-        body: "Fill in the details for the person being tested. Use real values if you can, or try one of the built-in presets.",
+        body: "Fill in the details for the person being tested. The form starts empty so you can enter your own values directly.",
         position: "right",
     },
     {
