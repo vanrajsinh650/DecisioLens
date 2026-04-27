@@ -26,8 +26,8 @@ export const welfareDomain: DomainConfig = {
             options: ["Metro State", "Developed State", "Developing State", "Remote Region"],
         },
         { key: "annual_income", label: "Annual Income (₹)", type: "number", min: 0, placeholder: "e.g. 80000" },
-        { key: "family_size", label: "Family Size", type: "number", min: 1, max: 20 },
-        { key: "land_holding", label: "Land Holding (acres)", type: "number", min: 0, max: 20 },
+        { key: "family_size", label: "Family Size", type: "number", min: 1, max: 20, placeholder: "e.g. 4" },
+        { key: "land_holding", label: "Land Holding (acres)", type: "number", min: 0, max: 20, placeholder: "e.g. 2" },
         {
             key: "employment_status",
             label: "Employment Status",

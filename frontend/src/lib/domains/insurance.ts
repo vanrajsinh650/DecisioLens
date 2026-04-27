@@ -7,7 +7,7 @@ export const insuranceDomain: DomainConfig = {
     defaultThreshold: 0.52,
     fields: [
         { key: "name", label: "Applicant Name", type: "text", placeholder: "Enter applicant name" },
-        { key: "age", label: "Age", type: "number", min: 18, max: 90 },
+        { key: "age", label: "Age", type: "number", min: 18, max: 90, placeholder: "e.g. 45" },
         {
             key: "gender",
             label: "Gender",
@@ -28,7 +28,7 @@ export const insuranceDomain: DomainConfig = {
         },
         { key: "claim_amount", label: "Claim Amount (₹)", type: "number", min: 0, placeholder: "e.g. 50000" },
         { key: "coverage_amount", label: "Coverage Amount (₹)", type: "number", min: 0, placeholder: "e.g. 500000" },
-        { key: "policy_tenure", label: "Policy Tenure (years)", type: "number", min: 0, max: 30 },
+        { key: "policy_tenure", label: "Policy Tenure (years)", type: "number", min: 0, max: 30, placeholder: "e.g. 10" },
     ],
     defaultProfile: {
         name: "",

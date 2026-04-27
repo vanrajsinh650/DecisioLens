@@ -7,9 +7,9 @@ export const educationDomain: DomainConfig = {
     defaultThreshold: 0.52,
     fields: [
         { key: "name", label: "Student Name", type: "text", placeholder: "Enter student name" },
-        { key: "score", label: "Entrance Score", type: "number", min: 0, max: 100 },
-        { key: "grade_12", label: "Class 12 %", type: "number", min: 0, max: 100 },
-        { key: "extracurricular", label: "Extracurricular Score", type: "number", min: 0, max: 10 },
+        { key: "score", label: "Entrance Score", type: "number", min: 0, max: 100, placeholder: "e.g. 92 (0-100)" },
+        { key: "grade_12", label: "Class 12 %", type: "number", min: 0, max: 100, placeholder: "e.g. 88" },
+        { key: "extracurricular", label: "Extracurricular Score", type: "number", min: 0, max: 10, placeholder: "e.g. 7 (0-10)" },
         {
             key: "college",
             label: "College Tier",

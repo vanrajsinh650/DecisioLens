@@ -7,9 +7,9 @@ export const hiringDomain: DomainConfig = {
     defaultThreshold: 0.5,
     fields: [
         { key: "name", label: "Candidate Name", type: "text", placeholder: "Enter candidate name" },
-        { key: "score", label: "Skills Score", type: "number", min: 0, max: 100 },
-        { key: "experience", label: "Years of Experience", type: "number", min: 0, max: 50 },
-        { key: "interview_score", label: "Interview Score", type: "number", min: 0, max: 100 },
+        { key: "score", label: "Skills Score", type: "number", min: 0, max: 100, placeholder: "e.g. 85 (0-100)" },
+        { key: "experience", label: "Years of Experience", type: "number", min: 0, max: 50, placeholder: "e.g. 4" },
+        { key: "interview_score", label: "Interview Score", type: "number", min: 0, max: 100, placeholder: "e.g. 78 (0-100)" },
         {
             key: "gender",
             label: "Gender",
