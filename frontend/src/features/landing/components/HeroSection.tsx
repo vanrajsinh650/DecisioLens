@@ -123,7 +123,7 @@ export default function HeroSection() {
 
                     {/* CTAs */}
                     <div className="hero-stagger-4 hero-cta-row">
-                        <Link href="/audit" className="dl-btn-primary dl-btn-hero dl-btn-shine">
+                        <Link href="/audit" prefetch={true} className="dl-btn-primary dl-btn-hero dl-btn-shine">
                             <span className="btn-shine-effect" />
                             Test a Decision →
                         </Link>

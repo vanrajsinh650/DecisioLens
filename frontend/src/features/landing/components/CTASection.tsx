@@ -49,6 +49,7 @@ export default function CTASection() {
 
                 <Link
                     href="/audit"
+                    prefetch={true}
                     className="dl-btn-primary dl-btn-hero"
                     style={{ textDecoration: "none" }}
                 >
