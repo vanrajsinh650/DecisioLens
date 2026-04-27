@@ -6,17 +6,17 @@ import { useState } from "react";
 interface AppealCardProps {
     appeal: string;
     explanationRequest?: string;
-    displayLanguage?: "en" | "regional" | "both";
 }
 
 type Tab = "appeal" | "explanation";
+type Language = "en" | "regional" | "both";
 
 export default function AppealCard({ 
     appeal, 
-    explanationRequest, 
-    displayLanguage = "both" 
+    explanationRequest 
 }: AppealCardProps) {
     const [activeTab, setActiveTab] = useState<Tab>(appeal ? "appeal" : "explanation");
+    const [displayLanguage, setDisplayLanguage] = useState<Language>("both");
 
     if (!appeal && !explanationRequest) return null;
 
@@ -82,7 +82,7 @@ export default function AppealCard({
                             style={tabStyle("appeal")}
                             onClick={() => setActiveTab("appeal")}
                         >
-                            Write an Appeal Letter
+                            Appeal Letter
                         </button>
                         <button
                             type="button"
@@ -90,61 +90,105 @@ export default function AppealCard({
                             style={tabStyle("explanation")}
                             onClick={() => setActiveTab("explanation")}
                         >
-                            Ask for an Explanation
+                            Right to Explanation
                         </button>
                     </div>
                 )}
             </div>
 
-            {/* Letter body */}
+            {/* Letter body container */}
             <div
                 style={{
                     background: "var(--s2)",
                     border: "1px solid var(--rim)",
                     borderRadius: "6px",
-                    padding: "20px",
-                    position: "relative",
+                    overflow: "hidden",
                 }}
             >
-                {/* Copy button */}
-                <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                    <CopyButton value={displayLanguage === "en" ? englishText : displayLanguage === "regional" ? (regionalText || englishText) : activeText} />
-                </div>
-
-                {/* Letter text */}
-                <div
-                    className="font-mono"
-                    style={{
-                        whiteSpace: "pre-wrap",
-                        fontSize: "var(--fs-mono)",
-                        color: "var(--t2)",
-                        lineHeight: 1.9,
-                        paddingRight: "80px",
+                {/* Language Selector Sub-Header */}
+                <div 
+                    style={{ 
+                        background: "var(--s1)", 
+                        borderBottom: "1px solid var(--rim)", 
+                        padding: "12px 20px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "16px",
+                        flexWrap: "wrap"
                     }}
                 >
-                    {(displayLanguage === "en" || displayLanguage === "both") && (
-                        <div>{englishText}</div>
-                    )}
-                    
-                    {hasRegional && (displayLanguage === "regional" || displayLanguage === "both") && (
-                        <div style={{ 
-                            marginTop: displayLanguage === "both" ? "32px" : "0", 
-                            paddingTop: displayLanguage === "both" ? "32px" : "0", 
-                            borderTop: displayLanguage === "both" ? "1px dashed var(--s3)" : "none" 
-                        }}>
-                            <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>
-                                REGIONAL LANGUAGE VERSION
-                            </p>
-                            {regionalText}
-                        </div>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span className="font-mono uppercase" style={{ fontSize: "10px", color: "var(--t3)", letterSpacing: "0.1em" }}>
+                            Display Language:
+                        </span>
+                        <select
+                            value={displayLanguage}
+                            onChange={(e) => setDisplayLanguage(e.target.value as Language)}
+                            style={{ 
+                                background: "#111", 
+                                color: "#fff", 
+                                border: "1px solid var(--rim)", 
+                                borderRadius: "4px",
+                                fontSize: "12px",
+                                padding: "4px 10px",
+                                outline: "none",
+                                cursor: "pointer"
+                            }}
+                        >
+                            <option value="both" style={{ background: "#222", color: "#fff" }}>English + Regional</option>
+                            <option value="en" style={{ background: "#222", color: "#fff" }}>English Only</option>
+                            <option value="regional" style={{ background: "#222", color: "#fff" }}>Regional Only</option>
+                        </select>
+                    </div>
 
-                    {!hasRegional && displayLanguage === "regional" && (
-                        <div style={{ color: "var(--t3)", fontStyle: "italic", fontSize: "0.9rem" }}>
-                            Regional translation not available for this location. Showing English version.
-                            <div style={{ marginTop: "16px", color: "var(--t2)", fontStyle: "normal" }}>{englishText}</div>
-                        </div>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                         <span style={{ fontSize: "10px", color: "var(--t3)" }} className="font-mono uppercase">Copy Draft</span>
+                         <CopyButton value={displayLanguage === "en" ? englishText : displayLanguage === "regional" ? (regionalText || englishText) : activeText} />
+                    </div>
+                </div>
+
+                {/* Letter Content Area */}
+                <div
+                    style={{
+                        padding: "24px 20px",
+                        position: "relative",
+                    }}
+                >
+                    {/* Letter text */}
+                    <div
+                        className="font-mono"
+                        style={{
+                            whiteSpace: "pre-wrap",
+                            fontSize: "var(--fs-mono)",
+                            color: "var(--t2)",
+                            lineHeight: 1.9,
+                        }}
+                    >
+                        {(displayLanguage === "en" || displayLanguage === "both") && (
+                            <div>{englishText}</div>
+                        )}
+                        
+                        {hasRegional && (displayLanguage === "regional" || displayLanguage === "both") && (
+                            <div style={{ 
+                                marginTop: displayLanguage === "both" ? "32px" : "0", 
+                                paddingTop: displayLanguage === "both" ? "32px" : "0", 
+                                borderTop: displayLanguage === "both" ? "1px dashed var(--s3)" : "none" 
+                            }}>
+                                <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>
+                                    REGIONAL LANGUAGE VERSION
+                                </p>
+                                {regionalText}
+                            </div>
+                        )}
+
+                        {!hasRegional && displayLanguage === "regional" && (
+                            <div style={{ color: "var(--t3)", fontStyle: "italic", fontSize: "0.9rem" }}>
+                                Regional translation not available for this location. Showing English version.
+                                <div style={{ marginTop: "16px", color: "var(--t2)", fontStyle: "normal" }}>{englishText}</div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

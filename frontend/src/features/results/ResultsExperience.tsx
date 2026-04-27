@@ -38,7 +38,6 @@ export default function ResultsExperience() {
     const [error, setError] = useState<string | null>(null);
     const [readOnly, setReadOnly] = useState(false);
     const [isSessionReady, setIsSessionReady] = useState(false);
-    const [reportLanguage, setReportLanguage] = useState<"en" | "regional" | "both">("both");
     const revealContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -182,41 +181,6 @@ export default function ResultsExperience() {
                 subtitle="This report shows whether the AI decision was fair, consistent, and trustworthy."
             />
 
-            {/* Language Selector Bar */}
-            <div 
-                className="dl-reveal"
-                style={{ 
-                    display: "flex", 
-                    justifyContent: "flex-end", 
-                    alignItems: "center", 
-                    gap: "12px",
-                    marginTop: "-32px",
-                    paddingBottom: "16px",
-                    borderBottom: "1px solid var(--rim)"
-                }}
-            >
-                <span className="font-mono uppercase" style={{ fontSize: "var(--fs-micro)", color: "var(--t3)", letterSpacing: "0.1em" }}>
-                    Select Report Language
-                </span>
-                <select
-                    id="report-lang"
-                    value={reportLanguage}
-                    onChange={(e) => setReportLanguage(e.target.value as any)}
-                    className="dl-select"
-                    style={{ 
-                        minWidth: "160px", 
-                        padding: "4px 8px", 
-                        fontSize: "0.75rem",
-                        background: "transparent",
-                        border: "1px solid var(--rim)"
-                    }}
-                >
-                    <option value="both">English + Regional</option>
-                    <option value="en">English Only</option>
-                    <option value="regional">Regional Only</option>
-                </select>
-            </div>
-
             {/* Section 1 Verdict Hero */}
             <div className="print-section">
                 <ResultHeroCard
@@ -299,7 +263,6 @@ export default function ResultsExperience() {
                 <AppealCard
                     appeal={session.response.appeal}
                     explanationRequest={session.response.explanation_request}
-                    displayLanguage={reportLanguage}
                 />
             </div>
 
