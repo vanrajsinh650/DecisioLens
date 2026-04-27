@@ -115,6 +115,14 @@ class RecourseItem(BaseModel):
     impact: str = Field(description="What effect that action would have")
 
 
+class FactorImportanceItem(BaseModel):
+    """Normalized contribution of a single decision factor."""
+
+    factor: str
+    weight: float = Field(description="Relative importance of this factor (0-1)")
+    contribution: float = Field(description="Actual impact on final score")
+
+
 class HumanReview(BaseModel):
     """Human oversight recommendation based on risk analysis."""
 
@@ -144,3 +152,4 @@ class AuditResponse(BaseModel):
     explanation_request: str
     recourse: list[RecourseItem]
     human_review: HumanReview
+    factor_importance: list[FactorImportanceItem] = Field(default_factory=list)

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { formatDateTime, formatPercent, formatSignedNumber, signalClasses, SignalTone } from "@/lib/format";
 import { AuditSession, Decision } from "@/types/audit";
+import AuditCertificateOverlay from "./AuditCertificateOverlay";
 
 interface ResultHeroCardProps {
     session: AuditSession;
@@ -67,6 +69,7 @@ export default function ResultHeroCard({
     onClear,
     readOnly = false,
 }: ResultHeroCardProps) {
+    const [showCertificate, setShowCertificate] = useState(false);
     const { request, response } = session;
     const verdict = getStabilityVerdict(response.original.decision, response.insights.risk_score);
     const palette = signalClasses[verdict.tone];
@@ -192,6 +195,14 @@ export default function ResultHeroCard({
                         </button>
                         <button
                             type="button"
+                            onClick={() => setShowCertificate(true)}
+                            className="dl-btn-ghost"
+                            style={{ borderColor: palette.colorVar, color: palette.colorVar }}
+                        >
+                            OFFICIAL FORENSIC CERTIFICATE
+                        </button>
+                        <button
+                            type="button"
                             onClick={onClear}
                             className="dl-btn-ghost"
                         >
@@ -200,6 +211,13 @@ export default function ResultHeroCard({
                     </div>
                 )}
             </div>
+
+            {showCertificate && (
+                <AuditCertificateOverlay 
+                    session={session} 
+                    onClose={() => setShowCertificate(false)} 
+                />
+            )}
 
             {/* Right side three StatPill-style elements */}
             <div

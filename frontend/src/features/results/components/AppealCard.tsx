@@ -113,7 +113,13 @@ export default function AppealCard({ appeal, explanationRequest }: AppealCardPro
                         paddingRight: "80px",
                     }}
                 >
-                    {activeText}
+                    {activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---")[0]}
+                    {activeText.includes("--- REGIONAL LANGUAGE TRANSLATION ---") && (
+                        <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px dashed var(--s3)" }}>
+                            <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>REGIONAL LANGUAGE VERSION</p>
+                            {activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---")[1]}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

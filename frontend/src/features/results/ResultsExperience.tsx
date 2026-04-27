@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 
 import AppealCard from "./components/AppealCard";
+import FactorInfluenceCard from "./components/FactorInfluenceCard";
 import ExplanationCard from "./components/ExplanationCard";
 import HumanReviewCard from "./components/HumanReviewCard";
 import ImpactAnalysisCard from "./components/ImpactAnalysisCard";
@@ -201,6 +202,13 @@ export default function ResultsExperience() {
             {session.response.impact_analysis && session.response.impact_analysis.length > 0 && (
                 <div className="print-section">
                     <ImpactAnalysisCard impacts={session.response.impact_analysis} />
+                </div>
+            )}
+
+            {/* Section 3.5 Factor Influence Breakdown */}
+            {session.response.factor_importance && session.response.factor_importance.length > 0 && (
+                <div className="print-section">
+                    <FactorInfluenceCard factors={session.response.factor_importance} />
                 </div>
             )}
 

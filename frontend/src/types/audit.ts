@@ -104,6 +104,13 @@ export interface AuditResult {
   recourse?: RecourseItem[];
   human_review?: HumanReview;
   ai_jury_view?: AIJuryView;
+  factor_importance?: FactorImportanceItem[];
+}
+
+export interface FactorImportanceItem {
+  factor: string;
+  weight: number;
+  contribution: number;
 }
 
 export type ThresholdAnalysisRow = ThresholdAnalysisItem;

@@ -24,6 +24,7 @@
     --aurora-green: #2E7D32;
     --aurora-crimson: #D32F2F;
     --aurora-amber: #F57C00;
+    --aurora-blue: #0284C7;
 
     /* Accent surface variants */
     --aurora-violet-surface: rgba(255, 69, 0, 0.1);
@@ -31,6 +32,7 @@
     --aurora-green-surface: rgba(46, 125, 50, 0.1);
     --aurora-crimson-surface: rgba(211, 47, 47, 0.1);
     --aurora-amber-surface: rgba(245, 124, 0, 0.1);
+    --aurora-blue-surface: rgba(2, 132, 199, 0.1);
 
     /* Text */
     --t1: #FFFFFF;

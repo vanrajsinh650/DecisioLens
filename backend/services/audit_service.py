@@ -53,6 +53,7 @@ from schemas.response import (
     StabilityZoneResult,
     ThresholdAnalysisItem,
     VariationResult,
+    FactorImportanceItem,
 )
 
 logger = get_logger("audit_service")
@@ -284,6 +285,9 @@ class AuditService:
             human_review["level"],
         )
 
+        # ── 9b. Factor Importance ──────────────────────────────────
+        factor_importance = _get_factor_importance(validated_profile, original_score)
+
         # ── 10. Assemble response ────────────────────────────────────
         return AuditResponse(
             original=OriginalDecision(
@@ -316,6 +320,7 @@ class AuditService:
             explanation_request=explanation_request,
             recourse=[RecourseItem(**r) for r in recourse_list],
             human_review=HumanReview(**human_review),
+            factor_importance=factor_importance,
         )
 
     # ── Private ──────────────────────────────────────────────────────
@@ -344,6 +349,7 @@ class AuditService:
             "interview_score", "employment_years",
             "extracurricular", "coverage_amount", "family_size",
             "employment_status", "housing_status",
+            "location", "city", "state",
         }
         _SAFE_STRING_VALUES = {
             "domain": {"hiring", "lending", "education", "insurance", "welfare", "custom"},
@@ -455,3 +461,62 @@ def _format_explanation_request_letter(letter: str, applicant_name: str) -> str:
         formatted = f"{formatted}\n\nApplicant: {name}"
 
     return formatted
+
+
+def _get_factor_importance(profile: Mapping[str, Any], score: float) -> list[FactorImportanceItem]:
+    """Extract relative importance of decision factors based on domain weights."""
+    domain = str(profile.get("domain") or "hiring").lower()
+    factors = []
+
+    if domain == "hiring":
+        factors = [
+            ("Experience", 0.35),
+            ("Skill Match", 0.30),
+            ("Education Tier", 0.20),
+            ("Interview Perf", 0.15),
+        ]
+    elif domain == "lending":
+        factors = [
+            ("Credit Score", 0.35),
+            ("Annual Income", 0.25),
+            ("Debt Ratio", 0.20),
+            ("Job Stability", 0.10),
+            ("Employment Type", 0.10),
+        ]
+    elif domain == "education":
+        factors = [
+            ("Acad GPA", 0.42),
+            ("Entrance Exam", 0.33),
+            ("Income Band", 0.10),
+            ("Extracurricular", 0.08),
+            ("Prev College", 0.07),
+        ]
+    elif domain == "insurance":
+        factors = [
+            ("Health History", 0.32),
+            ("Age Profile", 0.28),
+            ("Past Claims", 0.20),
+            ("Requested Cover", 0.10),
+            ("Tenure", 0.10),
+        ]
+    elif domain == "welfare":
+        factors = [
+            ("Income Need", 0.30),
+            ("Family Size", 0.15),
+            ("Land Ownership", 0.15),
+            ("Social Category", 0.10),
+            ("Housing Status", 0.10),
+            ("Job Status", 0.10),
+            ("Aadhaar KYC", 0.10),
+        ]
+    else:
+        factors = [("General Score", 1.0)]
+
+    return [
+        FactorImportanceItem(
+            factor=name,
+            weight=weight,
+            contribution=round(weight * score, 4)
+        )
+        for name, weight in factors
+    ]
