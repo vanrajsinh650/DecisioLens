@@ -152,7 +152,7 @@ export default function TopBar() {
                                 href="/audit"
                                 onClick={() => setMobileOpen(false)}
                                 className="topbar-cta-btn"
-                                style={{ display: "flex", width: "100%", textAlign: "center" }}
+                                style={{ display: "flex", width: "100%", justifyContent: "center", textAlign: "center" }}
                             >
                                 <span className="topbar-cta-shine" />
                                 <span className="topbar-cta-label">Take Decision</span>
