@@ -7,12 +7,16 @@ import { APP_NAME } from "@/lib/constants";
 
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+    metadataBase: new URL(siteUrl),
     title: `${APP_NAME} · Decision Integrity Scanner`,
     description:
         "DecisioLens stress-tests algorithmic decisions, revealing threshold fragility, scenario bias, and confidence gaps before they become consequences.",
     icons: {
         icon: "/logo.png",
+        shortcut: "/logo.png",
         apple: "/logo.png",
     },
     openGraph: {

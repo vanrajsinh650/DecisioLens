@@ -192,6 +192,42 @@ decisiolens/
 
 ## Quick Start
 
+### Docker Compose (production-like)
+
+**Requirements:** Docker Desktop / Docker Engine with Compose.
+
+```bash
+copy .env.example .env
+docker compose up --build
+```
+
+PowerShell equivalent:
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build
+```
+
+Then open:
+
+- Frontend: `http://localhost:3000`
+- Backend health: `http://localhost:8000/health`
+
+Before deploying, edit `.env` and set:
+
+```env
+AUDIT_API_KEY=replace-with-a-long-random-secret
+GEMINI_API_KEY=your_key_here
+NEXT_PUBLIC_SITE_URL=https://your-frontend-domain.com
+CORS_ORIGINS=["https://your-frontend-domain.com"]
+ALLOWED_HOSTS=["your-api-domain.com","backend"]
+SECURE_HSTS_SECONDS=31536000
+```
+
+Keep `SECURE_HSTS_SECONDS=0` unless the backend is served only over HTTPS. API docs are disabled by default in Docker/production; set `API_DOCS_ENABLED=true` only for trusted environments.
+
+### Manual Local Development
+
 **Requirements:** Python 3.11+, Node.js 18+, a free [Google AI Studio](https://aistudio.google.com) API key.
 
 **Backend**
@@ -208,11 +244,15 @@ Create `backend/.env` before starting the API:
 ```env
 GEMINI_API_KEY=your_key_here
 AUDIT_API_KEY=replace-with-a-server-only-secret
+DEBUG=true
+API_DOCS_ENABLED=true
+CORS_ORIGINS=["http://localhost:3000"]
+ALLOWED_HOSTS=["localhost","127.0.0.1"]
 # Optional: keep ingress/proxy limits aligned with this value
 MAX_REQUEST_BODY_BYTES=131072
 ```
 
-API at `http://127.0.0.1:8000`. Swagger docs at `/docs`
+API at `http://127.0.0.1:8000`. Swagger docs are available at `/docs` when `API_DOCS_ENABLED=true`.
 
 **Frontend**
 
@@ -228,11 +268,21 @@ Set `frontend/.env.local` to the backend URL and the same server-only audit key:
 ```env
 BACKEND_API_BASE=http://127.0.0.1:8000
 AUDIT_API_KEY=replace-with-a-server-only-secret
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 The browser never receives the audit API key. Client calls go to the same-origin Next.js route (`/api/audit/run`), and that server route attaches `X-API-Key` when forwarding to FastAPI.
 
 Open `http://localhost:3000`
+
+### Docker/Production Notes
+
+- `backend/Dockerfile` runs FastAPI with Uvicorn workers as a non-root user and includes a `/health` probe.
+- `frontend/Dockerfile` uses Next.js standalone output, runs as a non-root user, and serves through `node server.js`.
+- `docker-compose.yml` wires the frontend BFF to the backend over the internal Docker network (`BACKEND_API_BASE=http://backend:8000`).
+- The browser only calls same-origin Next.js routes. `AUDIT_API_KEY` stays server-side and is forwarded from the frontend container to the backend container as `X-API-Key`.
+- Configure explicit `CORS_ORIGINS` and `ALLOWED_HOSTS` for every deployed domain. Wildcards are rejected when `DEBUG=false`.
+- Mirror `MAX_REQUEST_BODY_BYTES` at your load balancer/API gateway so large bodies are rejected before they reach the app.
 
 ---
 
@@ -299,6 +349,8 @@ SDG 10 (Reduced Inequalities) and SDG 16 (Justice and Strong Institutions) are t
 A single tool that touches six SDGs is only possible because the underlying problem is the same in every domain: an automated decision was made, a person was affected, and there was no accountability layer.
 
 ---
+
+
 
 ## What We're Building Next
 

@@ -42,9 +42,11 @@ export default function ThresholdControl({
                     fontSize: "var(--fs-micro)",
                     letterSpacing: "0.08em",
                     display: "flex",
+                    flexWrap: "wrap",
                     justifyContent: "center",
                     alignItems: "center",
                     gap: "8px",
+                    textAlign: "center",
                 }}
             >
                 <span style={{ color: "var(--aurora-crimson)" }}>REJECT</span>

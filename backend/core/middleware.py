@@ -201,10 +201,25 @@ async def pydantic_validation_error_handler(
 
 async def request_timing_middleware(request: Request, call_next):
     """Log every request with its latency and response status."""
+    settings = get_settings()
     request_id = str(uuid.uuid4())[:8]
     start = time.perf_counter()
 
     response = await call_next(request)
+
+    # Security headers for API responses. HSTS is opt-in so local HTTP and
+    # non-TLS health checks are not accidentally pinned by browsers.
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    if settings.SECURE_HSTS_SECONDS > 0:
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            f"max-age={settings.SECURE_HSTS_SECONDS}; includeSubDomains",
+        )
+    if request.url.path.startswith("/audit"):
+        response.headers.setdefault("Cache-Control", "no-store")
 
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
     logger.info(

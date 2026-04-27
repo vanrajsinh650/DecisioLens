@@ -483,7 +483,7 @@ export default function AuditWorkspace() {
                 title="Set Up Your Test"
                 subtitle="Fill in a profile, choose a category, and hit the button. We'll show you if the result is fair."
                 actions={
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px" }}>
                         <button
                             type="button"
                             id="btn-compare-mode"
@@ -517,6 +517,7 @@ export default function AuditWorkspace() {
                         className="font-body"
                         style={{
                             display: "flex",
+                            flexWrap: "wrap",
                             alignItems: "center",
                             justifyContent: "space-between",
                             gap: "12px",

@@ -103,7 +103,7 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
             className="dl-card"
             style={{ padding: "16px" }}
         >
-            <div style={{ marginBottom: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+            <div className="trust-timeline-header">
                 <div>
                     <h3
                         className="font-display"
@@ -111,18 +111,18 @@ export default function TrustTimeline({ points }: TrustTimelineProps) {
                     >
                         Risk Score Timeline
                     </h3>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginTop: "8px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div className="trust-timeline-legend" style={{ marginTop: "8px" }}>
+                        <div className="trust-timeline-legend-item">
                             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.STABLE }} />
-                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Looks Fair</span>
+                            <span className="font-mono trust-timeline-legend-label" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Looks Fair</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div className="trust-timeline-legend-item">
                             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.UNSTABLE }} />
-                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Close Call</span>
+                            <span className="font-mono trust-timeline-legend-label" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Close Call</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div className="trust-timeline-legend-item">
                             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: verdictColor.HIGH_RISK }} />
-                            <span className="font-mono" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Possible Unfairness</span>
+                            <span className="font-mono trust-timeline-legend-label" style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "var(--t2)", letterSpacing: "0.05em" }}>Possible Unfairness</span>
                         </div>
                     </div>
                 </div>

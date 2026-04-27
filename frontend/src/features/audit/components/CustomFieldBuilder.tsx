@@ -89,6 +89,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
             {fields.map((field, index) => (
                 <div
                     key={`${field.key}-${index}`}
+                    className="custom-field-row"
                     draggable={!disabled}
                     onDragStart={() => setDraggingIndex(index)}
                     onDragOver={(event) => event.preventDefault()}
@@ -96,7 +97,6 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                     style={{
                         display: "grid",
                         gap: "8px",
-                        gridTemplateColumns: "auto 1fr 1fr auto auto",
                         alignItems: "center",
                         background: "var(--s3)",
                         border: "1px solid var(--rim)",
@@ -107,7 +107,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                     <button
                         type="button"
                         disabled={disabled}
-                        className="font-mono"
+                        className="font-mono custom-field-drag"
                         style={{
                             cursor: "grab",
                             background: "var(--s2)",
@@ -127,7 +127,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         onChange={(event) => updateField(index, { key: event.target.value.trim() })}
                         disabled={disabled}
                         placeholder="field_key"
-                        className="dl-input"
+                        className="dl-input custom-field-key"
                         style={{ fontSize: "0.75rem" }}
                     />
 
@@ -136,7 +136,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         onChange={(event) => updateField(index, { label: event.target.value })}
                         disabled={disabled}
                         placeholder="Field Label"
-                        className="dl-input"
+                        className="dl-input custom-field-label"
                         style={{ fontSize: "0.75rem" }}
                     />
 
@@ -148,7 +148,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                             })
                         }
                         disabled={disabled}
-                        className="dl-select"
+                        className="dl-select custom-field-type"
                         style={{ fontSize: "0.75rem", minWidth: "80px" }}
                     >
                         {FIELD_TYPES.map((type) => (
@@ -162,7 +162,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                         type="button"
                         onClick={() => removeField(index)}
                         disabled={disabled}
-                        className="font-mono"
+                        className="font-mono custom-field-delete"
                         style={{
                             background: "var(--aurora-crimson-surface)",
                             border: "1px solid hsl(350, 68%, 30%)",
@@ -185,7 +185,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                                 onChange={(event) => updateField(index, { min: Number(event.target.value) })}
                                 disabled={disabled}
                                 placeholder="Min"
-                                className="dl-input"
+                                className="dl-input custom-field-min"
                                 style={{ fontSize: "0.75rem", gridColumn: "2 / 3" }}
                             />
                             <input
@@ -194,7 +194,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                                 onChange={(event) => updateField(index, { max: Number(event.target.value) })}
                                 disabled={disabled}
                                 placeholder="Max"
-                                className="dl-input"
+                                className="dl-input custom-field-max"
                                 style={{ fontSize: "0.75rem", gridColumn: "3 / 4" }}
                             />
                         </>
@@ -210,7 +210,7 @@ export default function CustomFieldBuilder({ onChange, disabled }: CustomFieldBu
                             }
                             disabled={disabled}
                             placeholder="Option 1, Option 2"
-                            className="dl-input"
+                            className="dl-input custom-field-options"
                             style={{ fontSize: "0.75rem", gridColumn: "2 / 5" }}
                         />
                     ) : null}

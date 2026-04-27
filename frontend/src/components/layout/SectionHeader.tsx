@@ -23,6 +23,7 @@ export default function SectionHeader({
 
     return (
         <div
+            className="section-header"
             style={{
                 marginBottom: "32px",
                 display: "flex",
@@ -32,7 +33,7 @@ export default function SectionHeader({
                 gap: "24px",
             }}
         >
-            <div style={{ maxWidth: "720px" }}>
+            <div className="section-header-copy" style={{ maxWidth: "720px", minWidth: 0 }}>
                 {displayOverline ? (
                     <p
                         className="font-mono uppercase"
@@ -87,7 +88,7 @@ export default function SectionHeader({
                 ) : null}
             </div>
             {actions ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div className="section-header-actions" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" }}>
                     {actions}
                 </div>
             ) : null}

@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     CORS_ORIGINS: List[str] = Field(
         default=["http://localhost:5173", "http://localhost:3000"]
     )
+    ALLOWED_HOSTS: List[str] = Field(
+        default=["localhost", "127.0.0.1", "0.0.0.0", "backend"]
+    )
+    API_DOCS_ENABLED: bool = Field(default=False)
+    SECURE_HSTS_SECONDS: int = Field(default=0)
     DEBUG: bool = Field(default=False)
 
     # Reject large request bodies before FastAPI/Pydantic parse JSON into memory.
@@ -67,13 +72,28 @@ class Settings(BaseSettings):
         return self.AUDIT_API_KEY
 
     @model_validator(mode="after")
-    def _reject_wildcard_credentials_in_production(self) -> "Settings":
-        """Fail fast if wildcard CORS is configured outside DEBUG mode."""
+    def _validate_production_safety(self) -> "Settings":
+        """Fail fast on unsafe or incomplete production configuration."""
+        provider = self.AI_PROVIDER.lower().strip()
+        if provider not in {"gemini", "groq"}:
+            raise ValueError("AI_PROVIDER must be either 'gemini' or 'groq'.")
+        self.AI_PROVIDER = provider
+
+        if self.SECURE_HSTS_SECONDS < 0:
+            raise ValueError("SECURE_HSTS_SECONDS must be zero or greater.")
+
         if not self.DEBUG and "*" in self.CORS_ORIGINS:
             raise ValueError(
                 "CORS_ORIGINS=['*'] with credentials is not allowed when "
                 "DEBUG=False. Set explicit trusted origins or enable DEBUG."
             )
+        if not self.DEBUG and "*" in self.ALLOWED_HOSTS:
+            raise ValueError(
+                "ALLOWED_HOSTS=['*'] is not allowed when DEBUG=False. Set explicit "
+                "trusted hostnames or enable DEBUG."
+            )
+        if not self.DEBUG and not self.audit_api_key_resolved:
+            raise ValueError("AUDIT_API_KEY is required when DEBUG=False.")
         return self
 
     model_config = {

@@ -23,18 +23,11 @@ export default function TopBar() {
             className={`dl-topbar sticky top-0 z-40${scrolled ? " dl-topbar-scrolled" : ""}`}
             style={{ height: "64px" }}
         >
-            <div style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingLeft: "clamp(20px, 5vw, 48px)",
-                paddingRight: "clamp(20px, 5vw, 48px)",
-            }}>
+            <div className="topbar-inner">
                 {/* Logo */}
-                <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+                <Link href="/" className="topbar-brand" onClick={() => setMobileOpen(false)}>
                     <img
+                        className="topbar-brand-logo"
                         src="/logo.png"
                         alt="DecisioLens logo"
                         width={28}
@@ -45,10 +38,9 @@ export default function TopBar() {
                         }}
                     />
                     <span
-                        className="font-display"
+                        className="font-display topbar-brand-name"
                         style={{
                             color: "var(--t1)",
-                            fontSize: "1.3rem",
                             fontWeight: 800,
                             letterSpacing: "-0.02em",
                         }}
@@ -77,10 +69,11 @@ export default function TopBar() {
                 </nav>
 
                 {/* Right side: CTA */}
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <Link href="/audit" className="topbar-cta-btn dl-nav-desktop">
+                <div className="topbar-actions">
+                    <Link href="/audit" className="topbar-cta-btn topbar-cta-desktop">
                         <span className="topbar-cta-shine" />
-                        Test a Decision →
+                        <span className="topbar-cta-label">Take Decision</span>
+                        <span className="topbar-cta-arrow" aria-hidden>→</span>
                     </Link>
 
                     {/* Mobile hamburger */}
@@ -159,9 +152,11 @@ export default function TopBar() {
                                 href="/audit"
                                 onClick={() => setMobileOpen(false)}
                                 className="topbar-cta-btn"
-                                style={{ display: "block", textAlign: "center" }}
+                                style={{ display: "flex", width: "100%", textAlign: "center" }}
                             >
-                                Test a Decision →
+                                <span className="topbar-cta-shine" />
+                                <span className="topbar-cta-label">Take Decision</span>
+                                <span className="topbar-cta-arrow" aria-hidden>→</span>
                             </Link>
                         </div>
                     </nav>

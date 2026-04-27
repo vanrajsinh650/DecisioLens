@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from core.config import get_settings
 from core.logging import get_logger, setup_logging
@@ -38,15 +39,21 @@ async def lifespan(app: FastAPI):
     logger.info("DecisioLens API shutting down")
 
 
+settings = get_settings()
+
 app = FastAPI(
     title="DecisioLens API",
     version="1.0.0",
     description="Production-ready AI decision auditing system",
     lifespan=lifespan,
+    docs_url="/docs" if settings.API_DOCS_ENABLED else None,
+    redoc_url="/redoc" if settings.API_DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if settings.API_DOCS_ENABLED else None,
 )
 
-# ── CORS ─────────────────────────────────────────────────────────────
-settings = get_settings()
+# ── Host validation + CORS ───────────────────────────────────────────
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
