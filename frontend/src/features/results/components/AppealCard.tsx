@@ -27,8 +27,11 @@ export default function AppealCard({
 
     // Clean up Gemini meta-notes from existing history
     englishText = englishText.replace(/\(Note:.*?\)/gi, "").trim();
+    englishText = englishText.replace(/सINCERELY|सincerely/gi, "Sincerely");
+    
     if (regionalText) {
         regionalText = regionalText.replace(/\(Note:.*?\)/gi, "").trim();
+        regionalText = regionalText.replace(/सINCERELY|सincerely|Sincerely/gi, "भवदीय");
     }
 
     const hasRegional = !!regionalText;
