@@ -22,8 +22,15 @@ export default function AppealCard({
 
     const activeText = activeTab === "appeal" && appeal ? appeal : explanationRequest ?? appeal;
     const parts = activeText.split("--- REGIONAL LANGUAGE TRANSLATION ---");
-    const englishText = parts[0]?.trim();
-    const regionalText = parts[1]?.trim();
+    let englishText = parts[0]?.trim() || "";
+    let regionalText = parts[1]?.trim();
+
+    // Clean up Gemini meta-notes from existing history
+    englishText = englishText.replace(/\(Note:.*?\)/gi, "").trim();
+    if (regionalText) {
+        regionalText = regionalText.replace(/\(Note:.*?\)/gi, "").trim();
+    }
+
     const hasRegional = !!regionalText;
 
     const tabStyle = (tab: Tab) => ({
@@ -157,16 +164,16 @@ export default function AppealCard({
                 >
                     {/* Letter text */}
                     <div
-                        className="font-mono"
                         style={{
                             whiteSpace: "pre-wrap",
-                            fontSize: "var(--fs-mono)",
                             color: "var(--t2)",
                             lineHeight: 1.9,
                         }}
                     >
                         {(displayLanguage === "en" || displayLanguage === "both") && (
-                            <div>{englishText}</div>
+                            <div className="font-mono" style={{ fontSize: "var(--fs-mono)" }}>
+                                {englishText}
+                            </div>
                         )}
                         
                         {hasRegional && (displayLanguage === "regional" || displayLanguage === "both") && (
@@ -175,10 +182,12 @@ export default function AppealCard({
                                 paddingTop: displayLanguage === "both" ? "32px" : "0", 
                                 borderTop: displayLanguage === "both" ? "1px dashed var(--s3)" : "none" 
                             }}>
-                                <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em" }}>
+                                <p className="font-body" style={{ color: "var(--aurora-teal)", fontSize: "0.7rem", marginBottom: "16px", letterSpacing: "0.1em", textTransform: "uppercase" }}>
                                     REGIONAL LANGUAGE VERSION
                                 </p>
-                                {regionalText}
+                                <div className="font-body" style={{ fontSize: "0.95rem", fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+                                    {regionalText}
+                                </div>
                             </div>
                         )}
 
