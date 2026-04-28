@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  // Use "standalone" only for Docker builds; Vercel manages its own output.
+  ...(process.env.DOCKER_BUILD === "1" ? { output: "standalone" } : {}),
   poweredByHeader: false,
   async headers() {
     return [
