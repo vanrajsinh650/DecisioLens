@@ -1,3 +1,5 @@
+"use client";
+
 import dynamic from "next/dynamic";
 import HeroSection from "@/features/landing/components/HeroSection";
 import HowItWorks from "@/features/landing/components/HowItWorks";
