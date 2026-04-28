@@ -8,11 +8,19 @@ same instance without re-reading the environment.
 
 from __future__ import annotations
 
+import os
+import sys
 from functools import lru_cache
+from pathlib import Path
 from typing import List
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
+
+# Only load .env file if it actually exists on disk.
+# In production (Railway/Docker), there is no .env file — all config
+# comes from OS environment variables injected by the platform.
+_ENV_FILE = ".env" if Path(".env").is_file() else None
 
 
 class Settings(BaseSettings):
@@ -22,8 +30,8 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = Field(default="gemini")  # "gemini" or "groq"
 
     # ── Gemini AI ────────────────────────────────────────────────────
-    GEMINI_API_KEY: str = Field(default="", alias="GEMINI_API_KEY")
-    GOOGLE_API_KEY: str = Field(default="", alias="GOOGLE_API_KEY")
+    GEMINI_API_KEY: str = Field(default="")
+    GOOGLE_API_KEY: str = Field(default="")
     GEMINI_MODEL: str = Field(default="gemini-2.0-flash")
 
     # ── Groq AI ──────────────────────────────────────────────────────
@@ -33,7 +41,7 @@ class Settings(BaseSettings):
     # ── Server / CORS ───────────────────────────────────────────────
     # Backend-only API key expected from a trusted server/BFF. Do not expose this
     # through NEXT_PUBLIC_* or any client-side bundle.
-    AUDIT_API_KEY: str = Field(default="", alias="AUDIT_API_KEY")
+    AUDIT_API_KEY: str = Field(default="")
 
     # Default to explicit localhost origins — safe for dev.
     # Override via CORS_ORIGINS env var in production deployments.
@@ -112,13 +120,25 @@ class Settings(BaseSettings):
                 "trusted hostnames or enable DEBUG."
             )
         if not self.DEBUG and not self.audit_api_key_resolved:
+            # Emit a diagnostic to stderr BEFORE raising so Railway logs
+            # show exactly which env vars were (not) injected.
+            _diag_keys = ["AUDIT_API_KEY", "DEBUG", "AI_PROVIDER", "GEMINI_API_KEY"]
+            _present = {k: (k in os.environ) for k in _diag_keys}
+            print(
+                f"[FATAL CONFIG] AUDIT_API_KEY missing in production. "
+                f"Env var presence: {_present} | "
+                f".env file loaded: {_ENV_FILE or 'None'} | "
+                f"CWD: {os.getcwd()}",
+                file=sys.stderr,
+            )
             raise ValueError("AUDIT_API_KEY is required when DEBUG=False.")
         return self
 
     model_config = {
-        "env_file": ".env",
+        "env_file": _ENV_FILE,
         "env_file_encoding": "utf-8",
         "extra": "ignore",
+        "populate_by_name": True,
     }
 
 
