@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// Extend Vercel serverless function timeout (default 10s → 60s)
+// Required because AI audit calls typically take 15-30 seconds.
+export const maxDuration = 60;
+
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_PROXY_BODY_BYTES = 131_072;
 
