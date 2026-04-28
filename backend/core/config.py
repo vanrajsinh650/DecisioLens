@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_production_safety(self) -> "Settings":
-        """Fail fast on unsafe or incomplete production configuration."""
+        """Validate production safety — AUDIT_API_KEY enforced at request level."""
         provider = self.AI_PROVIDER.lower().strip()
         if provider not in {"gemini", "groq"}:
             raise ValueError("AI_PROVIDER must be either 'gemini' or 'groq'.")
@@ -109,34 +109,33 @@ class Settings(BaseSettings):
         if self.SECURE_HSTS_SECONDS < 0:
             raise ValueError("SECURE_HSTS_SECONDS must be zero or greater.")
 
+        # Print startup diagnostic so Railway logs show env var injection state.
+        _diag_keys = ["AUDIT_API_KEY", "DEBUG", "AI_PROVIDER", "GEMINI_API_KEY"]
+        _present = {k: (k in os.environ) for k in _diag_keys}
+        _vals = {k: (os.environ.get(k, "")[:6] + "***" if os.environ.get(k) else "<MISSING>") for k in _diag_keys}
+        print(
+            f"[STARTUP] env presence={_present} | values={_vals} | "
+            f"env_file={_ENV_FILE or 'None'} | cwd={os.getcwd()}",
+            file=sys.stderr, flush=True,
+        )
+
         if not self.DEBUG and "*" in self.CORS_ORIGINS:
             raise ValueError(
-                "CORS_ORIGINS=['*'] with credentials is not allowed when "
-                "DEBUG=False. Set explicit trusted origins or enable DEBUG."
+                "CORS_ORIGINS=['*'] is not allowed when DEBUG=False."
             )
         if not self.DEBUG and "*" in self.ALLOWED_HOSTS:
             raise ValueError(
-                "ALLOWED_HOSTS=['*'] is not allowed when DEBUG=False. Set explicit "
-                "trusted hostnames or enable DEBUG."
+                "ALLOWED_HOSTS=['*'] is not allowed when DEBUG=False."
             )
+
+        # AUDIT_API_KEY is enforced at request time (routers/audit.py),
+        # NOT at startup — so the server can boot and /health works even
+        # before the key is configured. A warning is printed here instead.
         if not self.audit_api_key_resolved:
-            # Emit a diagnostic to stderr so Railway logs show exactly
-            # which env vars were (not) injected by the platform.
-            _diag_keys = ["AUDIT_API_KEY", "DEBUG", "AI_PROVIDER", "GEMINI_API_KEY"]
-            _present = {k: (k in os.environ) for k in _diag_keys}
-            _env_values = {k: os.environ.get(k, "<NOT SET>")[:8] + "..." for k in _diag_keys}
             print(
-                f"[CONFIG DIAGNOSTIC] AUDIT_API_KEY not resolved. "
-                f"Env var presence: {_present} | "
-                f"Env var values (truncated): {_env_values} | "
-                f".env file loaded: {_ENV_FILE or 'None'} | "
-                f"CWD: {os.getcwd()} | "
-                f"DEBUG={self.DEBUG}",
-                file=sys.stderr,
-                flush=True,
+                "[STARTUP WARNING] AUDIT_API_KEY not set — /audit endpoints will return 403.",
+                file=sys.stderr, flush=True,
             )
-            if not self.DEBUG:
-                raise ValueError("AUDIT_API_KEY is required when DEBUG=False.")
         return self
 
     model_config = {
