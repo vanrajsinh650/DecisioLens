@@ -459,6 +459,9 @@ export default function AuditWorkspace() {
             response,
             trustVerdict: deriveTrustVerdict(response.insights.risk_score),
         });
+
+        // Auto-navigate to the report page once the audit is done
+        router.push("/results");
     };
 
     const rerunAtHigherThreshold = async () => {
