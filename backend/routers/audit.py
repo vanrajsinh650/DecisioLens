@@ -30,6 +30,7 @@ from schemas.response import AuditResponse
 from services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit", tags=["audit"])
+_logger = __import__("logging").getLogger("audit")
 
 
 class AuditRequest(BaseModel):
@@ -81,6 +82,13 @@ async def require_api_key(x_api_key: str | None = Header(default=None)) -> str:
     if not x_api_key or not hmac.compare_digest(x_api_key, expected_key):
         raise HTTPException(status_code=401, detail="Invalid API key")
     return x_api_key
+
+
+@router.get("/ping")
+async def audit_ping(request: Request) -> dict:
+    """Lightweight auth check — no AI calls. Use to debug 502s."""
+    api_key = await require_api_key(x_api_key=request.headers.get("x-api-key"))
+    return {"status": "ok", "auth": "passed", "key_prefix": (api_key or "")[:6]}
 
 
 @router.post("/run", response_model=AuditResponse)
@@ -145,5 +153,8 @@ async def run_audit_endpoint(
             profile=profile_with_domain,
             threshold=body.threshold,
         )
+    except Exception as exc:
+        _logger.error("run_audit CRASH: %s", exc, exc_info=True)
+        raise
     finally:
         await limiter.release_global()
