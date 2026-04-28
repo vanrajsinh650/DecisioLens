@@ -119,19 +119,24 @@ class Settings(BaseSettings):
                 "ALLOWED_HOSTS=['*'] is not allowed when DEBUG=False. Set explicit "
                 "trusted hostnames or enable DEBUG."
             )
-        if not self.DEBUG and not self.audit_api_key_resolved:
-            # Emit a diagnostic to stderr BEFORE raising so Railway logs
-            # show exactly which env vars were (not) injected.
+        if not self.audit_api_key_resolved:
+            # Emit a diagnostic to stderr so Railway logs show exactly
+            # which env vars were (not) injected by the platform.
             _diag_keys = ["AUDIT_API_KEY", "DEBUG", "AI_PROVIDER", "GEMINI_API_KEY"]
             _present = {k: (k in os.environ) for k in _diag_keys}
+            _env_values = {k: os.environ.get(k, "<NOT SET>")[:8] + "..." for k in _diag_keys}
             print(
-                f"[FATAL CONFIG] AUDIT_API_KEY missing in production. "
+                f"[CONFIG DIAGNOSTIC] AUDIT_API_KEY not resolved. "
                 f"Env var presence: {_present} | "
+                f"Env var values (truncated): {_env_values} | "
                 f".env file loaded: {_ENV_FILE or 'None'} | "
-                f"CWD: {os.getcwd()}",
+                f"CWD: {os.getcwd()} | "
+                f"DEBUG={self.DEBUG}",
                 file=sys.stderr,
+                flush=True,
             )
-            raise ValueError("AUDIT_API_KEY is required when DEBUG=False.")
+            if not self.DEBUG:
+                raise ValueError("AUDIT_API_KEY is required when DEBUG=False.")
         return self
 
     model_config = {
