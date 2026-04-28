@@ -51,8 +51,19 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.API_DOCS_ENABLED else None,
 )
 
-# ── Host validation + CORS ───────────────────────────────────────────
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+# Always include Railway infrastructure hosts so the healthcheck is never
+# blocked by TrustedHostMiddleware, even when ALLOWED_HOSTS is overridden
+# by the Railway dashboard variable.
+_RAILWAY_REQUIRED_HOSTS = [
+    "healthcheck.railway.app",
+    "*.railway.app",
+    "*.up.railway.app",
+    "decisiolens-production.up.railway.app",
+]
+_allowed_hosts = list(
+    dict.fromkeys(list(settings.ALLOWED_HOSTS) + _RAILWAY_REQUIRED_HOSTS)
+)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=_allowed_hosts)
 
 app.add_middleware(
     CORSMiddleware,
