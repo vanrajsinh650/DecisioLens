@@ -354,7 +354,6 @@ A single tool that touches six SDGs is only possible because the underlying prob
 
 ## What We're Building Next
 
-- Deploy to Vercel (frontend) and Google Cloud Run (backend)
 - Let users upload real AI predictions via CSV for external system testing
 - Housing and rental application domain
 - SHAP-style feature importance visualization
