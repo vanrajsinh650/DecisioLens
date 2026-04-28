@@ -49,7 +49,15 @@ class Settings(BaseSettings):
         default=["http://localhost:5173", "http://localhost:3000"]
     )
     ALLOWED_HOSTS: List[str] = Field(
-        default=["localhost", "127.0.0.1", "0.0.0.0", "backend"]
+        default=[
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "backend",
+            "decisiolens-production.up.railway.app",
+            "*.railway.app",
+            "*.up.railway.app",
+        ]
     )
     API_DOCS_ENABLED: bool = Field(default=False)
     SECURE_HSTS_SECONDS: int = Field(default=0)
