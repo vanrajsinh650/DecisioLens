@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-# build-cache-bust: 2026-04-28-v4
+# build-cache-bust: 2026-04-28-v5
 
 FROM python:3.11-slim AS runtime
 

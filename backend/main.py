@@ -51,19 +51,16 @@ app = FastAPI(
     openapi_url="/openapi.json" if settings.API_DOCS_ENABLED else None,
 )
 
-# Always include Railway infrastructure hosts so the healthcheck is never
-# blocked by TrustedHostMiddleware, even when ALLOWED_HOSTS is overridden
-# by the Railway dashboard variable.
-_RAILWAY_REQUIRED_HOSTS = [
-    "healthcheck.railway.app",
-    "*.railway.app",
-    "*.up.railway.app",
-    "decisiolens-production.up.railway.app",
-]
-_allowed_hosts = list(
-    dict.fromkeys(list(settings.ALLOWED_HOSTS) + _RAILWAY_REQUIRED_HOSTS)
-)
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=_allowed_hosts)
+# ── Host validation + CORS ───────────────────────────────────────────
+# Temporarily disabled to rule out host header issues in production
+# app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    from core.logging import get_logger
+    logger = get_logger("main")
+    logger.info("Incoming: %s %s | Host: %s", request.method, request.url.path, request.headers.get("host"))
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,
